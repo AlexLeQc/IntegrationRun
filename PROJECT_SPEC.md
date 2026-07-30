@@ -54,12 +54,18 @@ create policy "Allow public insert access" on public.high_scores
 - The player controls a glowing cyan neon chevron/ship.
 - Positioned at the bottom of the screen (Y ≈ 85% of screen height).
 - Moves horizontally between three lanes (left, middle, right) using swipe touch inputs on mobile or arrow/AD keys on desktop.
+- Can transition into a **Jumping** state (elevated Y-offset tracking a jump arc)
+- Can transition into a **Sliding** state (vertically compressed ship layout and hitbox).
 - Movements are smoothly interpolated for a responsive and premium feel.
 
 ### Obstacles & Hazards
 
 - Obstacles are procedurally generated in the active lanes.
 - They spawn at the vanishing point (horizon) and move down towards the screen bottom, scaling up exponentially in size to create a 3D parallax effect.
+- Hazards are divided into **three categorized types**:
+  - **Full-Block Barrier**: Standard barrier requiring a lane change.
+  - **Low Hurdle**: Low-profile barrier requiring a **Jump** (collision is bypassed if player is currently jumping).
+  - **High Overhead Beam**: Laser line requiring a **Slide** (collision is bypassed if player is currently sliding).
 - Colliding with an obstacle decreases the player's life count and destroys the obstacle.
 - The spawn rate and speed gradually increase as the player's score increases.
 
@@ -153,15 +159,22 @@ To keep the game lightweight and self-contained, we will synthesize audio in rea
 
 Coordinates mobile touch swipes and keyboard key listeners:
 
-- Swipe Detection: Listens to `touchstart` and `touchend`. Calculates standard horizontal delta ($\Delta x$). If it exceeds 30px, triggers moving left/right.
-- Keyboard: Arrow keys / `A` & `D` for desktop users.
+- Swipe Detection: Listens to `touchstart` and `touchend`. Checks horizontal delta ($\Delta x$) and vertical delta ($\Delta y$) with a 30px threshold. Supports:
+  - Swipe Left/Right: Shift lanes.
+  - Swipe Up: Trigger Jump.
+  - Swipe Down: Trigger Slide.
+- Keyboard:
+  - ArrowLeft / ArrowRight / `A` / `D`: Shift lanes.
+  - ArrowUp / `W`: Jump.
+  - ArrowDown / `S`: Slide.
 
 #### [NEW] [src/game.js](file:///Users/alexisguerard/Projects/Gamefeeling/src/game.js)
 
 The high-performance game loop utilizing `requestAnimationFrame`:
 
 - **Pseudo-3D Rendering**: Renders a glowing perspective grid running down towards a virtual horizon. Renders obstacles scaling up and moving outward from the horizon center along three lanes.
-- **Game State**: Manages player lane index (0 = Left, 1 = Middle, 2 = Right), current speed, multiplier, scores, collision detection, lives, and obstacle spawning.
+- **Game State**: Manages player lane index, jump state physics (elevation offset), slide state timer (hitbox squish), current speed, scores, lives, and categorized obstacle spawning.
+- **Collision Checking**: Evaluates if the player's current lane and animation states (jumping/sliding) match the approaching obstacle types.
 - **Transitions**: Seamless transitions between menu, play, game over, and leaderboard views.
 
 #### [NEW] [main.js](file:///Users/alexisguerard/Projects/Gamefeeling/main.js)

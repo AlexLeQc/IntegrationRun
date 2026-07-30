@@ -28,10 +28,21 @@ export class Game {
     this.playerX = this.getLaneX(this.lane);
     this.targetPlayerX = this.playerX;
     
+    // Jump physics
+    this.isJumping = false;
+    this.jumpTime = 0;
+    this.jumpDuration = 0.72; // duration in seconds
+    this.jumpHeight = 0;
+
+    // Slide state
+    this.isSliding = false;
+    this.slideTime = 0;
+    this.slideDuration = 0.65; // duration in seconds
+
     // Obstacles list
     this.obstacles = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 1.4; // seconds between spawns
+    this.spawnInterval = 1.5; // seconds between spawns
 
     // Scrolling background grid offset
     this.gridOffset = 0;
@@ -44,10 +55,12 @@ export class Game {
     this.lastTime = 0;
     this.isRunning = false;
 
-    // Setup controls
+    // Setup controls (left, right, jump, slide)
     this.input = new InputHandler(
       () => this.moveLane(-1),
-      () => this.moveLane(1)
+      () => this.moveLane(1),
+      () => this.jump(),
+      () => this.slide()
     );
 
     // Test damage listener (Spacebar)
@@ -69,6 +82,24 @@ export class Game {
     this.targetPlayerX = this.getLaneX(this.lane);
   }
 
+  jump() {
+    if (!this.isRunning) return;
+    // Bypassed if already active
+    if (!this.isJumping && !this.isSliding) {
+      this.isJumping = true;
+      this.jumpTime = 0;
+    }
+  }
+
+  slide() {
+    if (!this.isRunning) return;
+    // Bypassed if already active
+    if (!this.isJumping && !this.isSliding) {
+      this.isSliding = true;
+      this.slideTime = 0;
+    }
+  }
+
   start() {
     this.isRunning = true;
     this.score = 0;
@@ -76,10 +107,15 @@ export class Game {
     this.lives = 3;
     this.obstacles = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 1.4;
+    this.spawnInterval = 1.5;
     this.gridOffset = 0;
     this.shakeDuration = 0;
     this.shakeIntensity = 0;
+    this.isJumping = false;
+    this.jumpTime = 0;
+    this.jumpHeight = 0;
+    this.isSliding = false;
+    this.slideTime = 0;
     this.lastTime = performance.now();
     
     if (this.onUpdateHUD) {
@@ -125,11 +161,16 @@ export class Game {
     // Choose a random lane (0, 1, 2)
     const lane = Math.floor(Math.random() * 3);
     
+    // Choose hazard type
+    const types = ['barrier', 'hurdle', 'beam'];
+    const type = types[Math.floor(Math.random() * types.length)];
+
     // Speed increases slightly based on score
     const speed = 0.35 + Math.min(0.25, this.score / 25000);
 
     this.obstacles.push({
       lane,
+      type,
       z: 0.0, // Start at horizon (depth = 0)
       speed,
       collided: false
@@ -143,6 +184,26 @@ export class Game {
     // Decrease screen shake duration
     if (this.shakeDuration > 0) {
       this.shakeDuration -= deltaTime;
+    }
+
+    // Update Jump arc physics
+    if (this.isJumping) {
+      this.jumpTime += deltaTime;
+      if (this.jumpTime >= this.jumpDuration) {
+        this.isJumping = false;
+        this.jumpHeight = 0;
+      } else {
+        // Sine wave for smooth parabolic jump height
+        this.jumpHeight = Math.sin((this.jumpTime / this.jumpDuration) * Math.PI) * 75;
+      }
+    }
+
+    // Update Slide active duration
+    if (this.isSliding) {
+      this.slideTime += deltaTime;
+      if (this.slideTime >= this.slideDuration) {
+        this.isSliding = false;
+      }
     }
 
     // Accumulate score (+10 points per second elapsed)
@@ -174,10 +235,28 @@ export class Game {
         const laneCenterX = this.getLaneX(obs.lane);
         const distance = Math.abs(this.playerX - laneCenterX);
         
-        // If player is within lane boundaries during collision depth window
+        // If player is horizontally within the lane boundaries
         if (distance < this.width / 6) {
-          obs.collided = true;
-          this.takeDamage();
+          let collided = false;
+          
+          if (obs.type === 'barrier') {
+            collided = true; // Full barrier blocks regardless of jump/slide
+          } else if (obs.type === 'hurdle') {
+            // Hurdle is bypassed if player is in the air
+            if (!this.isJumping) {
+              collided = true;
+            }
+          } else if (obs.type === 'beam') {
+            // Laser beam is bypassed if player is sliding underneath
+            if (!this.isSliding) {
+              collided = true;
+            }
+          }
+
+          if (collided) {
+            obs.collided = true;
+            this.takeDamage();
+          }
         }
       }
 
@@ -328,49 +407,142 @@ export class Game {
       const x = vanishingX + (bottomX - vanishingX) * obs.z;
       const y = this.horizonY + (this.height - this.horizonY) * obs.z;
 
-      // 3D perspective size scaling
-      const w = 42 * obs.z;
-      const h = 32 * obs.z;
+      const zScale = obs.z;
+      this.ctx.shadowBlur = 10 * zScale;
 
-      this.ctx.shadowBlur = 10 * obs.z;
-      this.ctx.shadowColor = '#ff007f';
-      this.ctx.strokeStyle = obs.collided ? '#ffaa00' : '#ff007f'; // Turns orange/yellow on crash
-      this.ctx.lineWidth = 1.5 + 2.5 * obs.z;
-      this.ctx.fillStyle = obs.collided ? 'rgba(255, 170, 0, 0.2)' : 'rgba(255, 0, 127, 0.15)';
-
-      // Draw wireframe retro triangle-barrier
-      this.ctx.beginPath();
-      this.ctx.moveTo(x - w / 2, y);
-      this.ctx.lineTo(x, y - h);
-      this.ctx.lineTo(x + w / 2, y);
-      this.ctx.closePath();
-      this.ctx.fill();
-      this.ctx.stroke();
-
-      // Draw 3D wireframe depth lines (extending back toward the horizon)
-      if (obs.z > 0.15) {
-        const zBack = obs.z - 0.06 * obs.z;
-        const xBack = vanishingX + (bottomX - vanishingX) * zBack;
-        const yBack = this.horizonY + (this.height - this.horizonY) * zBack;
-        const wBack = 42 * zBack;
-        const hBack = 32 * zBack;
+      if (obs.type === 'barrier') {
+        // 1. Full-Block Barrier: Tall neon pink grid-box
+        const w = 42 * zScale;
+        const h = 48 * zScale;
+        
+        this.ctx.shadowColor = '#ff007f';
+        this.ctx.strokeStyle = obs.collided ? '#ffaa00' : '#ff007f';
+        this.ctx.lineWidth = 1.5 + 2.5 * zScale;
+        this.ctx.fillStyle = obs.collided ? 'rgba(255, 170, 0, 0.2)' : 'rgba(255, 0, 127, 0.15)';
 
         this.ctx.beginPath();
-        this.ctx.moveTo(xBack - wBack / 2, yBack);
-        this.ctx.lineTo(xBack, yBack - hBack);
-        this.ctx.lineTo(xBack + wBack / 2, yBack);
-        this.ctx.closePath();
+        this.ctx.rect(x - w / 2, y - h, w, h);
+        this.ctx.fill();
         this.ctx.stroke();
 
-        // Connect corresponding corners
+        // 3D Wireframe Depth
+        if (zScale > 0.15) {
+          const zBack = zScale - 0.06 * zScale;
+          const xBack = vanishingX + (bottomX - vanishingX) * zBack;
+          const yBack = this.horizonY + (this.height - this.horizonY) * zBack;
+          const wBack = 42 * zBack;
+          const hBack = 48 * zBack;
+
+          this.ctx.beginPath();
+          this.ctx.rect(xBack - wBack / 2, yBack - hBack, wBack, hBack);
+          this.ctx.stroke();
+
+          // Connect corners
+          this.ctx.beginPath();
+          this.ctx.moveTo(x - w / 2, y); this.ctx.lineTo(xBack - wBack / 2, yBack);
+          this.ctx.moveTo(x + w / 2, y); this.ctx.lineTo(xBack + wBack / 2, yBack);
+          this.ctx.moveTo(x - w / 2, y - h); this.ctx.lineTo(xBack - wBack / 2, yBack - hBack);
+          this.ctx.moveTo(x + w / 2, y - h); this.ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+          this.ctx.stroke();
+        }
+      } 
+      else if (obs.type === 'hurdle') {
+        // 2. Low Hurdle: Flat neon orange hurdle (requires Jump)
+        const w = 46 * zScale;
+        const h = 18 * zScale;
+
+        this.ctx.shadowColor = '#ffaa00';
+        this.ctx.strokeStyle = obs.collided ? '#ff007f' : '#ffaa00';
+        this.ctx.lineWidth = 1.5 + 2.0 * zScale;
+        this.ctx.fillStyle = obs.collided ? 'rgba(255, 0, 127, 0.2)' : 'rgba(255, 170, 0, 0.15)';
+
         this.ctx.beginPath();
         this.ctx.moveTo(x - w / 2, y);
-        this.ctx.lineTo(xBack - wBack / 2, yBack);
-        this.ctx.moveTo(x + w / 2, y);
-        this.ctx.lineTo(xBack + wBack / 2, yBack);
-        this.ctx.moveTo(x, y - h);
-        this.ctx.lineTo(xBack, yBack - hBack);
+        this.ctx.lineTo(x - w * 0.4, y - h);
+        this.ctx.lineTo(x + w * 0.4, y - h);
+        this.ctx.lineTo(x + w / 2, y);
+        this.ctx.closePath();
+        this.ctx.fill();
         this.ctx.stroke();
+
+        // 3D Depth
+        if (zScale > 0.15) {
+          const zBack = zScale - 0.06 * zScale;
+          const xBack = vanishingX + (bottomX - vanishingX) * zBack;
+          const yBack = this.horizonY + (this.height - this.horizonY) * zBack;
+          const wBack = 46 * zBack;
+          const hBack = 18 * zBack;
+
+          this.ctx.beginPath();
+          this.ctx.moveTo(xBack - wBack / 2, yBack);
+          this.ctx.lineTo(xBack - wBack * 0.4, yBack - hBack);
+          this.ctx.lineTo(xBack + wBack * 0.4, yBack - hBack);
+          this.ctx.lineTo(xBack + wBack / 2, yBack);
+          this.ctx.closePath();
+          this.ctx.stroke();
+
+          // Connect corners
+          this.ctx.beginPath();
+          this.ctx.moveTo(x - w / 2, y); this.ctx.lineTo(xBack - wBack / 2, yBack);
+          this.ctx.moveTo(x + w / 2, y); this.ctx.lineTo(xBack + wBack / 2, yBack);
+          this.ctx.moveTo(x - w * 0.4, y - h); this.ctx.lineTo(xBack - wBack * 0.4, yBack - hBack);
+          this.ctx.moveTo(x + w * 0.4, y - h); this.ctx.lineTo(xBack + wBack * 0.4, yBack - hBack);
+          this.ctx.stroke();
+        }
+      } 
+      else if (obs.type === 'beam') {
+        // 3. High Overhead Beam: Neon cyan glowing laser line arch (requires Slide)
+        const w = 48 * zScale;
+        const h = 48 * zScale; // height of pillars
+        const beamH = 14 * zScale; // beam thickness
+
+        this.ctx.shadowColor = '#00f0ff';
+        this.ctx.strokeStyle = obs.collided ? '#ff007f' : '#00f0ff';
+        this.ctx.lineWidth = 1.5 + 2.0 * zScale;
+
+        // Draw side pillars
+        this.ctx.beginPath();
+        this.ctx.moveTo(x - w / 2, y);
+        this.ctx.lineTo(x - w / 2, y - h);
+        this.ctx.moveTo(x + w / 2, y);
+        this.ctx.lineTo(x + w / 2, y - h);
+        this.ctx.stroke();
+
+        // Draw horizontal laser bar
+        this.ctx.fillStyle = obs.collided ? 'rgba(255, 0, 127, 0.4)' : 'rgba(0, 240, 255, 0.35)';
+        this.ctx.beginPath();
+        this.ctx.rect(x - w / 2, y - h, w, beamH);
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        // 3D Depth
+        if (zScale > 0.15) {
+          const zBack = zScale - 0.06 * zScale;
+          const xBack = vanishingX + (bottomX - vanishingX) * zBack;
+          const yBack = this.horizonY + (this.height - this.horizonY) * zBack;
+          const wBack = 48 * zBack;
+          const hBack = 48 * zBack;
+          const beamHBack = 14 * zBack;
+
+          this.ctx.beginPath();
+          this.ctx.moveTo(xBack - wBack / 2, yBack);
+          this.ctx.lineTo(xBack - wBack / 2, yBack - hBack);
+          this.ctx.moveTo(xBack + wBack / 2, yBack);
+          this.ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+          this.ctx.stroke();
+
+          this.ctx.beginPath();
+          this.ctx.rect(xBack - wBack / 2, yBack - hBack, wBack, beamHBack);
+          this.ctx.stroke();
+
+          // Connect top beam corners
+          this.ctx.beginPath();
+          this.ctx.moveTo(x - w / 2, y - h); this.ctx.lineTo(xBack - wBack / 2, yBack - hBack);
+          this.ctx.moveTo(x + w / 2, y - h); this.ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+          this.ctx.moveTo(x - w / 2, y - h + beamH); this.ctx.lineTo(xBack - wBack / 2, yBack - hBack + beamHBack);
+          this.ctx.moveTo(x + w / 2, y - h + beamH); this.ctx.lineTo(xBack + wBack / 2, yBack - hBack + beamHBack);
+          this.ctx.stroke();
+        }
       }
 
       this.ctx.shadowBlur = 0;
@@ -381,16 +553,27 @@ export class Game {
     const playerY = this.height * 0.85;
     const size = 32;
 
+    this.ctx.save();
+
+    // Account for jump elevation
+    const drawY = playerY - this.jumpHeight;
+    this.ctx.translate(this.playerX, drawY);
+
+    // Apply vertical squish for sliding
+    if (this.isSliding) {
+      this.ctx.scale(1.4, 0.4);
+    }
+
     this.ctx.shadowBlur = 18;
     this.ctx.shadowColor = '#00f0ff';
 
     // Glowing cyan chevron
     this.ctx.fillStyle = '#00f0ff';
     this.ctx.beginPath();
-    this.ctx.moveTo(this.playerX, playerY - size / 2);
-    this.ctx.lineTo(this.playerX - size / 2, playerY + size / 2);
-    this.ctx.lineTo(this.playerX, playerY + size / 4);
-    this.ctx.lineTo(this.playerX + size / 2, playerY + size / 2);
+    this.ctx.moveTo(0, -size / 2);
+    this.ctx.lineTo(-size / 2, size / 2);
+    this.ctx.lineTo(0, size / 4);
+    this.ctx.lineTo(size / 2, size / 2);
     this.ctx.closePath();
     this.ctx.fill();
 
@@ -398,10 +581,10 @@ export class Game {
     this.ctx.shadowColor = '#ff007f';
     this.ctx.fillStyle = '#ff007f';
     this.ctx.beginPath();
-    this.ctx.arc(this.playerX, playerY + size / 4, 4, 0, Math.PI * 2);
+    this.ctx.arc(0, size / 4, 4, 0, Math.PI * 2);
     this.ctx.fill();
 
-    this.ctx.shadowBlur = 0;
+    this.ctx.restore();
   }
 
   loop(time) {
