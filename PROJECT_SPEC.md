@@ -87,6 +87,13 @@ create policy "Allow public insert access" on public.high_scores
 - When the player hits an obstacle, it triggers a screen flash and screen shake effect, removing 1 heart from the visual health indicator on the screen. (Example: if the player hits an obstacle while having 3 lives, the player will have 2 lives left and the visual health indicator will show 2 hearts).
 - When 0 hearts remain, the Game Over state is triggered.
 
+### Collectibles & Coins
+
+- Coins are procedurally generated in lane patterns (such as lines of 3–5 consecutive coins) or individually placed (e.g. directly above low hurdles to reward jump triggers).
+- They spawn at varying heights (ground level, low-jump height, or slide height).
+- Styled as spinning/pulsing neon golden-yellow disks with a glowing outer ring.
+- Collecting a coin immediately increases the player's active score by **+100 points**
+
 ### Background & Visual Environment
 
 - retro-futuristic Synthwave/Cyberpunk design.
