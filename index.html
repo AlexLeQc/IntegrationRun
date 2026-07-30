@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>NEON RUNNER</title>
+    <!-- Google Fonts for retro/futuristic styling -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="game-container">
+      <!-- High-resolution Game Canvas -->
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Damage Flash Overlay -->
+      <div id="damage-flash" class="flash-overlay"></div>
+
+      <!-- HUD (Heads-Up Display) Overlay -->
+      <div id="hud-overlay" class="screen-overlay hidden">
+        <div class="hud-top">
+          <div class="hud-item">
+            <span class="hud-label">SCORE</span>
+            <span id="hud-score" class="hud-value">000000</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">LIVES</span>
+            <div id="hud-lives" class="hud-lives-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Menu Screen -->
+      <div id="main-menu" class="screen-overlay active">
+        <h1 class="game-title">NEON<br><span class="highlight">RUNNER</span></h1>
+        <p class="game-subtitle">Swipe left/right to dodge obstacles</p>
+        <div class="menu-actions">
+          <button id="start-btn" class="neon-btn cyan">START MISSION</button>
+          <button id="leaderboard-btn" class="neon-btn magenta">LEADERBOARD</button>
+        </div>
+      </div>
+
+      <!-- Leaderboard Screen -->
+      <div id="leaderboard-screen" class="screen-overlay hidden">
+        <h2 class="screen-title">HIGH SCORES</h2>
+        <div class="leaderboard-table-container">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th style="width: 20%">#</th>
+                <th style="text-align: left">PILOT</th>
+                <th style="text-align: right">SCORE</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-entries">
+              <!-- Dynamically loaded entries -->
+            </tbody>
+          </table>
+        </div>
+        <button id="leaderboard-back-btn" class="neon-btn outline">BACK</button>
+      </div>
+
+      <!-- Game Over Screen -->
+      <div id="game-over-screen" class="screen-overlay hidden">
+        <h2 class="screen-title text-magenta">MISSION FAILED</h2>
+        <div class="final-score-container">
+          <span class="score-label">FINAL SCORE</span>
+          <span id="final-score-val" class="score-value">0</span>
+        </div>
+        
+        <form id="score-submit-form" class="score-form">
+          <label for="username" class="form-label">ENTER PILOT INITIALS</label>
+          <input type="text" id="username" class="form-input" minlength="2" maxlength="3" required placeholder="AAA" autocomplete="off" />
+          <button type="submit" id="submit-score-btn" class="neon-btn cyan">SUBMIT RECORD</button>
+        </form>
+
+        <button id="restart-btn" class="neon-btn outline">RETRY MISSION</button>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
