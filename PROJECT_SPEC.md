@@ -1,25 +1,31 @@
 # Project Specification & Implementation Plan: Neon Runner
 
-# Project Specification & Implementation Plan: Neon Runner
-
 We will build **NEON RUNNER**, a mobile-first, high-performance, 3-lane runner web game set in a retro-futuristic Synthwave aesthetic. The game features glowing neon graphics, a pseudo-3D perspective grid, audio synthesized dynamically via the Web Audio API, mobile touch swipe controls, and a global leaderboard integrated with Supabase.
 
 ---
 
-## Environment Setup & Supabase Configuration
+## Environment Setup & Configuration
 
 > [!NOTE]
 > **Local Fallback Enabled:** The application includes a mock mode in `src/supabase.js` that falls back to `localStorage` if `.env` variables are missing. This allows local development and playtesting without setting up Supabase first.
 
+### Configuration Files
+
+- **`package.json`**: NPM package configuration detailing dependencies (such as `@supabase/supabase-js`) and dev tooling (`vite`).
+- **`vite.config.js`**: Vite configuration defining server options and build settings.
+- **`vercel.json`**: Hosting configuration for Vercel providing SPA route rewrites (`"rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]`) to guarantee smooth client-side routing and static asset serving.
+- **`.env.example`**: Template showing required environment variables (`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`).
+
+### Database Schema (Supabase)
+
 When ready to connect live global leaderboards, create a `.env` file at the root:
 
-````env
+```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-## Database Schema (Supabase)
-
-The leaderboard will use a `high_scores` table. Run this SQL in your Supabase SQL Editor to set it up:
+The leaderboard uses a `high_scores` table. Run this SQL in your Supabase SQL Editor to set it up:
 
 ```sql
 -- Create high_scores table
@@ -43,7 +49,7 @@ create policy "Allow public read access" on public.high_scores
 -- Create policy to allow anonymous score submissions
 create policy "Allow public insert access" on public.high_scores
   for insert with check (true);
-````
+```
 
 ---
 
@@ -54,7 +60,7 @@ create policy "Allow public insert access" on public.high_scores
 - The player controls a glowing cyan neon chevron/ship.
 - Positioned at the bottom of the screen (Y ≈ 85% of screen height).
 - Moves horizontally between three lanes (left, middle, right) using swipe touch inputs on mobile or arrow/AD keys on desktop.
-- Can transition into a **Jumping** state (elevated Y-offset tracking a jump arc)
+- Can transition into a **Jumping** state (elevated Y-offset tracking a jump arc).
 - Can transition into a **Sliding** state (vertically compressed ship layout and hitbox).
 - Movements are smoothly interpolated for a responsive and premium feel.
 
@@ -84,7 +90,7 @@ create policy "Allow public insert access" on public.high_scores
 
 - The player starts with 3 lives.
 - Lives are represented in the HUD using custom SVG heart elements rather than Unicode characters (such as `♥`). This prevents mobile operating systems (especially iOS) from overriding the custom styling with standard emojis, guaranteeing uniform neon-pink rendering across all devices.
-- When the player hits an obstacle, it triggers a screen flash and screen shake effect, removing 1 heart from the visual health indicator on the screen. (Example: if the player hits an obstacle while having 3 lives, the player will have 2 lives left and the visual health indicator will show 2 hearts).
+- When the player hits an obstacle, it triggers a screen flash and screen shake effect, removing 1 heart from the visual health indicator on the screen.
 - When 0 hearts remain, the Game Over state is triggered.
 
 ### Collectibles & Coins
@@ -92,107 +98,30 @@ create policy "Allow public insert access" on public.high_scores
 - Coins are procedurally generated in lane patterns (such as lines of 3–5 consecutive coins) or individually placed (e.g. directly above low hurdles to reward jump triggers).
 - They spawn at varying heights (ground level, low-jump height, or slide height).
 - Styled as spinning/pulsing neon golden-yellow disks with a glowing outer ring.
-- Collecting a coin immediately increases the player's active score by **+100 points**
+- Collecting a coin immediately increases the player's active score by **+100 points**.
 
 ### Background & Visual Environment
 
-- retro-futuristic Synthwave/Cyberpunk design.
+- Retro-futuristic Synthwave/Cyberpunk design.
 - Features a glowing retro sunset with scanlines, neon pink/cyan grid lanes, and a deep violet/purple horizon gradient.
+- Custom typography loaded from Google Fonts ("Orbitron" for headers, score displays, and buttons; "Inter" for UI body text and labels).
+- Glassmorphic screen overlays (`#main-menu`, `#leaderboard-screen`, `#game-over-screen`, `#hud-overlay`) featuring `backdrop-filter: blur(12px)` dark translucent backgrounds, subtle neon borders, and glowing text-shadow accents (`#ff007f`, `#00f0ff`).
 
 ---
 
-## Proposed Changes
+## Code Structure & Architecture
 
-We will initialize a clean Vite + Vanilla JS project in the workspace and build out the game and leaderboard.
+The application follows a modular architecture using ES modules for clean separation of concerns:
 
-### Project Setup & Configuration
-
-#### [NEW] [package.json](file:///Users/alexisguerard/Projects/Gamefeeling/package.json)
-
-Standard NPM package config detailing dependencies like `@supabase/supabase-js` and dev tools like `vite`.
-
-#### [NEW] [vite.config.js](file:///Users/alexisguerard/Projects/Gamefeeling/vite.config.js)
-
-Configuration for Vite, defining server options and build configurations.
-
-#### [NEW] [vercel.json](file:///Users/alexisguerard/Projects/Gamefeeling/vercel.json)
-
-Hosting configuration for Vercel, ensuring client-side routes and static files are served properly.
-
-#### [NEW] [.env.example](file:///Users/alexisguerard/Projects/Gamefeeling/.env.example)
-
-A template showing the required environment variables: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-
----
-
-### UI & Game Styling
-
-#### [NEW] [style.css](file:///Users/alexisguerard/Projects/Gamefeeling/style.css)
-
-A premium CSS stylesheet applying a Synthwave style:
-
-- Glassmorphic panels with `backdrop-filter: blur(12px)`.
-- Pulsing neon border-glows (`box-shadow`, `text-shadow`) using hot pink (`#ff007f`), cyan (`#00f0ff`), and deep violet.
-- Grid-based overlays, responsive layout for portrait mobile screens, and smooth transitions.
-- Custom typography from Google Fonts ("Orbitron" and "Inter").
-
----
-
-### Core Logic & Game Architecture
-
-#### [NEW] [index.html](file:///Users/alexisguerard/Projects/Gamefeeling/index.html)
-
-The page structure containing:
-
-- High-resolution `<canvas>` for the pseudo-3D game rendering.
-- HTML overlay overlays for screens: Main Menu, Leaderboard, Game Over (score submission), and Settings.
-- Responsive container structures.
-
-#### [NEW] [src/supabase.js](file:///Users/alexisguerard/Projects/Gamefeeling/src/supabase.js)
-
-Initializes the Supabase client using environment variables and exports helper functions:
-
-- `fetchLeaderboard()`: Fetches the top 10 scores sorted by descending order.
-- `submitScore(username, score)`: Submits a new score.
-
-#### [NEW] [src/audio.js](file:///Users/alexisguerard/Projects/Gamefeeling/src/audio.js)
-
-To keep the game lightweight and self-contained, we will synthesize audio in real-time using the browser's **Web Audio API**:
-
-- Synthwave background drone/melody.
-- Sound effects: swiping lane shift, collecting point boost, collision crash, and game over chord.
-
-#### [NEW] [src/input.js](file:///Users/alexisguerard/Projects/Gamefeeling/src/input.js)
-
-Coordinates mobile touch swipes and keyboard key listeners:
-
-- Swipe Detection: Listens to `touchstart` and `touchend`. Checks horizontal delta ($\Delta x$) and vertical delta ($\Delta y$) with a 30px threshold. Supports:
-  - Swipe Left/Right: Shift lanes.
-  - Swipe Up: Trigger Jump.
-  - Swipe Down: Trigger Slide.
-- Keyboard:
-  - ArrowLeft / ArrowRight / `A` / `D`: Shift lanes.
-  - ArrowUp / `W`: Jump.
-  - ArrowDown / `S`: Slide.
-
-#### [NEW] [src/game.js](file:///Users/alexisguerard/Projects/Gamefeeling/src/game.js)
-
-The high-performance game loop utilizing `requestAnimationFrame`:
-
-- **Pseudo-3D Rendering**: Renders a glowing perspective grid running down towards a virtual horizon. Renders obstacles scaling up and moving outward from the horizon center along three lanes.
-- **Game State**: Manages player lane index, jump state physics (elevation offset), slide state timer (hitbox squish), current speed, scores, lives, and categorized obstacle spawning.
-- **Collision Checking**: Evaluates if the player's current lane and animation states (jumping/sliding) match the approaching obstacle types.
-- **Transitions**: Seamless transitions between menu, play, game over, and leaderboard views.
-
-#### [NEW] [main.js](file:///Users/alexisguerard/Projects/Gamefeeling/main.js)
-
-The entrypoint that wires up the UI buttons, initializes the game, connects the input events, loads the leaderboard, and controls audio settings.
-
----
-
-## Read me
-
-Add a readme with the current implementation. Include instructions on how to run the game, how to set up the Supabase database, and how to deploy the game to Vercel.
+- **`src/player.js`**: `Player` class managing player lane state, smooth horizontal interpolation, jump/slide physics, and cyan chevron canvas rendering.
+- **`src/obstacles.js`**: `ObstacleManager` class managing procedural hazard spawning (Full Block, Low Hurdle, High Beam), 3D perspective scaling math, and wireframe rendering.
+- **`src/collectibles.js`**: `CoinManager` class managing coin pattern generation, spinning coin animations, pickup collection checks, Web Audio sound synthesis, and spark particle explosions.
+- **`src/ui.js`**: UI helper module managing HUD score displays, SVG heart indicators, screen shake transforms, damage screen flashes, glassmorphic overlay screen transitions, and leaderboard DOM updates.
+- **`src/game.js`**: Main `Game` orchestrator managing the `requestAnimationFrame` loop, delta time calculations, background/grid rendering, module coordination, and collision checks.
+- **`src/input.js`**: `InputHandler` managing keyboard and mobile touch swipe input events.
+- **`src/audio.js`**: Web Audio API synthesizer for sound effects and Synthwave audio.
+- **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations.
+- **`src/main.js`**: Application entrypoint initializing DOM events, game instance, responsive canvas scaling, and screen management.
 
 ---
 
@@ -200,13 +129,11 @@ Add a readme with the current implementation. Include instructions on how to run
 
 ### Automated Verification
 
-Since this is a client-side vanilla JavaScript app, verification will involve:
-
-1. Running static compilation validation and dev server tests.
-2. Checking JS lints/formatting.
+1. Vite production build validation (`npm run build`).
+2. Syntax check across all ES modules.
 
 ### Manual Verification
 
-1. **Swipe Interaction**: Test horizontal touch swiping on simulated mobile viewports via Chrome/Safari DevTools.
-2. **Leaderboard Operations**: Attempt reading and inserting mock scores into a test database. We will include a mock mode in `supabase.js` that falls back to `localStorage` if environment credentials are not present, ensuring the app remains fully functional and testable immediately out of the box.
-3. **Responsive Visuals**: Verify layout scaling from standard mobile widths (320px, 375px, 414px) up to tablet/desktop modes.
+1. **Swipe & Keyboard Interaction**: Test horizontal touch swiping on simulated mobile viewports via DevTools, and arrow/WASD keys on desktop.
+2. **Leaderboard Operations**: Reading and inserting scores into Supabase database with local storage fallback.
+3. **Responsive Visuals**: Verify layout scaling from standard mobile screens up to tablet and desktop viewports.
