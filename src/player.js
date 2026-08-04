@@ -102,29 +102,53 @@ export class Player {
     if (this.assets && this.assets.player) {
       // Render custom player image centered
       const img = this.assets.player;
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = '#00f0ff';
       ctx.drawImage(img, -size / 2, -size / 2, size, size);
     } else {
-      // Procedural cyan chevron fallback
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = '#00f0ff';
+      // Procedural Hand-Drawn Paper Airplane / Doodle Chevron
+      ctx.strokeStyle = '#2C2C2E';
+      ctx.lineWidth = 2.5;
 
-      ctx.fillStyle = '#00f0ff';
+      // Outer Paper Airplane Body
+      ctx.fillStyle = '#FFFFFF';
       ctx.beginPath();
-      ctx.moveTo(0, -size / 2);
-      ctx.lineTo(-size / 2, size / 2);
-      ctx.lineTo(0, size / 4);
-      ctx.lineTo(size / 2, size / 2);
+      ctx.moveTo(0, -size * 0.6);
+      ctx.lineTo(-size * 0.55, size * 0.5);
+      ctx.lineTo(0, size * 0.15);
+      ctx.lineTo(size * 0.55, size * 0.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Wing fold line
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.6);
+      ctx.lineTo(0, size * 0.5);
+      ctx.stroke();
+
+      // Sky Blue crayon wing stripe
+      ctx.fillStyle = '#007AFF';
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.25, 0);
+      ctx.lineTo(-size * 0.45, size * 0.4);
+      ctx.lineTo(-size * 0.1, size * 0.1);
       ctx.closePath();
       ctx.fill();
 
-      // Hot pink engine flare
-      ctx.shadowColor = '#ff007f';
-      ctx.fillStyle = '#ff007f';
+      // Crayon Red right wing stripe
+      ctx.fillStyle = '#FF3B30';
       ctx.beginPath();
-      ctx.arc(0, size / 4, 4, 0, Math.PI * 2);
+      ctx.moveTo(size * 0.25, 0);
+      ctx.lineTo(size * 0.45, size * 0.4);
+      ctx.lineTo(size * 0.1, size * 0.1);
+      ctx.closePath();
       ctx.fill();
+
+      // Yellow thruster doodle spark
+      ctx.fillStyle = '#FFCC00';
+      ctx.beginPath();
+      ctx.arc(0, size * 0.4, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
     }
 
     ctx.restore();

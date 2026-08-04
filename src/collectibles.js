@@ -50,17 +50,19 @@ export class CoinManager {
   }
 
   spawnParticles(x, y, color, count) {
+    const crayonColors = ['#FF3B30', '#FFCC00', '#007AFF', '#34C759', '#FF2D55'];
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 30 + Math.random() * 120;
       const maxLife = 0.3 + Math.random() * 0.3;
+      const particleColor = color === '#ffea00' || color === '#FFCC00' ? crayonColors[Math.floor(Math.random() * crayonColors.length)] : color;
 
       this.particles.push({
         x,
         y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        color,
+        color: particleColor,
         life: maxLife,
         maxLife,
         size: 1.5 + Math.random() * 2.5
@@ -183,9 +185,7 @@ export class CoinManager {
       const pulse = 1.0 + Math.sin(Date.now() / 90) * 0.08;
 
       ctx.save();
-
-      ctx.shadowBlur = (15 + 5 * pulse) * zScale;
-      ctx.shadowColor = '#ffea00';
+      ctx.shadowBlur = 0;
 
       if (this.assets && this.assets.coin) {
         // Draw custom coin image with horizontal spin scaling & pulse
@@ -193,21 +193,33 @@ export class CoinManager {
         const h = ry * pulse * 2;
         ctx.drawImage(this.assets.coin, x - w / 2, y - h / 2, w, h);
       } else {
-        // Procedural neon golden disk fallback
-        ctx.strokeStyle = '#ffea00';
+        // Procedural Hand-Drawn Golden 5-Point Star Sticker
+        ctx.strokeStyle = '#2C2C2E';
         ctx.lineWidth = 1.5 + zScale;
-        ctx.fillStyle = 'rgba(255, 234, 0, 0.35)';
+        ctx.fillStyle = '#FFCC00';
+
+        const outerR = ry * pulse;
+        const innerR = outerR * 0.45;
+        const points = 5;
 
         ctx.beginPath();
-        ctx.ellipse(x, y, rx * pulse, ry * pulse, 0, 0, Math.PI * 2);
+        for (let p = 0; p < points * 2; p++) {
+          const r = p % 2 === 0 ? outerR : innerR;
+          const angle = (p * Math.PI) / points - Math.PI / 2;
+          const sx = x + Math.cos(angle) * r * Math.abs(spinScale);
+          const sy = y + Math.sin(angle) * r;
+          if (p === 0) ctx.moveTo(sx, sy);
+          else ctx.lineTo(sx, sy);
+        }
+        ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
-        // Inner details
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        // Inner crayon hatch detail line
+        ctx.strokeStyle = '#FF9500';
         ctx.lineWidth = 1.0;
         ctx.beginPath();
-        ctx.ellipse(x, y, rx * 0.5 * pulse, ry * 0.5 * pulse, 0, 0, Math.PI * 2);
+        ctx.arc(x, y, innerR * 0.6, 0, Math.PI * 2);
         ctx.stroke();
       }
 

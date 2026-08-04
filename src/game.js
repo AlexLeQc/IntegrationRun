@@ -173,25 +173,25 @@ export class Game {
     // Apply screen shake translation if active
     this.screenShake.applyTransform(this.ctx);
 
-    // Clear screen with Synthwave deep purple
-    this.ctx.fillStyle = '#0a051b';
+    // Clear screen with Notebook Cream background
+    this.ctx.fillStyle = '#FAF8F5';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
     if (this.assets && this.assets.background) {
       this.ctx.drawImage(this.assets.background, 0, 0, this.width, this.height);
     } else {
-      // Draw sky horizon gradient
+      // Draw light sky gradient above horizon
       const skyGrad = this.ctx.createLinearGradient(0, 0, 0, this.horizonY);
-      skyGrad.addColorStop(0, '#05020c');
-      skyGrad.addColorStop(1, '#1e0c3b');
+      skyGrad.addColorStop(0, '#E3F2FD');
+      skyGrad.addColorStop(1, '#FAF8F5');
       this.ctx.fillStyle = skyGrad;
       this.ctx.fillRect(0, 0, this.width, this.horizonY);
 
-      // Draw retro sunset
-      this.drawSunset();
+      // Draw playful doodle sun
+      this.drawSun();
     }
 
-    // Draw moving perspective grid and lanes
+    // Draw moving graphite pencil perspective grid and lanes
     this.drawGrid();
 
     // Draw coins & particles
@@ -206,43 +206,53 @@ export class Game {
     this.ctx.restore();
   }
 
-  drawSunset() {
-    const radius = 55;
-    const sunsetX = this.width / 2;
-    const sunsetY = this.horizonY;
+  drawSun() {
+    const radius = 45;
+    const sunX = this.width / 2;
+    const sunY = this.horizonY;
 
-    this.ctx.shadowBlur = 25;
-    this.ctx.shadowColor = '#ff007f';
+    this.ctx.save();
 
-    const grad = this.ctx.createLinearGradient(
-      sunsetX, sunsetY - radius,
-      sunsetX, sunsetY
-    );
-    grad.addColorStop(0, '#ff007f');
-    grad.addColorStop(0.5, '#ffaa00');
-    grad.addColorStop(1, '#ffea00');
+    // Yellow crayon sun fill
+    this.ctx.fillStyle = '#FFCC00';
+    this.ctx.strokeStyle = '#2C2C2E';
+    this.ctx.lineWidth = 2.5;
 
+    // Draw hand-drawn sun body with slight organic wobbly arc
     this.ctx.beginPath();
-    this.ctx.arc(sunsetX, sunsetY, radius, Math.PI, 0);
-    this.ctx.fillStyle = grad;
+    this.ctx.arc(sunX, sunY, radius, Math.PI, 0);
     this.ctx.fill();
+    this.ctx.stroke();
 
-    this.ctx.shadowBlur = 0;
+    // Draw radiating crayon rays
+    const numRays = 7;
+    for (let i = 0; i < numRays; i++) {
+      const angle = Math.PI + (Math.PI / (numRays - 1)) * i;
+      const rayInner = radius + 6;
+      const rayOuter = radius + 18;
 
-    // Sun scanline cutouts
-    this.ctx.strokeStyle = '#0a051b';
-    this.ctx.lineWidth = 3;
-    for (let y = sunsetY - 3; y > sunsetY - radius; y -= 8) {
+      const x1 = sunX + Math.cos(angle) * rayInner;
+      const y1 = sunY + Math.sin(angle) * rayInner;
+      const x2 = sunX + Math.cos(angle) * rayOuter;
+      const y2 = sunY + Math.sin(angle) * rayOuter;
+
+      this.ctx.strokeStyle = '#FF3B30';
+      this.ctx.lineWidth = 3;
+      this.ctx.lineCap = 'round';
       this.ctx.beginPath();
-      this.ctx.moveTo(sunsetX - radius, y);
-      this.ctx.lineTo(sunsetX + radius, y);
+      this.ctx.moveTo(x1, y1);
+      this.ctx.lineTo(x2, y2);
       this.ctx.stroke();
     }
+
+    this.ctx.restore();
   }
 
   drawGrid() {
-    // Draw horizon line
-    this.ctx.strokeStyle = '#00f0ff';
+    this.ctx.save();
+
+    // Draw horizon pencil line
+    this.ctx.strokeStyle = '#2C2C2E';
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
     this.ctx.moveTo(0, this.horizonY);
@@ -252,7 +262,7 @@ export class Game {
     const vanishingX = this.width / 2;
     const vanishingY = this.horizonY;
 
-    // Converging longitudinal lane dividers
+    // Converging longitudinal lane dividers (Graphite / Crayon strokes)
     const bottomXs = [
       0,
       this.width / 3,
@@ -261,26 +271,30 @@ export class Game {
     ];
 
     bottomXs.forEach((bx, index) => {
-      this.ctx.strokeStyle = (index === 1 || index === 2) ? '#ff007f' : '#00f0ff';
-      this.ctx.lineWidth = (index === 1 || index === 2) ? 2 : 4;
+      this.ctx.strokeStyle = (index === 1 || index === 2) ? '#007AFF' : '#2C2C2E';
+      this.ctx.lineWidth = (index === 1 || index === 2) ? 2.5 : 3.5;
 
       if (index === 1 || index === 2) {
-        this.ctx.setLineDash([12, 12]);
+        this.ctx.setLineDash([8, 8]);
       } else {
         this.ctx.setLineDash([]);
       }
 
       this.ctx.beginPath();
+      // Add slight organic wobbly line effect
+      const midX = (bx + vanishingX) / 2 + Math.sin(index * 2) * 1.5;
+      const midY = (this.height + vanishingY) / 2;
+
       this.ctx.moveTo(bx, this.height);
-      this.ctx.lineTo(vanishingX, vanishingY);
+      this.ctx.quadraticCurveTo(midX, midY, vanishingX, vanishingY);
       this.ctx.stroke();
     });
 
     this.ctx.setLineDash([]);
 
-    // Draw scrolling perspective horizontal grid lines
-    this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.22)';
-    this.ctx.lineWidth = 1;
+    // Draw scrolling perspective horizontal graphite pencil lines
+    this.ctx.strokeStyle = 'rgba(44, 44, 46, 0.28)';
+    this.ctx.lineWidth = 1.5;
     const numHorizontalLines = 14;
     for (let i = 0; i <= numHorizontalLines; i++) {
       const lineZ = Math.pow((i + this.gridOffset) / numHorizontalLines, 2.5);
@@ -292,6 +306,8 @@ export class Game {
       this.ctx.lineTo(this.width, y);
       this.ctx.stroke();
     }
+
+    this.ctx.restore();
   }
 
   loop(time) {

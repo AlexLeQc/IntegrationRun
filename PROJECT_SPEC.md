@@ -1,6 +1,6 @@
-# Project Specification & Implementation Plan: Neon Runner
+# Project Specification & Implementation Plan: Doodle Runner
 
-We will build **NEON RUNNER**, a mobile-first, high-performance, 3-lane runner web game set in a retro-futuristic Synthwave aesthetic. The game features glowing neon graphics, a pseudo-3D perspective grid, audio synthesized dynamically via the Web Audio API, mobile touch swipe controls, and a global leaderboard integrated with Supabase.
+We will build **DOODLE RUNNER**, a mobile-first, high-performance, 3-lane runner web game set in a bright, playful, hand-drawn sketchbook aesthetic inspired by childhood art class. The game features hand-drawn doodle graphics, graphite pencil perspective grid lines, audio synthesized dynamically via the Web Audio API, mobile touch swipe controls, and a global leaderboard integrated with Supabase.
 
 ---
 
@@ -57,21 +57,21 @@ create policy "Allow public insert access" on public.high_scores
 
 ### Player
 
-- The player controls a glowing cyan neon chevron/ship.
+- The player controls a hand-drawn paper airplane / doodle chevron with marker stroke outlines and crayon accents.
 - Positioned at the bottom of the screen (Y ≈ 85% of screen height).
 - Moves horizontally between three lanes (left, middle, right) using swipe touch inputs on mobile or arrow/AD keys on desktop.
 - Can transition into a **Jumping** state (elevated Y-offset tracking a jump arc).
 - Can transition into a **Sliding** state (vertically compressed ship layout and hitbox).
-- Movements are smoothly interpolated for a responsive and premium feel.
+- Movements are smoothly interpolated for a responsive and fluid feel.
 
 ### Obstacles & Hazards
 
 - Obstacles are procedurally generated in the active lanes.
-- They spawn at the vanishing point (horizon) and move down towards the screen bottom, scaling up exponentially in size to create a 3D parallax effect.
+- They spawn at the vanishing point (horizon) and move down towards the screen bottom, scaling up exponentially in size to create a 3D perspective effect.
 - Hazards are divided into **three categorized types**:
-  - **Full-Block Barrier**: Standard barrier requiring a lane change.
-  - **Low Hurdle**: Low-profile barrier requiring a **Jump** (collision is bypassed if player is currently jumping).
-  - **High Overhead Beam**: Laser line requiring a **Slide** (collision is bypassed if player is currently sliding).
+  - **Hand-Drawn Cardboard Box**: 3D cardboard box with marker outlines, tape strips, and warm brown fill requiring a lane change.
+  - **Pencil Fence / Hurdle**: Low-profile wooden pencil hurdle requiring a **Jump** (collision is bypassed if player is currently jumping).
+  - **Ink-Splatter Beam Arch**: Overhead laser arch styled as dark ink pillars and a vibrant splattered ink bar requiring a **Slide** (collision is bypassed if player is currently sliding).
 - Colliding with an obstacle decreases the player's life count and destroys the obstacle.
 - The spawn rate and speed gradually increase as the player's score increases.
 
@@ -79,7 +79,7 @@ create policy "Allow public insert access" on public.high_scores
 
 - The perspective vanishing point/horizon is pushed high up the screen to **Y = 17%** (1/6th) of the total height.
 - Consequently, the three lanes extend down to the bottom, occupying **5/6th (≈83%)** of the total canvas height.
-- This creates a longer track runway, offering a dramatic perspective and giving the player ample reaction time to dodge incoming obstacles.
+- The track grid is rendered using graphite pencil sketch lines with organic hand-drawn line jitter.
 
 ### Scoreboard & High Scores
 
@@ -89,50 +89,49 @@ create policy "Allow public insert access" on public.high_scores
 ### Lives & Health System
 
 - The player starts with 3 lives.
-- Lives are represented in the HUD using custom SVG heart elements rather than Unicode characters (such as `♥`). This prevents mobile operating systems (especially iOS) from overriding the custom styling with standard emojis, guaranteeing uniform neon-pink rendering across all devices.
+- Lives are represented in the HUD using custom hand-drawn crayon/marker heart SVG elements filled with bright crayon red (`#FF3B30`) and dark wobbly stroke outlines (`#2C2C2E`).
 - When the player hits an obstacle, it triggers a screen flash and screen shake effect, removing 1 heart from the visual health indicator on the screen.
 - When 0 hearts remain, the Game Over state is triggered.
 
 ### Collectibles & Coins
 
-- Coins are procedurally generated in lane patterns (such as lines of 3–5 consecutive coins) or individually placed (e.g. directly above low hurdles to reward jump triggers).
-- They spawn at varying heights (ground level, low-jump height, or slide height).
-- Styled as spinning/pulsing neon golden-yellow disks with a glowing outer ring.
-- Collecting a coin immediately increases the player's active score by **+100 points**.
+- Coins/stickers are procedurally generated in lane patterns (such as lines of 3–5 consecutive items) or individually placed (e.g. directly above pencil hurdles to reward jump triggers).
+- Styled as 5-point doodle star stickers / golden sketch disks with spinning crayon hatch lines and bright yellow fills.
+- Collecting a coin/star immediately increases the player's active score by **+100 points** and triggers a colorful confetti particle explosion.
 
 ### Background & Visual Environment
 
-- Retro-futuristic Synthwave/Cyberpunk design.
-- Features a glowing retro sunset with scanlines, neon pink/cyan grid lanes, and a deep violet/purple horizon gradient.
-- Custom typography loaded from Google Fonts ("Orbitron" for headers, score displays, and buttons; "Inter" for UI body text and labels).
-- Glassmorphic screen overlays (`#main-menu`, `#leaderboard-screen`, `#game-over-screen`, `#hud-overlay`) featuring `backdrop-filter: blur(12px)` dark translucent backgrounds, subtle neon borders, and glowing text-shadow accents (`#ff007f`, `#00f0ff`).
+- Bright, playful, hand-drawn sketchbook aesthetic inspired by childhood art class.
+- Features a subtle graph paper notebook texture (`#FAF8F5`), a hand-drawn doodle yellow sun with radiating crayon rays, and graphite pencil grid lines.
+- Custom typography loaded from Google Fonts ("Fredoka" for headers, score displays, and buttons; "Kalam" for handwriting notes and body labels).
+- Notebook paper overlay cards (`#main-menu`, `#leaderboard-screen`, `#game-over-screen`, `#hud-overlay`) featuring `backdrop-filter: blur(8px)`, rounded hand-drawn style borders (`border: 3px solid #2C2C2E; border-radius: 18px 12px 20px 14px`), and soft cardboard drop shadows.
 
 ---
 
 ## UI & Screen Flow
 
-The game user interface is structured into glassmorphic modal overlays and an in-game HUD:
+The game user interface is structured into notebook card modal overlays and an in-game HUD:
 
 ### Main Menu Screen (`#main-menu`)
-- **Title Banner**: Synthwave Neon Runner logo with glowing cyan and hot pink text shadow.
+- **Title Banner**: Doodle Runner logo with sketchy marker fonts and bright primary accent fills.
 - **Controls & Instructions**: Visual summary of mobile swipe gestures (Swipe Left/Right, Swipe Up to Jump, Swipe Down to Slide) and desktop keys (Arrow keys / WASD).
 - **Action Buttons**:
-  - **`START RUN`**: Initializes the game loop and transitions to the HUD overlay.
-  - **`LEADERBOARD`**: Opens the global high scores leaderboard overlay.
+  - **`START DASH`**: Initializes the game loop and transitions to the HUD overlay.
+  - **`SKETCHBOOK`**: Opens the global high scores leaderboard overlay.
 
 ### In-Game HUD (`#hud-overlay`)
-- **Score Display**: 6-digit zero-padded score counter (e.g. `001250`) updating dynamically per second survived (+10 pts/sec) and coin collected (+100 pts).
-- **Health Indicator**: 3 glowing SVG heart elements that transition from filled neon pink to empty wireframe outline on damage.
+- **Score Display**: 6-digit zero-padded score counter (e.g. `001250`) rendered on a lined paper badge.
+- **Health Indicator**: 3 hand-drawn crayon heart elements transitioning from bright red fill to empty sketch outline on damage.
 - **Damage Flash**: `#damage-flash` overlay element that flashes red on obstacle collision alongside canvas screen shake.
 
 ### Game Over Screen (`#game-over-screen`)
-- **Header**: Synthwave "GAME OVER" title.
+- **Header**: Playful "GAME OVER" notebook header.
 - **Final Score**: Displays total score achieved in the session.
 - **Leaderboard Submission Form**: 3-character uppercase initials input box (`#username`) and `SUBMIT RECORD` button.
-- **Restart Button**: `REPLAY` button allowing immediate game loop restart.
+- **Restart Button**: `RETRY RUN` button allowing immediate game loop restart.
 
 ### Leaderboard Overlay (`#leaderboard-screen`)
-- **Rankings Table**: Top 10 high score records formatted with rank numbers (1st, 2nd, 3rd highlighted with gold, silver, bronze neon accents), username initials, and numeric score.
+- **Rankings Table**: Top 10 high score records formatted with rank numbers (1st, 2nd, 3rd highlighted with gold, silver, bronze marker accents), username initials, and numeric score.
 - **Navigation**: `BACK TO MENU` button returning smoothly to the Main Menu.
 
 ---
@@ -141,14 +140,14 @@ The game user interface is structured into glassmorphic modal overlays and an in
 
 The application follows a modular architecture using ES modules for clean separation of concerns:
 
-- **`src/assets.js`**: Image asset preloader module loading static images from `public/assets/` (`player.png`, `barrier.png`, `hurdle.png`, `beam.png`, `obstacle.png`, `coin.png`, `background.png`) with graceful error handling that falls back to procedural neon rendering if images are missing.
-- **`src/player.js`**: `Player` class managing player lane state, smooth horizontal interpolation, jump/slide physics, and cyan chevron canvas / custom image rendering.
-- **`src/obstacles.js`**: `ObstacleManager` class managing procedural hazard spawning (Full Block, Low Hurdle, High Beam), 3D perspective scaling math, and wireframe / custom image rendering.
-- **`src/collectibles.js`**: `CoinManager` class managing coin pattern generation, spinning coin animations, pickup collection checks, Web Audio sound synthesis, spark particle explosions, and custom image rendering.
-- **`src/ui.js`**: UI helper module managing HUD score displays, SVG heart indicators, screen shake transforms, damage screen flashes, glassmorphic overlay screen transitions, and leaderboard DOM updates.
-- **`src/game.js`**: Main `Game` orchestrator managing asset preloading, the `requestAnimationFrame` loop, delta time calculations, background/grid rendering, module coordination, and collision checks.
+- **`src/assets.js`**: Image asset preloader module loading static images from `public/assets/` (`player.png`, `barrier.png`, `hurdle.png`, `beam.png`, `obstacle.png`, `coin.png`, `background.png`) with graceful error handling that falls back to procedural doodle rendering if images are missing.
+- **`src/player.js`**: `Player` class managing player lane state, smooth horizontal interpolation, jump/slide physics, and hand-drawn paper airplane / doodle chevron canvas rendering.
+- **`src/obstacles.js`**: `ObstacleManager` class managing procedural hazard spawning (Cardboard Box, Pencil Hurdle, Ink Beam), 3D perspective scaling math, and hand-drawn sketch canvas rendering.
+- **`src/collectibles.js`**: `CoinManager` class managing coin/star pattern generation, spinning star animations, pickup collection checks, Web Audio sound synthesis, crayon particle explosions, and custom image rendering.
+- **`src/ui.js`**: UI helper module managing HUD score displays, hand-drawn crayon heart indicators, screen shake transforms, damage screen flashes, notebook screen overlay transitions, and leaderboard DOM updates.
+- **`src/game.js`**: Main `Game` orchestrator managing asset preloading, the `requestAnimationFrame` loop, delta time calculations, notebook background/doodle sun/pencil grid rendering, module coordination, and collision checks.
 - **`src/input.js`**: `InputHandler` managing keyboard and mobile touch swipe input events.
-- **`src/audio.js`**: Web Audio API synthesizer for sound effects and Synthwave audio.
+- **`src/audio.js`**: Web Audio API synthesizer for sound effects and playful audio.
 - **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations.
 - **`src/main.js`**: Application entrypoint initializing DOM events, game instance, responsive canvas scaling, and screen management.
 
@@ -165,4 +164,4 @@ The application follows a modular architecture using ES modules for clean separa
 
 1. **Swipe & Keyboard Interaction**: Test horizontal touch swiping on simulated mobile viewports via DevTools, and arrow/WASD keys on desktop.
 2. **Leaderboard Operations**: Reading and inserting scores into Supabase database with local storage fallback.
-3. **Responsive Visuals**: Verify layout scaling from standard mobile screens up to tablet and desktop viewports.
+3. **Responsive Visuals**: Verify layout scaling from standard mobile screens up to tablet and desktop viewports with the new sketchbook aesthetic.

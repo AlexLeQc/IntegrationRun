@@ -137,7 +137,7 @@ export class ObstacleManager {
       const y = this.horizonY + (this.height - this.horizonY) * obs.z;
 
       const zScale = obs.z;
-      ctx.shadowBlur = 10 * zScale;
+      ctx.shadowBlur = 0;
 
       // Check if custom image asset is available for this type or generic obstacle
       const imageAsset = this.assets && (this.assets[obs.type] || this.assets.obstacle);
@@ -147,21 +147,27 @@ export class ObstacleManager {
         const h = 48 * zScale;
 
         if (imageAsset) {
-          ctx.shadowColor = '#ff007f';
           ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
         } else {
-          // Procedural Full-Block Barrier: Tall neon pink grid-box
-          ctx.shadowColor = '#ff007f';
-          ctx.strokeStyle = obs.collided ? '#ffaa00' : '#ff007f';
+          // Hand-Drawn Cardboard Box Barrier
+          ctx.strokeStyle = '#2C2C2E';
           ctx.lineWidth = 1.5 + 2.5 * zScale;
-          ctx.fillStyle = obs.collided ? 'rgba(255, 170, 0, 0.2)' : 'rgba(255, 0, 127, 0.15)';
+          ctx.fillStyle = obs.collided ? '#FF3B30' : '#D2B48C';
 
+          // Front Face
           ctx.beginPath();
           ctx.rect(x - w / 2, y - h, w, h);
           ctx.fill();
           ctx.stroke();
 
-          // 3D Wireframe Depth
+          // Cardboard tape strips
+          ctx.fillStyle = '#E5C494';
+          ctx.beginPath();
+          ctx.rect(x - w * 0.15, y - h, w * 0.3, h);
+          ctx.fill();
+          ctx.stroke();
+
+          // 3D Box Perspective Flaps/Depth
           if (zScale > 0.15) {
             const zBack = zScale - 0.06 * zScale;
             const xBack = vanishingX + (bottomX - vanishingX) * zBack;
@@ -169,62 +175,69 @@ export class ObstacleManager {
             const wBack = 42 * zBack;
             const hBack = 48 * zBack;
 
+            ctx.fillStyle = '#C2A37B';
             ctx.beginPath();
-            ctx.rect(xBack - wBack / 2, yBack - hBack, wBack, hBack);
+            ctx.moveTo(x - w / 2, y - h);
+            ctx.lineTo(xBack - wBack / 2, yBack - hBack);
+            ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+            ctx.lineTo(x + w / 2, y - h);
+            ctx.closePath();
+            ctx.fill();
             ctx.stroke();
 
             ctx.beginPath();
-            ctx.moveTo(x - w / 2, y); ctx.lineTo(xBack - wBack / 2, yBack);
-            ctx.moveTo(x + w / 2, y); ctx.lineTo(xBack + wBack / 2, yBack);
-            ctx.moveTo(x - w / 2, y - h); ctx.lineTo(xBack - wBack / 2, yBack - hBack);
-            ctx.moveTo(x + w / 2, y - h); ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+            ctx.moveTo(x + w / 2, y - h);
+            ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+            ctx.lineTo(xBack + wBack / 2, yBack);
+            ctx.lineTo(x + w / 2, y);
+            ctx.closePath();
+            ctx.fill();
             ctx.stroke();
           }
         }
       } else if (obs.type === 'hurdle') {
         const w = 46 * zScale;
-        const h = 18 * zScale;
+        const h = 20 * zScale;
 
         if (imageAsset) {
-          ctx.shadowColor = '#ffaa00';
           ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
         } else {
-          // Procedural Low Hurdle: Flat neon orange hurdle
-          ctx.shadowColor = '#ffaa00';
-          ctx.strokeStyle = obs.collided ? '#ff007f' : '#ffaa00';
+          // Hand-Drawn Pencil Fence / Hurdle
+          ctx.strokeStyle = '#2C2C2E';
           ctx.lineWidth = 1.5 + 2.0 * zScale;
-          ctx.fillStyle = obs.collided ? 'rgba(255, 0, 127, 0.2)' : 'rgba(255, 170, 0, 0.15)';
 
+          // Main Yellow Pencil Body Bar
+          ctx.fillStyle = obs.collided ? '#FF3B30' : '#FFCC00';
           ctx.beginPath();
-          ctx.moveTo(x - w / 2, y);
-          ctx.lineTo(x - w * 0.4, y - h);
-          ctx.lineTo(x + w * 0.4, y - h);
-          ctx.lineTo(x + w / 2, y);
-          ctx.closePath();
+          ctx.rect(x - w / 2, y - h, w, h * 0.6);
           ctx.fill();
           ctx.stroke();
 
-          // 3D Depth
+          // Pink Eraser End
+          ctx.fillStyle = '#FF2D55';
+          ctx.beginPath();
+          ctx.rect(x - w / 2, y - h, w * 0.2, h * 0.6);
+          ctx.fill();
+          ctx.stroke();
+
+          // Pencil Legs (Posts)
+          ctx.fillStyle = '#2C2C2E';
+          ctx.beginPath();
+          ctx.rect(x - w * 0.4, y - h * 0.4, w * 0.1, h * 1.4);
+          ctx.rect(x + w * 0.3, y - h * 0.4, w * 0.1, h * 1.4);
+          ctx.fill();
+
+          // 3D Depth Lines
           if (zScale > 0.15) {
             const zBack = zScale - 0.06 * zScale;
             const xBack = vanishingX + (bottomX - vanishingX) * zBack;
             const yBack = this.horizonY + (this.height - this.horizonY) * zBack;
             const wBack = 46 * zBack;
-            const hBack = 18 * zBack;
+            const hBack = 20 * zBack;
 
             ctx.beginPath();
-            ctx.moveTo(xBack - wBack / 2, yBack);
-            ctx.lineTo(xBack - wBack * 0.4, yBack - hBack);
-            ctx.lineTo(xBack + wBack * 0.4, yBack - hBack);
-            ctx.lineTo(xBack + wBack / 2, yBack);
-            ctx.closePath();
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(x - w / 2, y); ctx.lineTo(xBack - wBack / 2, yBack);
-            ctx.moveTo(x + w / 2, y); ctx.lineTo(xBack + wBack / 2, yBack);
-            ctx.moveTo(x - w * 0.4, y - h); ctx.lineTo(xBack - wBack * 0.4, yBack - hBack);
-            ctx.moveTo(x + w * 0.4, y - h); ctx.lineTo(xBack + wBack * 0.4, yBack - hBack);
+            ctx.moveTo(x - w / 2, y - h); ctx.lineTo(xBack - wBack / 2, yBack - hBack);
+            ctx.moveTo(x + w / 2, y - h); ctx.lineTo(xBack + wBack / 2, yBack - hBack);
             ctx.stroke();
           }
         }
@@ -234,28 +247,32 @@ export class ObstacleManager {
         const beamH = 14 * zScale;
 
         if (imageAsset) {
-          ctx.shadowColor = '#00f0ff';
           ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
         } else {
-          // Procedural High Overhead Beam: Neon cyan laser arch
-          ctx.shadowColor = '#00f0ff';
-          ctx.strokeStyle = obs.collided ? '#ff007f' : '#00f0ff';
+          // Hand-Drawn Ink Splatter Laser Arch
+          ctx.strokeStyle = '#2C2C2E';
           ctx.lineWidth = 1.5 + 2.0 * zScale;
 
-          // Pillars
+          // Ink Pillars
+          ctx.fillStyle = '#2C2C2E';
           ctx.beginPath();
-          ctx.moveTo(x - w / 2, y);
-          ctx.lineTo(x - w / 2, y - h);
-          ctx.moveTo(x + w / 2, y);
-          ctx.lineTo(x + w / 2, y - h);
-          ctx.stroke();
+          ctx.rect(x - w / 2, y - h, w * 0.12, h);
+          ctx.rect(x + w * 0.38, y - h, w * 0.12, h);
+          ctx.fill();
 
-          // Laser bar
-          ctx.fillStyle = obs.collided ? 'rgba(255, 0, 127, 0.4)' : 'rgba(0, 240, 255, 0.35)';
+          // Sky Blue / Red Ink Laser Splatter Bar
+          ctx.fillStyle = obs.collided ? '#FF3B30' : '#007AFF';
           ctx.beginPath();
           ctx.rect(x - w / 2, y - h, w, beamH);
           ctx.fill();
           ctx.stroke();
+
+          // Ink Splatter Doodles
+          ctx.beginPath();
+          ctx.arc(x - w * 0.2, y - h + beamH / 2, beamH * 0.4, 0, Math.PI * 2);
+          ctx.arc(x + w * 0.2, y - h + beamH / 2, beamH * 0.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#0055CC';
+          ctx.fill();
 
           // 3D Depth
           if (zScale > 0.15) {
@@ -264,24 +281,10 @@ export class ObstacleManager {
             const yBack = this.horizonY + (this.height - this.horizonY) * zBack;
             const wBack = 48 * zBack;
             const hBack = 48 * zBack;
-            const beamHBack = 14 * zBack;
-
-            ctx.beginPath();
-            ctx.moveTo(xBack - wBack / 2, yBack);
-            ctx.lineTo(xBack - wBack / 2, yBack - hBack);
-            ctx.moveTo(xBack + wBack / 2, yBack);
-            ctx.lineTo(xBack + wBack / 2, yBack - hBack);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.rect(xBack - wBack / 2, yBack - hBack, wBack, beamHBack);
-            ctx.stroke();
 
             ctx.beginPath();
             ctx.moveTo(x - w / 2, y - h); ctx.lineTo(xBack - wBack / 2, yBack - hBack);
             ctx.moveTo(x + w / 2, y - h); ctx.lineTo(xBack + wBack / 2, yBack - hBack);
-            ctx.moveTo(x - w / 2, y - h + beamH); ctx.lineTo(xBack - wBack / 2, yBack - hBack + beamHBack);
-            ctx.moveTo(x + w / 2, y - h + beamH); ctx.lineTo(xBack + wBack / 2, yBack - hBack + beamHBack);
             ctx.stroke();
           }
         }
