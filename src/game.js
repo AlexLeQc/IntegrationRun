@@ -3,6 +3,7 @@ import { Player } from './player.js';
 import { ObstacleManager } from './obstacles.js';
 import { CoinManager } from './collectibles.js';
 import { ScreenShake, triggerDamageFlash } from './ui.js';
+import { loadAssets } from './assets.js';
 
 export class Game {
   constructor(canvas, onUpdateHUD, onGameOver) {
@@ -27,6 +28,9 @@ export class Game {
     // Horizon Y pushed up to 1/6 of screen height (~17% / 83% playable lanes)
     this.horizonY = this.height * (1 / 6);
 
+    // Assets container
+    this.assets = null;
+
     // Instantiate game sub-modules
     this.player = new Player(this.width, this.height);
     this.obstacleManager = new ObstacleManager(this.width, this.height, this.horizonY);
@@ -39,6 +43,9 @@ export class Game {
     // Game loop state
     this.lastTime = 0;
     this.isRunning = false;
+
+    // Preload image assets asynchronously
+    this.initAssets();
 
     // Setup input handler
     this.input = new InputHandler(
@@ -54,6 +61,17 @@ export class Game {
         this.takeDamage();
       }
     });
+  }
+
+  async initAssets() {
+    try {
+      this.assets = await loadAssets();
+      this.player.setAssets(this.assets);
+      this.obstacleManager.setAssets(this.assets);
+      this.coinManager.setAssets(this.assets);
+    } catch (e) {
+      console.warn('Asset initialization warning:', e);
+    }
   }
 
   start() {
@@ -159,15 +177,19 @@ export class Game {
     this.ctx.fillStyle = '#0a051b';
     this.ctx.fillRect(0, 0, this.width, this.height);
 
-    // Draw sky horizon gradient
-    const skyGrad = this.ctx.createLinearGradient(0, 0, 0, this.horizonY);
-    skyGrad.addColorStop(0, '#05020c');
-    skyGrad.addColorStop(1, '#1e0c3b');
-    this.ctx.fillStyle = skyGrad;
-    this.ctx.fillRect(0, 0, this.width, this.horizonY);
+    if (this.assets && this.assets.background) {
+      this.ctx.drawImage(this.assets.background, 0, 0, this.width, this.height);
+    } else {
+      // Draw sky horizon gradient
+      const skyGrad = this.ctx.createLinearGradient(0, 0, 0, this.horizonY);
+      skyGrad.addColorStop(0, '#05020c');
+      skyGrad.addColorStop(1, '#1e0c3b');
+      this.ctx.fillStyle = skyGrad;
+      this.ctx.fillRect(0, 0, this.width, this.horizonY);
 
-    // Draw retro sunset
-    this.drawSunset();
+      // Draw retro sunset
+      this.drawSunset();
+    }
 
     // Draw moving perspective grid and lanes
     this.drawGrid();

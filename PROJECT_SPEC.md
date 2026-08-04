@@ -109,15 +109,44 @@ create policy "Allow public insert access" on public.high_scores
 
 ---
 
+## UI & Screen Flow
+
+The game user interface is structured into glassmorphic modal overlays and an in-game HUD:
+
+### Main Menu Screen (`#main-menu`)
+- **Title Banner**: Synthwave Neon Runner logo with glowing cyan and hot pink text shadow.
+- **Controls & Instructions**: Visual summary of mobile swipe gestures (Swipe Left/Right, Swipe Up to Jump, Swipe Down to Slide) and desktop keys (Arrow keys / WASD).
+- **Action Buttons**:
+  - **`START RUN`**: Initializes the game loop and transitions to the HUD overlay.
+  - **`LEADERBOARD`**: Opens the global high scores leaderboard overlay.
+
+### In-Game HUD (`#hud-overlay`)
+- **Score Display**: 6-digit zero-padded score counter (e.g. `001250`) updating dynamically per second survived (+10 pts/sec) and coin collected (+100 pts).
+- **Health Indicator**: 3 glowing SVG heart elements that transition from filled neon pink to empty wireframe outline on damage.
+- **Damage Flash**: `#damage-flash` overlay element that flashes red on obstacle collision alongside canvas screen shake.
+
+### Game Over Screen (`#game-over-screen`)
+- **Header**: Synthwave "GAME OVER" title.
+- **Final Score**: Displays total score achieved in the session.
+- **Leaderboard Submission Form**: 3-character uppercase initials input box (`#username`) and `SUBMIT RECORD` button.
+- **Restart Button**: `REPLAY` button allowing immediate game loop restart.
+
+### Leaderboard Overlay (`#leaderboard-screen`)
+- **Rankings Table**: Top 10 high score records formatted with rank numbers (1st, 2nd, 3rd highlighted with gold, silver, bronze neon accents), username initials, and numeric score.
+- **Navigation**: `BACK TO MENU` button returning smoothly to the Main Menu.
+
+---
+
 ## Code Structure & Architecture
 
 The application follows a modular architecture using ES modules for clean separation of concerns:
 
-- **`src/player.js`**: `Player` class managing player lane state, smooth horizontal interpolation, jump/slide physics, and cyan chevron canvas rendering.
-- **`src/obstacles.js`**: `ObstacleManager` class managing procedural hazard spawning (Full Block, Low Hurdle, High Beam), 3D perspective scaling math, and wireframe rendering.
-- **`src/collectibles.js`**: `CoinManager` class managing coin pattern generation, spinning coin animations, pickup collection checks, Web Audio sound synthesis, and spark particle explosions.
+- **`src/assets.js`**: Image asset preloader module loading static images from `public/assets/` (`player.png`, `barrier.png`, `hurdle.png`, `beam.png`, `obstacle.png`, `coin.png`, `background.png`) with graceful error handling that falls back to procedural neon rendering if images are missing.
+- **`src/player.js`**: `Player` class managing player lane state, smooth horizontal interpolation, jump/slide physics, and cyan chevron canvas / custom image rendering.
+- **`src/obstacles.js`**: `ObstacleManager` class managing procedural hazard spawning (Full Block, Low Hurdle, High Beam), 3D perspective scaling math, and wireframe / custom image rendering.
+- **`src/collectibles.js`**: `CoinManager` class managing coin pattern generation, spinning coin animations, pickup collection checks, Web Audio sound synthesis, spark particle explosions, and custom image rendering.
 - **`src/ui.js`**: UI helper module managing HUD score displays, SVG heart indicators, screen shake transforms, damage screen flashes, glassmorphic overlay screen transitions, and leaderboard DOM updates.
-- **`src/game.js`**: Main `Game` orchestrator managing the `requestAnimationFrame` loop, delta time calculations, background/grid rendering, module coordination, and collision checks.
+- **`src/game.js`**: Main `Game` orchestrator managing asset preloading, the `requestAnimationFrame` loop, delta time calculations, background/grid rendering, module coordination, and collision checks.
 - **`src/input.js`**: `InputHandler` managing keyboard and mobile touch swipe input events.
 - **`src/audio.js`**: Web Audio API synthesizer for sound effects and Synthwave audio.
 - **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations.

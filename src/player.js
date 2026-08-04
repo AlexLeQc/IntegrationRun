@@ -1,7 +1,8 @@
 export class Player {
-  constructor(canvasWidth = 360, canvasHeight = 640) {
+  constructor(canvasWidth = 360, canvasHeight = 640, assets = null) {
     this.width = canvasWidth;
     this.height = canvasHeight;
+    this.assets = assets;
 
     // Lane state (0 = Left, 1 = Middle, 2 = Right)
     this.lane = 1;
@@ -18,6 +19,10 @@ export class Player {
     this.isSliding = false;
     this.slideTime = 0;
     this.slideDuration = 0.65; // seconds
+  }
+
+  setAssets(assets) {
+    this.assets = assets;
   }
 
   getLaneX(laneIndex) {
@@ -94,25 +99,33 @@ export class Player {
       ctx.scale(1.4, 0.4);
     }
 
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = '#00f0ff';
+    if (this.assets && this.assets.player) {
+      // Render custom player image centered
+      const img = this.assets.player;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = '#00f0ff';
+      ctx.drawImage(img, -size / 2, -size / 2, size, size);
+    } else {
+      // Procedural cyan chevron fallback
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = '#00f0ff';
 
-    // Glowing cyan chevron
-    ctx.fillStyle = '#00f0ff';
-    ctx.beginPath();
-    ctx.moveTo(0, -size / 2);
-    ctx.lineTo(-size / 2, size / 2);
-    ctx.lineTo(0, size / 4);
-    ctx.lineTo(size / 2, size / 2);
-    ctx.closePath();
-    ctx.fill();
+      ctx.fillStyle = '#00f0ff';
+      ctx.beginPath();
+      ctx.moveTo(0, -size / 2);
+      ctx.lineTo(-size / 2, size / 2);
+      ctx.lineTo(0, size / 4);
+      ctx.lineTo(size / 2, size / 2);
+      ctx.closePath();
+      ctx.fill();
 
-    // Hot pink engine flare
-    ctx.shadowColor = '#ff007f';
-    ctx.fillStyle = '#ff007f';
-    ctx.beginPath();
-    ctx.arc(0, size / 4, 4, 0, Math.PI * 2);
-    ctx.fill();
+      // Hot pink engine flare
+      ctx.shadowColor = '#ff007f';
+      ctx.fillStyle = '#ff007f';
+      ctx.beginPath();
+      ctx.arc(0, size / 4, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     ctx.restore();
   }

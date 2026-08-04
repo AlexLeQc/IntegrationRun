@@ -1,14 +1,19 @@
 export class CoinManager {
-  constructor(width = 360, height = 640, horizonY = 640 * (1 / 6)) {
+  constructor(width = 360, height = 640, horizonY = 640 * (1 / 6), assets = null) {
     this.width = width;
     this.height = height;
     this.horizonY = horizonY;
+    this.assets = assets;
 
     this.coins = [];
     this.particles = [];
 
     this.coinSpawnTimer = 0;
     this.coinSpawnInterval = 1.8; // seconds between coin patterns
+  }
+
+  setAssets(assets) {
+    this.assets = assets;
   }
 
   getLaneX(laneIndex) {
@@ -181,21 +186,30 @@ export class CoinManager {
 
       ctx.shadowBlur = (15 + 5 * pulse) * zScale;
       ctx.shadowColor = '#ffea00';
-      ctx.strokeStyle = '#ffea00';
-      ctx.lineWidth = 1.5 + zScale;
-      ctx.fillStyle = 'rgba(255, 234, 0, 0.35)';
 
-      ctx.beginPath();
-      ctx.ellipse(x, y, rx * pulse, ry * pulse, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
+      if (this.assets && this.assets.coin) {
+        // Draw custom coin image with horizontal spin scaling & pulse
+        const w = rx * pulse * 2;
+        const h = ry * pulse * 2;
+        ctx.drawImage(this.assets.coin, x - w / 2, y - h / 2, w, h);
+      } else {
+        // Procedural neon golden disk fallback
+        ctx.strokeStyle = '#ffea00';
+        ctx.lineWidth = 1.5 + zScale;
+        ctx.fillStyle = 'rgba(255, 234, 0, 0.35)';
 
-      // Inner details
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.lineWidth = 1.0;
-      ctx.beginPath();
-      ctx.ellipse(x, y, rx * 0.5 * pulse, ry * 0.5 * pulse, 0, 0, Math.PI * 2);
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx * pulse, ry * pulse, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Inner details
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx * 0.5 * pulse, ry * 0.5 * pulse, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
 
       ctx.restore();
     });
