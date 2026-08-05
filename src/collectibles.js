@@ -1,3 +1,5 @@
+import { projectLane } from './perspective.js';
+
 export class CoinManager {
   constructor(width = 360, height = 640, horizonY = 640 * (1 / 6), assets = null) {
     this.width = width;
@@ -36,7 +38,7 @@ export class CoinManager {
     const count = 3 + Math.floor(Math.random() * 3); // 3 to 5 coins
     const speed = 0.35 + Math.min(0.25, score / 25000);
     const spacing = 0.07;
-    const heightOffset = Math.random() > 0.7 ? 45 : 0;
+    const heightOffset = Math.random() > 0.7 ? 70 : 0;
 
     for (let i = 0; i < count; i++) {
       this.coins.push({
@@ -115,27 +117,24 @@ export class CoinManager {
       }
     }
 
-    const vanishingX = this.width / 2;
-
-    // Update and check collection for coins
+    // Update and check collection for coins in 3D world space
     for (let i = this.coins.length - 1; i >= 0; i--) {
       const coin = this.coins[i];
       coin.z += coin.speed * speedMultiplier * deltaTime;
 
       if (coin.z > 0.05) {
-        const bottomX = this.getLaneX(coin.lane);
-        const cx = vanishingX + (bottomX - vanishingX) * coin.z;
-        const cy = this.horizonY + (this.height - this.horizonY) * coin.z - coin.heightOffset * coin.z;
+        const proj = projectLane(this.width, this.height, this.horizonY, coin.lane, coin.heightOffset, coin.z);
 
-        // Collection overlap around player position (z ~ 0.85)
+        // Collection overlap around player world position plane (z ~ 0.80 - 0.88)
         if (!coin.collected && coin.z >= 0.80 && coin.z <= 0.88) {
-          const distance = Math.abs(player.playerX - cx);
+          const laneCenterX = this.getLaneX(coin.lane);
+          const distance = Math.abs(player.playerX - laneCenterX);
 
           if (distance < this.width / 6) {
             let matchesHeight = false;
 
             if (coin.heightOffset > 0) {
-              if (player.isJumping && player.jumpHeight > 25) {
+              if (player.isJumping && player.jumpHeight > 20) {
                 matchesHeight = true;
               }
             } else {
@@ -146,7 +145,7 @@ export class CoinManager {
 
             if (matchesHeight) {
               coin.collected = true;
-              this.spawnParticles(cx, cy, '#ffea00', 8);
+              this.spawnParticles(proj.x, proj.y, '#ffea00', 8);
               this.playCoinSound();
 
               if (onCollectCoin) {
@@ -164,77 +163,92 @@ export class CoinManager {
     }
   }
 
+  drawSingleCoinShadow(ctx, coin) {
+    if (coin.z <= 0.05 || coin.collected || coin.heightOffset <= 0) return;
+
+    // Ground projection directly below airborne coin
+    const groundProj = projectLane(this.width, this.height, this.horizonY, coin.lane, 0, coin.z);
+    const zScale = groundProj.zScale;
+    const baseRadius = 13 * zScale;
+    const pulse = 1.0 + Math.sin(Date.now() / 90) * 0.08;
+
+    // Become slightly smaller as coin heightOffset increases
+    const heightFactor = Math.max(0.4, 1.0 - (coin.heightOffset / 200));
+    const shadowRx = baseRadius * 1.1 * pulse * heightFactor;
+    const shadowRy = baseRadius * 0.35 * pulse * heightFactor;
+
+    ctx.save();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(groundProj.x, groundProj.y, shadowRx, shadowRy, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawSingleCoin(ctx, coin) {
+    if (coin.z <= 0.05 || coin.collected) return;
+
+    const proj = projectLane(this.width, this.height, this.horizonY, coin.lane, coin.heightOffset, coin.z);
+    const x = proj.x;
+    const y = proj.y;
+    const zScale = proj.zScale;
+
+    const baseRadius = 13 * zScale;
+    const spinScale = Math.sin(Date.now() / 150);
+    const rx = baseRadius * Math.abs(spinScale);
+    const ry = baseRadius;
+    const pulse = 1.0 + Math.sin(Date.now() / 90) * 0.08;
+
+    ctx.save();
+    ctx.shadowBlur = 0;
+
+    // Draw Coin Asset or Rich Procedural Golden Coin
+    if (this.assets && this.assets.coin) {
+      const w = rx * pulse * 2;
+      const h = ry * pulse * 2;
+      ctx.drawImage(this.assets.coin, x - w / 2, y - h / 2, w, h);
+    } else {
+      // Procedural Rich Glowing Golden Coin
+      ctx.fillStyle = '#FFD700';
+      ctx.strokeStyle = '#2C2C2E';
+      ctx.lineWidth = 1.5 + zScale;
+
+      // Outer Coin Disk
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx * pulse, ry * pulse, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Inner Bright Gold Highlight Ring
+      ctx.strokeStyle = '#FFF2A3';
+      ctx.lineWidth = 1.2 * zScale;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx * 0.65 * pulse, ry * 0.65 * pulse, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Center Gold Core
+      ctx.fillStyle = '#D48800';
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx * 0.3 * pulse, ry * 0.3 * pulse, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
   draw(ctx) {
-    const vanishingX = this.width / 2;
-
-    // Draw Coins
+    // 1. Draw Ground Shadows
     this.coins.forEach((coin) => {
-      if (coin.z <= 0.05 || coin.collected) return;
-
-      const bottomX = this.getLaneX(coin.lane);
-      const x = vanishingX + (bottomX - vanishingX) * coin.z;
-      const y = this.horizonY + (this.height - this.horizonY) * coin.z - coin.heightOffset * coin.z;
-
-      const zScale = coin.z;
-      const baseRadius = 13 * zScale;
-
-      const spinScale = Math.sin(Date.now() / 150);
-      const rx = baseRadius * Math.abs(spinScale);
-      const ry = baseRadius;
-
-      const pulse = 1.0 + Math.sin(Date.now() / 90) * 0.08;
-
-      ctx.save();
-      ctx.shadowBlur = 0;
-
-      // 1. Draw Airborne Ground Shadow on Track if coin is elevated
-      if (coin.heightOffset > 0) {
-        const groundY = this.horizonY + (this.height - this.horizonY) * coin.z;
-        const shadowRx = baseRadius * 1.1 * pulse;
-        const shadowRy = baseRadius * 0.35 * pulse;
-
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.beginPath();
-        ctx.ellipse(x, groundY, shadowRx, shadowRy, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // 2. Draw Coin Asset or Rich Procedural Golden Coin
-      if (this.assets && this.assets.coin) {
-        // Draw custom coin image with horizontal spin scaling & pulse
-        const w = rx * pulse * 2;
-        const h = ry * pulse * 2;
-        ctx.drawImage(this.assets.coin, x - w / 2, y - h / 2, w, h);
-      } else {
-        // Procedural Rich Glowing Golden Coin
-        ctx.fillStyle = '#FFD700';
-        ctx.strokeStyle = '#2C2C2E';
-        ctx.lineWidth = 1.5 + zScale;
-
-        // Outer Coin Disk
-        ctx.beginPath();
-        ctx.ellipse(x, y, rx * pulse, ry * pulse, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Inner Bright Gold Highlight Ring
-        ctx.strokeStyle = '#FFF2A3';
-        ctx.lineWidth = 1.2 * zScale;
-        ctx.beginPath();
-        ctx.ellipse(x, y, rx * 0.65 * pulse, ry * 0.65 * pulse, 0, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Center Gold Core
-        ctx.fillStyle = '#D48800';
-        ctx.beginPath();
-        ctx.ellipse(x, y, rx * 0.3 * pulse, ry * 0.3 * pulse, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.restore();
+      this.drawSingleCoinShadow(ctx, coin);
     });
 
-    // Draw Particles
+    // 2. Draw Coin Disks
+    this.coins.forEach((coin) => {
+      this.drawSingleCoin(ctx, coin);
+    });
+
+    // 3. Draw Particles
     this.particles.forEach((p) => {
       const lifeRatio = p.life / p.maxLife;
       ctx.fillStyle = p.color;

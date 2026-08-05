@@ -194,14 +194,64 @@ export class Game {
     // Draw grid overlay (only used for procedural fallback)
     this.drawGrid();
 
-    // Draw coins & particles
-    this.coinManager.draw(this.ctx);
+    // Unified World Depth Sorting Pipeline
+    const renderQueue = [];
 
-    // Draw hazards/obstacles
-    this.obstacleManager.draw(this.ctx);
+    // 1. Add active obstacles
+    this.obstacleManager.obstacles.forEach((obs) => {
+      if (obs.z > 0.05) {
+        renderQueue.push({
+          z: obs.z,
+          typePriority: 2,
+          render: () => this.obstacleManager.drawSingleObstacle(this.ctx, obs)
+        });
+      }
+    });
 
-    // Draw player ship
-    this.player.draw(this.ctx);
+    // 2. Add active coins and coin shadows
+    this.coinManager.coins.forEach((coin) => {
+      if (coin.z > 0.05 && !coin.collected) {
+        if (coin.heightOffset > 0) {
+          renderQueue.push({
+            z: coin.z,
+            typePriority: 0, // Shadows draw under coins/obstacles at same Z
+            render: () => this.coinManager.drawSingleCoinShadow(this.ctx, coin)
+          });
+        }
+        renderQueue.push({
+          z: coin.z,
+          typePriority: 1, // Coin disk
+          render: () => this.coinManager.drawSingleCoin(this.ctx, coin)
+        });
+      }
+    });
+
+    // 3. Add player at fixed world depth z = 0.85
+    renderQueue.push({
+      z: this.player.z,
+      typePriority: 3,
+      render: () => this.player.draw(this.ctx, this.width, this.height, this.horizonY)
+    });
+
+    // Sort renderQueue ascending by world depth z (farther objects z small draw first, closer objects z large draw last)
+    renderQueue.sort((a, b) => {
+      if (Math.abs(a.z - b.z) > 0.0001) {
+        return a.z - b.z;
+      }
+      return a.typePriority - b.typePriority;
+    });
+
+    // Execute sorted render queue
+    renderQueue.forEach((item) => item.render());
+
+    // Draw particles on top of sorted queue
+    this.coinManager.particles.forEach((p) => {
+      const lifeRatio = p.life / p.maxLife;
+      this.ctx.fillStyle = p.color;
+      this.ctx.beginPath();
+      this.ctx.arc(p.x, p.y, p.size * lifeRatio, 0, Math.PI * 2);
+      this.ctx.fill();
+    });
 
     this.ctx.restore();
   }

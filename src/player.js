@@ -1,8 +1,14 @@
+import { projectPosition } from './perspective.js';
+
 export class Player {
-  constructor(canvasWidth = 360, canvasHeight = 640, assets = null) {
+  constructor(canvasWidth = 360, canvasHeight = 640, horizonY = 640 * (1 / 6), assets = null) {
     this.width = canvasWidth;
     this.height = canvasHeight;
+    this.horizonY = horizonY;
     this.assets = assets;
+
+    // Fixed world depth on track
+    this.z = 0.85;
 
     // Lane state (0 = Left, 1 = Middle, 2 = Right)
     this.lane = 1;
@@ -84,15 +90,13 @@ export class Player {
     }
   }
 
-  draw(ctx) {
-    const playerY = this.height * 0.85;
-    const size = 32;
+  draw(ctx, width = this.width, height = this.height, horizonY = this.horizonY) {
+    const proj = projectPosition(width, height, horizonY, this.playerX, this.jumpHeight, this.z);
+    const laneWidthAtZ = (width / 3) * proj.zScale;
+    const size = laneWidthAtZ * 0.75; // 75% of lane width at zScale
 
     ctx.save();
-
-    // Account for jump elevation
-    const drawY = playerY - this.jumpHeight;
-    ctx.translate(this.playerX, drawY);
+    ctx.translate(proj.x, proj.y);
 
     // Apply vertical squish for sliding
     if (this.isSliding) {
@@ -100,9 +104,12 @@ export class Player {
     }
 
     if (this.assets && this.assets.player) {
-      // Render custom player image centered
+      // Render custom player image centered while maintaining aspect ratio
       const img = this.assets.player;
-      ctx.drawImage(img, -size / 2, -size / 2, size, size);
+      const aspect = img.height > 0 ? img.height / img.width : 1.0;
+      const imgW = size;
+      const imgH = imgW * aspect;
+      ctx.drawImage(img, -imgW / 2, -imgH / 2, imgW, imgH);
     } else {
       // Procedural Hand-Drawn Paper Airplane / Doodle Chevron
       ctx.strokeStyle = '#2C2C2E';

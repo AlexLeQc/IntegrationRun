@@ -1,3 +1,5 @@
+import { projectLane } from './perspective.js';
+
 export class ObstacleManager {
   constructor(width = 360, height = 640, horizonY = 640 * (1 / 6), assets = null) {
     this.width = width;
@@ -48,7 +50,7 @@ export class ObstacleManager {
           lane,
           z: 0.0,
           speed,
-          heightOffset: 45, // requires jump
+          heightOffset: 70, // requires jump
           collected: false
         });
       } else if (type === 'beam') {
@@ -112,11 +114,8 @@ export class ObstacleManager {
             collisions.push(obs);
 
             if (onCollision) {
-              const vanishingX = this.width / 2;
-              const bottomX = laneCenterX;
-              const ox = vanishingX + (bottomX - vanishingX) * obs.z;
-              const oy = this.horizonY + (this.height - this.horizonY) * obs.z;
-              onCollision(obs, ox, oy);
+              const proj = projectLane(this.width, this.height, this.horizonY, obs.lane, 0, obs.z);
+              onCollision(obs, proj.x, proj.y);
             }
           }
         }
@@ -126,171 +125,178 @@ export class ObstacleManager {
     return collisions;
   }
 
-  draw(ctx) {
-    const vanishingX = this.width / 2;
+  drawSingleObstacle(ctx, obs) {
+    if (obs.z <= 0.05) return;
 
-    this.obstacles.forEach((obs) => {
-      if (obs.z <= 0.05) return;
+    const proj = projectLane(this.width, this.height, this.horizonY, obs.lane, 0, obs.z);
+    const x = proj.x;
+    const y = proj.y;
+    const zScale = proj.zScale;
 
-      const bottomX = this.getLaneX(obs.lane);
-      const x = vanishingX + (bottomX - vanishingX) * obs.z;
-      const y = this.horizonY + (this.height - this.horizonY) * obs.z;
+    ctx.shadowBlur = 0;
 
-      const zScale = obs.z;
-      ctx.shadowBlur = 0;
+    const imageAsset = this.assets && (this.assets[obs.type] || this.assets.obstacle);
 
-      // Check if custom image asset is available for this type or generic obstacle
-      const imageAsset = this.assets && (this.assets[obs.type] || this.assets.obstacle);
+    if (obs.type === 'barrier') {
+      const w = (this.width / 3) * zScale;
+      const aspect = (imageAsset && imageAsset.height > 0) ? (imageAsset.height / imageAsset.width) : (48 / 42);
+      const h = w * aspect;
 
-      if (obs.type === 'barrier') {
-        const w = 42 * zScale;
-        const h = 48 * zScale;
+      if (imageAsset) {
+        ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
+      } else {
+        // Hand-Drawn Cardboard Box Barrier
+        ctx.strokeStyle = '#2C2C2E';
+        ctx.lineWidth = 1.5 + 2.5 * zScale;
+        ctx.fillStyle = obs.collided ? '#FF3B30' : '#D2B48C';
 
-        if (imageAsset) {
-          ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
-        } else {
-          // Hand-Drawn Cardboard Box Barrier
-          ctx.strokeStyle = '#2C2C2E';
-          ctx.lineWidth = 1.5 + 2.5 * zScale;
-          ctx.fillStyle = obs.collided ? '#FF3B30' : '#D2B48C';
+        // Front Face
+        ctx.beginPath();
+        ctx.rect(x - w / 2, y - h, w, h);
+        ctx.fill();
+        ctx.stroke();
 
-          // Front Face
+        // Cardboard tape strips
+        ctx.fillStyle = '#E5C494';
+        ctx.beginPath();
+        ctx.rect(x - w * 0.15, y - h, w * 0.3, h);
+        ctx.fill();
+        ctx.stroke();
+
+        // 3D Box Perspective Flaps/Depth
+        if (zScale > 0.15) {
+          const zBack = zScale - 0.06 * zScale;
+          const projBack = projectLane(this.width, this.height, this.horizonY, obs.lane, 0, zBack);
+          const xBack = projBack.x;
+          const yBack = projBack.y;
+          const wBack = (this.width / 3) * projBack.zScale;
+          const hBack = wBack * aspect;
+
+          ctx.fillStyle = '#C2A37B';
           ctx.beginPath();
-          ctx.rect(x - w / 2, y - h, w, h);
+          ctx.moveTo(x - w / 2, y - h);
+          ctx.lineTo(xBack - wBack / 2, yBack - hBack);
+          ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+          ctx.lineTo(x + w / 2, y - h);
+          ctx.closePath();
           ctx.fill();
           ctx.stroke();
 
-          // Cardboard tape strips
-          ctx.fillStyle = '#E5C494';
           ctx.beginPath();
-          ctx.rect(x - w * 0.15, y - h, w * 0.3, h);
+          ctx.moveTo(x + w / 2, y - h);
+          ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+          ctx.lineTo(xBack + wBack / 2, yBack);
+          ctx.lineTo(x + w / 2, y);
+          ctx.closePath();
           ctx.fill();
           ctx.stroke();
-
-          // 3D Box Perspective Flaps/Depth
-          if (zScale > 0.15) {
-            const zBack = zScale - 0.06 * zScale;
-            const xBack = vanishingX + (bottomX - vanishingX) * zBack;
-            const yBack = this.horizonY + (this.height - this.horizonY) * zBack;
-            const wBack = 42 * zBack;
-            const hBack = 48 * zBack;
-
-            ctx.fillStyle = '#C2A37B';
-            ctx.beginPath();
-            ctx.moveTo(x - w / 2, y - h);
-            ctx.lineTo(xBack - wBack / 2, yBack - hBack);
-            ctx.lineTo(xBack + wBack / 2, yBack - hBack);
-            ctx.lineTo(x + w / 2, y - h);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(x + w / 2, y - h);
-            ctx.lineTo(xBack + wBack / 2, yBack - hBack);
-            ctx.lineTo(xBack + wBack / 2, yBack);
-            ctx.lineTo(x + w / 2, y);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-          }
-        }
-      } else if (obs.type === 'hurdle') {
-        const w = 46 * zScale;
-        const h = 20 * zScale;
-
-        if (imageAsset) {
-          ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
-        } else {
-          // Hand-Drawn Pencil Fence / Hurdle
-          ctx.strokeStyle = '#2C2C2E';
-          ctx.lineWidth = 1.5 + 2.0 * zScale;
-
-          // Main Yellow Pencil Body Bar
-          ctx.fillStyle = obs.collided ? '#FF3B30' : '#FFCC00';
-          ctx.beginPath();
-          ctx.rect(x - w / 2, y - h, w, h * 0.6);
-          ctx.fill();
-          ctx.stroke();
-
-          // Pink Eraser End
-          ctx.fillStyle = '#FF2D55';
-          ctx.beginPath();
-          ctx.rect(x - w / 2, y - h, w * 0.2, h * 0.6);
-          ctx.fill();
-          ctx.stroke();
-
-          // Pencil Legs (Posts)
-          ctx.fillStyle = '#2C2C2E';
-          ctx.beginPath();
-          ctx.rect(x - w * 0.4, y - h * 0.4, w * 0.1, h * 1.4);
-          ctx.rect(x + w * 0.3, y - h * 0.4, w * 0.1, h * 1.4);
-          ctx.fill();
-
-          // 3D Depth Lines
-          if (zScale > 0.15) {
-            const zBack = zScale - 0.06 * zScale;
-            const xBack = vanishingX + (bottomX - vanishingX) * zBack;
-            const yBack = this.horizonY + (this.height - this.horizonY) * zBack;
-            const wBack = 46 * zBack;
-            const hBack = 20 * zBack;
-
-            ctx.beginPath();
-            ctx.moveTo(x - w / 2, y - h); ctx.lineTo(xBack - wBack / 2, yBack - hBack);
-            ctx.moveTo(x + w / 2, y - h); ctx.lineTo(xBack + wBack / 2, yBack - hBack);
-            ctx.stroke();
-          }
-        }
-      } else if (obs.type === 'beam') {
-        const w = 48 * zScale;
-        const h = 48 * zScale;
-        const beamH = 14 * zScale;
-
-        if (imageAsset) {
-          ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
-        } else {
-          // Hand-Drawn Ink Splatter Laser Arch
-          ctx.strokeStyle = '#2C2C2E';
-          ctx.lineWidth = 1.5 + 2.0 * zScale;
-
-          // Ink Pillars
-          ctx.fillStyle = '#2C2C2E';
-          ctx.beginPath();
-          ctx.rect(x - w / 2, y - h, w * 0.12, h);
-          ctx.rect(x + w * 0.38, y - h, w * 0.12, h);
-          ctx.fill();
-
-          // Sky Blue / Red Ink Laser Splatter Bar
-          ctx.fillStyle = obs.collided ? '#FF3B30' : '#007AFF';
-          ctx.beginPath();
-          ctx.rect(x - w / 2, y - h, w, beamH);
-          ctx.fill();
-          ctx.stroke();
-
-          // Ink Splatter Doodles
-          ctx.beginPath();
-          ctx.arc(x - w * 0.2, y - h + beamH / 2, beamH * 0.4, 0, Math.PI * 2);
-          ctx.arc(x + w * 0.2, y - h + beamH / 2, beamH * 0.5, 0, Math.PI * 2);
-          ctx.fillStyle = '#0055CC';
-          ctx.fill();
-
-          // 3D Depth
-          if (zScale > 0.15) {
-            const zBack = zScale - 0.06 * zScale;
-            const xBack = vanishingX + (bottomX - vanishingX) * zBack;
-            const yBack = this.horizonY + (this.height - this.horizonY) * zBack;
-            const wBack = 48 * zBack;
-            const hBack = 48 * zBack;
-
-            ctx.beginPath();
-            ctx.moveTo(x - w / 2, y - h); ctx.lineTo(xBack - wBack / 2, yBack - hBack);
-            ctx.moveTo(x + w / 2, y - h); ctx.lineTo(xBack + wBack / 2, yBack - hBack);
-            ctx.stroke();
-          }
         }
       }
+    } else if (obs.type === 'hurdle') {
+      const w = (this.width / 3) * zScale;
+      const aspect = (imageAsset && imageAsset.height > 0) ? (imageAsset.height / imageAsset.width) : (20 / 46);
+      const h = w * aspect;
 
-      ctx.shadowBlur = 0;
+      if (imageAsset) {
+        ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
+      } else {
+        // Hand-Drawn Pencil Fence / Hurdle
+        ctx.strokeStyle = '#2C2C2E';
+        ctx.lineWidth = 1.5 + 2.0 * zScale;
+
+        // Main Yellow Pencil Body Bar
+        ctx.fillStyle = obs.collided ? '#FF3B30' : '#FFCC00';
+        ctx.beginPath();
+        ctx.rect(x - w / 2, y - h, w, h * 0.6);
+        ctx.fill();
+        ctx.stroke();
+
+        // Pink Eraser End
+        ctx.fillStyle = '#FF2D55';
+        ctx.beginPath();
+        ctx.rect(x - w / 2, y - h, w * 0.2, h * 0.6);
+        ctx.fill();
+        ctx.stroke();
+
+        // Pencil Legs (Posts)
+        ctx.fillStyle = '#2C2C2E';
+        ctx.beginPath();
+        ctx.rect(x - w * 0.4, y - h * 0.4, w * 0.1, h * 1.4);
+        ctx.rect(x + w * 0.3, y - h * 0.4, w * 0.1, h * 1.4);
+        ctx.fill();
+
+        // 3D Depth Lines
+        if (zScale > 0.15) {
+          const zBack = zScale - 0.06 * zScale;
+          const projBack = projectLane(this.width, this.height, this.horizonY, obs.lane, 0, zBack);
+          const xBack = projBack.x;
+          const yBack = projBack.y;
+          const wBack = (this.width / 3) * projBack.zScale;
+          const hBack = wBack * aspect;
+
+          ctx.beginPath();
+          ctx.moveTo(x - w / 2, y - h); ctx.lineTo(xBack - wBack / 2, yBack - hBack);
+          ctx.moveTo(x + w / 2, y - h); ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+          ctx.stroke();
+        }
+      }
+    } else if (obs.type === 'beam') {
+      const w = (this.width / 3) * zScale;
+      const aspect = (imageAsset && imageAsset.height > 0) ? (imageAsset.height / imageAsset.width) : 1.0;
+      const h = w * aspect;
+      const beamH = 14 * zScale;
+
+      if (imageAsset) {
+        ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
+      } else {
+        // Hand-Drawn Ink Splatter Laser Arch
+        ctx.strokeStyle = '#2C2C2E';
+        ctx.lineWidth = 1.5 + 2.0 * zScale;
+
+        // Ink Pillars
+        ctx.fillStyle = '#2C2C2E';
+        ctx.beginPath();
+        ctx.rect(x - w / 2, y - h, w * 0.12, h);
+        ctx.rect(x + w * 0.38, y - h, w * 0.12, h);
+        ctx.fill();
+
+        // Sky Blue / Red Ink Laser Splatter Bar
+        ctx.fillStyle = obs.collided ? '#FF3B30' : '#007AFF';
+        ctx.beginPath();
+        ctx.rect(x - w / 2, y - h, w, beamH);
+        ctx.fill();
+        ctx.stroke();
+
+        // Ink Splatter Doodles
+        ctx.beginPath();
+        ctx.arc(x - w * 0.2, y - h + beamH / 2, beamH * 0.4, 0, Math.PI * 2);
+        ctx.arc(x + w * 0.2, y - h + beamH / 2, beamH * 0.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#0055CC';
+        ctx.fill();
+
+        // 3D Depth
+        if (zScale > 0.15) {
+          const zBack = zScale - 0.06 * zScale;
+          const projBack = projectLane(this.width, this.height, this.horizonY, obs.lane, 0, zBack);
+          const xBack = projBack.x;
+          const yBack = projBack.y;
+          const wBack = (this.width / 3) * projBack.zScale;
+          const hBack = wBack * aspect;
+
+          ctx.beginPath();
+          ctx.moveTo(x - w / 2, y - h); ctx.lineTo(xBack - wBack / 2, yBack - hBack);
+          ctx.moveTo(x + w / 2, y - h); ctx.lineTo(xBack + wBack / 2, yBack - hBack);
+          ctx.stroke();
+        }
+      }
+    }
+
+    ctx.shadowBlur = 0;
+  }
+
+  draw(ctx) {
+    this.obstacles.forEach((obs) => {
+      this.drawSingleObstacle(ctx, obs);
     });
   }
 }

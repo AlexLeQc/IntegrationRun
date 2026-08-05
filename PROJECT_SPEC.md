@@ -110,6 +110,44 @@ create policy "Allow public insert access" on public.high_scores
 
 ---
 
+## Unified 3D Perspective & Depth Rendering Architecture
+
+Doodle Runner uses a unified 3D perspective projection model and dynamic z-depth sorting pipeline to guarantee accurate visual spatial representation and eliminate clipping glitches between player and environment objects.
+
+### Unified World-Space Coordinate System
+
+All renderable game objects exist in a shared 3D world space:
+- **`lane` / `posX`**: Horizontal track position (`lane` = 0, 1, 2 or interpolated `posX` between 0 and 360).
+- **`worldY`**: Vertical elevation height above the ground track plane (0 for ground, > 0 for jumps and airborne coins).
+- **`z`**: World depth along the track, running from `0.0` at the horizon vanishing point to `1.0` at the screen bottom.
+- **Player Fixed Depth**: The player is positioned at a fixed depth plane on the track (`player.z = 0.85`). Player jumping increases `worldY = player.jumpHeight` without changing world depth `z`.
+
+### Perspective Projection (`perspective.js`)
+
+All 3D world coordinates map into 2D canvas screen space through a single, shared projection function (`projectPosition` / `projectLane`):
+
+$$\text{screenX} = \text{vanishingX} + (\text{posX} - \text{vanishingX}) \times z$$
+$$\text{screenY} = \text{horizonY} + (\text{screenHeight} - \text{horizonY}) \times z - \text{worldY} \times z$$
+$$\text{zScale} = z$$
+
+Obstacles, coins, player, shadows, and track elements all use this identical mathematical transformation.
+
+### World Depth Sorting Pipeline
+
+To prevent visual z-sorting artifacts (such as hurdles appearing behind the player after jumping, or beams drawing beneath a sliding player):
+1. **Queue Construction**: Every frame in `Game.draw()`, all active obstacles, coins, airborne coin ground shadows, and the player are inserted into a flat `renderQueue`.
+2. **Depth Sorting**: The queue is sorted ascending by world depth `z` (farther objects with smaller `z` draw first; closer objects with larger `z` draw last).
+3. **Queue Execution**: The sorted render calls are executed sequentially before drawing particle effects and HUD overlays.
+
+Because the player is included directly in this queue at `z = 0.85`, objects with `z < 0.85` draw before the player, while objects that have passed the player (`z > 0.85`) draw in front of the player automatically and seamlessly.
+
+### World-Space Coin Collection & Shadow Rendering
+
+- **World-Space Collection**: Coins are evaluated for pickup based on 3D world coordinates (`z` within `0.80 - 0.88`, lane match, and `player.jumpHeight` overlapping `coin.heightOffset`) rather than 2D screen bounding boxes.
+- **Ground Shadows**: Airborne coins (`heightOffset > 0`) project a semi-transparent ground shadow directly beneath their position at ground level (`worldY = 0`), scaling with perspective `zScale` and shrinking slightly as `worldY` increases to reinforce visual elevation depth.
+
+---
+
 ## UI & Screen Flow
 
 The game user interface is structured into notebook card modal overlays and an in-game HUD:
@@ -142,6 +180,7 @@ The game user interface is structured into notebook card modal overlays and an i
 
 The application follows a modular architecture using ES modules for clean separation of concerns:
 
+- **`src/perspective.js`**: Central 3D perspective projection module exporting `projectPosition` and `projectLane` mapping 3D world coordinates `(posX/lane, worldY, z)` to 2D canvas screen coordinates.
 - **`src/assets.js`**: Image asset preloader module loading static images from `public/assets/` (`player.png`, `barrier.png`, `hurdle.png`, `beam.png`, `obstacle.png`, `coin.png`, `background.png`) with graceful error handling that falls back to procedural doodle rendering if images are missing.
 - **`src/player.js`**: `Player` class managing player lane state, smooth horizontal interpolation, jump/slide physics, and hand-drawn paper airplane / doodle chevron canvas rendering.
 - **`src/obstacles.js`**: `ObstacleManager` class managing procedural hazard spawning (Cardboard Box, Pencil Hurdle, Ink Beam), 3D perspective scaling math, and hand-drawn sketch canvas rendering.
