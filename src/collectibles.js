@@ -187,40 +187,48 @@ export class CoinManager {
       ctx.save();
       ctx.shadowBlur = 0;
 
+      // 1. Draw Airborne Ground Shadow on Track if coin is elevated
+      if (coin.heightOffset > 0) {
+        const groundY = this.horizonY + (this.height - this.horizonY) * coin.z;
+        const shadowRx = baseRadius * 1.1 * pulse;
+        const shadowRy = baseRadius * 0.35 * pulse;
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.beginPath();
+        ctx.ellipse(x, groundY, shadowRx, shadowRy, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 2. Draw Coin Asset or Rich Procedural Golden Coin
       if (this.assets && this.assets.coin) {
         // Draw custom coin image with horizontal spin scaling & pulse
         const w = rx * pulse * 2;
         const h = ry * pulse * 2;
         ctx.drawImage(this.assets.coin, x - w / 2, y - h / 2, w, h);
       } else {
-        // Procedural Hand-Drawn Golden 5-Point Star Sticker
+        // Procedural Rich Glowing Golden Coin
+        ctx.fillStyle = '#FFD700';
         ctx.strokeStyle = '#2C2C2E';
         ctx.lineWidth = 1.5 + zScale;
-        ctx.fillStyle = '#FFCC00';
 
-        const outerR = ry * pulse;
-        const innerR = outerR * 0.45;
-        const points = 5;
-
+        // Outer Coin Disk
         ctx.beginPath();
-        for (let p = 0; p < points * 2; p++) {
-          const r = p % 2 === 0 ? outerR : innerR;
-          const angle = (p * Math.PI) / points - Math.PI / 2;
-          const sx = x + Math.cos(angle) * r * Math.abs(spinScale);
-          const sy = y + Math.sin(angle) * r;
-          if (p === 0) ctx.moveTo(sx, sy);
-          else ctx.lineTo(sx, sy);
-        }
-        ctx.closePath();
+        ctx.ellipse(x, y, rx * pulse, ry * pulse, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        // Inner crayon hatch detail line
-        ctx.strokeStyle = '#FF9500';
-        ctx.lineWidth = 1.0;
+        // Inner Bright Gold Highlight Ring
+        ctx.strokeStyle = '#FFF2A3';
+        ctx.lineWidth = 1.2 * zScale;
         ctx.beginPath();
-        ctx.arc(x, y, innerR * 0.6, 0, Math.PI * 2);
+        ctx.ellipse(x, y, rx * 0.65 * pulse, ry * 0.65 * pulse, 0, 0, Math.PI * 2);
         ctx.stroke();
+
+        // Center Gold Core
+        ctx.fillStyle = '#D48800';
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx * 0.3 * pulse, ry * 0.3 * pulse, 0, 0, Math.PI * 2);
+        ctx.fill();
       }
 
       ctx.restore();

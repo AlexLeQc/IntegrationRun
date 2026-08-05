@@ -173,25 +173,25 @@ export class Game {
     // Apply screen shake translation if active
     this.screenShake.applyTransform(this.ctx);
 
-    // Clear screen with Notebook Cream background
-    this.ctx.fillStyle = '#FAF8F5';
-    this.ctx.fillRect(0, 0, this.width, this.height);
-
     if (this.assets && this.assets.background) {
+      // Clear canvas and render custom background image at full brightness and contrast
+      this.ctx.clearRect(0, 0, this.width, this.height);
       this.ctx.drawImage(this.assets.background, 0, 0, this.width, this.height);
     } else {
-      // Draw light sky gradient above horizon
+      // Procedural Fallback Background (when no image asset is loaded)
+      this.ctx.fillStyle = '#FAF8F5';
+      this.ctx.fillRect(0, 0, this.width, this.height);
+
       const skyGrad = this.ctx.createLinearGradient(0, 0, 0, this.horizonY);
       skyGrad.addColorStop(0, '#E3F2FD');
       skyGrad.addColorStop(1, '#FAF8F5');
       this.ctx.fillStyle = skyGrad;
       this.ctx.fillRect(0, 0, this.width, this.horizonY);
 
-      // Draw playful doodle sun
       this.drawSun();
     }
 
-    // Draw moving graphite pencil perspective grid and lanes
+    // Draw grid overlay (only used for procedural fallback)
     this.drawGrid();
 
     // Draw coins & particles
@@ -249,9 +249,14 @@ export class Game {
   }
 
   drawGrid() {
+    // When custom background image is loaded, the background handles the horizon line, lateral lane boundaries, and grid lines directly.
+    if (this.assets && this.assets.background) {
+      return;
+    }
+
     this.ctx.save();
 
-    // Draw horizon pencil line
+    // Procedural horizon pencil line
     this.ctx.strokeStyle = '#2C2C2E';
     this.ctx.lineWidth = 3;
     this.ctx.beginPath();
@@ -281,7 +286,6 @@ export class Game {
       }
 
       this.ctx.beginPath();
-      // Add slight organic wobbly line effect
       const midX = (bx + vanishingX) / 2 + Math.sin(index * 2) * 1.5;
       const midY = (this.height + vanishingY) / 2;
 

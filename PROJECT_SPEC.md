@@ -95,14 +95,16 @@ create policy "Allow public insert access" on public.high_scores
 
 ### Collectibles & Coins
 
-- Coins/stickers are procedurally generated in lane patterns (such as lines of 3–5 consecutive items) or individually placed (e.g. directly above pencil hurdles to reward jump triggers).
-- Styled as 5-point doodle star stickers / golden sketch disks with spinning crayon hatch lines and bright yellow fills.
-- Collecting a coin/star immediately increases the player's active score by **+100 points** and triggers a colorful confetti particle explosion.
+- Coins are procedurally generated in lane patterns (such as lines of 3–5 consecutive items) or individually placed (e.g. directly above hurdles to reward jump triggers).
+- Styled as spinning glowing golden coins (`coin.png` asset or procedural gold disk with rich golden yellow fills, a bright highlight ring, and marker stroke outlines).
+- **Airborne Ground Shadows**: When coins spawn at elevated heights (`heightOffset > 0`, e.g. jump-height above hurdles), a soft semi-transparent oval shadow (`rgba(0, 0, 0, 0.3)`) renders directly on the lane track beneath them, scaling dynamically with perspective `zScale` to provide a clear visual depth cue indicating a jump is required.
+- Collecting a coin immediately increases the player's active score by **+100 points** and triggers a colorful particle explosion.
 
 ### Background & Visual Environment
 
 - Bright, playful, hand-drawn sketchbook aesthetic inspired by childhood art class.
-- Features a subtle graph paper notebook texture (`#FAF8F5`), a hand-drawn doodle yellow sun with radiating crayon rays, and graphite pencil grid lines.
+- The background image asset (`background.png`) handles the perspective grid, lateral lane boundaries, horizon line, and visual background environment directly at full contrast, vibrant colors, and true brightness without darkening tint overlays or duplicate line drawing.
+- Procedural canvas drawing maintains clean, transparent layer rendering while preserving internal 3D positioning coordinates (`horizonY = 1/6th` canvas height, 3 lane math) for hazard and player movement.
 - Custom typography loaded from Google Fonts ("Fredoka" for headers, score displays, and buttons; "Kalam" for handwriting notes and body labels).
 - Notebook paper overlay cards (`#main-menu`, `#leaderboard-screen`, `#game-over-screen`, `#hud-overlay`) featuring `backdrop-filter: blur(8px)`, rounded hand-drawn style borders (`border: 3px solid #2C2C2E; border-radius: 18px 12px 20px 14px`), and soft cardboard drop shadows.
 
