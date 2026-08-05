@@ -2,6 +2,7 @@ import './style.css';
 import { Game } from './game.js';
 import { fetchLeaderboard, submitScore } from './supabase.js';
 import { showScreen, updateHUD, renderLeaderboard } from './ui.js';
+import { audioManager } from './audio.js';
 
 // DOM elements
 const mainMenu = document.getElementById('main-menu');
@@ -19,6 +20,9 @@ const scoreSubmitForm = document.getElementById('score-submit-form');
 const usernameInput = document.getElementById('username');
 const submitScoreBtn = document.getElementById('submit-score-btn');
 const canvas = document.getElementById('game-canvas');
+
+// Initialize audio system
+audioManager.init();
 
 // Game instance
 let game;
@@ -38,22 +42,26 @@ function onGameOver(score) {
 // Initialize the game instance
 game = new Game(canvas, updateHUD, onGameOver);
 
-// Bind event listeners
+// Bind event listeners with sound effects
 startBtn.addEventListener('click', () => {
+  audioManager.play('click');
   showScreen(hudOverlay);
   game.start();
 });
 
 leaderboardBtn.addEventListener('click', async () => {
+  audioManager.play('click');
   showScreen(leaderboardScreen);
   await renderLeaderboard(fetchLeaderboard);
 });
 
 leaderboardBackBtn.addEventListener('click', () => {
+  audioManager.play('click');
   showScreen(mainMenu);
 });
 
 restartBtn.addEventListener('click', () => {
+  audioManager.play('click');
   showScreen(hudOverlay);
   game.start();
 });

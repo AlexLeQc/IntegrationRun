@@ -176,6 +176,42 @@ The game user interface is structured into notebook card modal overlays and an i
 
 ---
 
+## Centralized Audio System Architecture
+
+Doodle Runner features a deterministic, production-ready Web Audio pipeline managed by a central `AudioManager` ([audio.js](file:///Users/alexisguerard/Projects/Gamefeeling/src/audio.js)).
+
+### Single AudioContext Lifecycle
+
+- **Single Global Context**: Created once and reused across the application. Gameplay code never instantiates new `AudioContext` or audio nodes directly.
+- **Autoplay & Mobile Unlock**: Global event listeners on `pointerdown`, `keydown`, `touchstart`, and `click` automatically resume the `AudioContext` on the first user gesture to comply with browser autoplay restrictions.
+- **Tab Visibility Handling**: A `visibilitychange` listener resumes the suspended `AudioContext` when returning to an active browser tab.
+
+### Master Mixer & Volumes
+
+All synthesized sounds route through a central `MasterGain` node:
+- **Master Gain**: Default `0.5` (supports global mute toggle).
+- **Sound-Specific Mix Volumes**:
+  - `coin`: 0.25 (dual-tone upward sweep D5 -> A5)
+  - `jump`: 0.35 (upward pitch slide 150 Hz -> 420 Hz)
+  - `slide`: 0.30 (lowpass filtered triangle swoop 600 Hz -> 150 Hz)
+  - `hit`: 0.50 (low impact pitch dive and crunch)
+  - `gameOver`: 0.60 (descending 3-note bass tone)
+  - `click`: 0.20 (crisp UI button click)
+
+### Sound Cooldowns & Node Memory Management
+
+- **Cooldown Policy**: Minimum replay intervals prevent audio choking and overlap stuttering during rapid gameplay events:
+  - `coin`: 45ms
+  - `click`: 50ms
+  - `jump`: 100ms
+  - `slide`: 100ms
+  - `hit`: 150ms
+  - `gameOver`: 500ms
+- **Self-Cleaning Nodes**: Temporary audio nodes (`OscillatorNode`, `GainNode`, `BiquadFilterNode`) schedule playback using `ctx.currentTime` and automatically disconnect themselves in `onended` handlers to prevent memory leaks.
+- **Debug Mode**: Exposes `AUDIO_DEBUG` toggle and `audioManager.setDebug(true)` for console logging context state, sound play requests, resume events, and cooldown skips.
+
+---
+
 ## Code Structure & Architecture
 
 The application follows a modular architecture using ES modules for clean separation of concerns:
@@ -188,7 +224,7 @@ The application follows a modular architecture using ES modules for clean separa
 - **`src/ui.js`**: UI helper module managing HUD score displays, hand-drawn crayon heart indicators, screen shake transforms, damage screen flashes, notebook screen overlay transitions, and leaderboard DOM updates.
 - **`src/game.js`**: Main `Game` orchestrator managing asset preloading, the `requestAnimationFrame` loop, delta time calculations, notebook background/doodle sun/pencil grid rendering, module coordination, and collision checks.
 - **`src/input.js`**: `InputHandler` managing keyboard and mobile touch swipe input events.
-- **`src/audio.js`**: Web Audio API synthesizer for sound effects and playful audio.
+- **`src/audio.js`**: `AudioManager` class and singleton instance managing Web Audio synthesis, single `AudioContext` lifecycle, master mixer gain nodes, sound cooldowns, and mobile gesture unlocking.
 - **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations.
 - **`src/main.js`**: Application entrypoint initializing DOM events, game instance, responsive canvas scaling, and screen management.
 

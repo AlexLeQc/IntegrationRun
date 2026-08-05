@@ -4,6 +4,7 @@ import { ObstacleManager } from './obstacles.js';
 import { CoinManager } from './collectibles.js';
 import { ScreenShake, triggerDamageFlash } from './ui.js';
 import { loadAssets } from './assets.js';
+import { audioManager } from './audio.js';
 
 export class Game {
   constructor(canvas, onUpdateHUD, onGameOver) {
@@ -102,6 +103,9 @@ export class Game {
   takeDamage() {
     this.lives = Math.max(0, this.lives - 1);
 
+    // Play hit sound effect
+    audioManager.play('hit');
+
     // Screen shake & visual flash
     this.screenShake.trigger(0.25, 8);
     triggerDamageFlash();
@@ -111,6 +115,7 @@ export class Game {
     }
 
     if (this.lives <= 0) {
+      audioManager.play('gameOver');
       this.stop();
       if (this.onGameOver) {
         this.onGameOver(this.score);

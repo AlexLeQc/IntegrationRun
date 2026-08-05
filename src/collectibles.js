@@ -1,4 +1,5 @@
 import { projectLane } from './perspective.js';
+import { audioManager } from './audio.js';
 
 export class CoinManager {
   constructor(width = 360, height = 640, horizonY = 640 * (1 / 6), assets = null) {
@@ -73,27 +74,7 @@ export class CoinManager {
   }
 
   playCoinSound() {
-    try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
-      osc.type = 'sine';
-      const now = audioCtx.currentTime;
-      osc.frequency.setValueAtTime(587.33, now);
-      osc.frequency.setValueAtTime(880.00, now + 0.08);
-
-      gain.gain.setValueAtTime(0.06, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.35);
-    } catch (e) {
-      console.warn('Web Audio synthesis failed:', e);
-    }
+    audioManager.play('coin');
   }
 
   update(deltaTime, score, speedMultiplier, player, onCollectCoin) {

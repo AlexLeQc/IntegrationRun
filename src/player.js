@@ -1,4 +1,5 @@
 import { projectPosition } from './perspective.js';
+import { audioManager } from './audio.js';
 
 export class Player {
   constructor(canvasWidth = 360, canvasHeight = 640, horizonY = 640 * (1 / 6), assets = null) {
@@ -45,6 +46,7 @@ export class Player {
     if (!this.isJumping && !this.isSliding) {
       this.isJumping = true;
       this.jumpTime = 0;
+      audioManager.play('jump');
     }
   }
 
@@ -52,6 +54,7 @@ export class Player {
     if (!this.isJumping && !this.isSliding) {
       this.isSliding = true;
       this.slideTime = 0;
+      audioManager.play('slide');
     }
   }
 
