@@ -1,16 +1,17 @@
-# Neon Runner
+# Doodle Runner
 
-**Neon Runner** is a high-performance, mobile-first, 3-lane runner web game built with Vite and Vanilla JS. It features a retro-futuristic Synthwave theme, real-time Canvas rendering, Web Audio synthesis, touch swipe controls, and a global leaderboard integrated with Supabase.
+**Doodle Runner** is a high-performance, mobile-first, 3-lane runner web game built with Vite and Vanilla JS. Set in a bright, playful, hand-drawn sketchbook aesthetic inspired by childhood art class, it features paper airplane ships, 3D cardboard box barriers, wooden pencil hurdles, ink splatter arches, glowing gold coins with airborne ground shadows, real-time Canvas rendering, Web Audio synthesis, touch swipe controls, and a global leaderboard integrated with Supabase.
 
 ---
 
 ## Features
 
-- **Retro Synthwave Style**: Glassmorphic UI overlays, pulsing neon glowing borders, dynamic perspective grids, and retro sunsets.
-- **Pseudo-3D Canvas Engine**: Smooth 60fps rendering using purely HTML5 2D Canvas—no external WebGL libraries required.
-- **Mobile-First Touch Swiping**: Dominate vertical swipe thresholds for fluid lane-shifting, with keyboard arrow and A/D keys supported for desktop.
+- **Playful Sketchbook Style**: Notebook paper card overlays with rounded hand-drawn borders, Google Fonts (`Fredoka` & `Kalam`), marker-styled buttons with playful hover tilts, and bright crayon accent colors.
+- **Pseudo-3D Canvas Engine**: Smooth 60fps rendering of hand-drawn paper airplanes, cardboard boxes, pencil hurdles, ink splatter arches, and spinning gold coins with ground depth shadows—no external WebGL libraries required.
+- **Full-Brightness Background Asset Engine**: Supports custom background images rendered at full contrast and true brightness without darkening overlays or duplicate line drawing.
+- **Mobile-First Touch Swiping**: Fluid lane-shifting, jumping, and sliding with mobile touch swipe gestures, plus keyboard arrow and A/D/W/S key support for desktop.
 - **Supabase Leaderboard**: Global high-score storage with a transparent `localStorage` fallback to support instant play during local development.
-- **Dynamic Synthesizer**: Immersive audio generated in real-time using the browser's Web Audio API.
+- **Dynamic Web Audio Synthesizer**: Sound effects generated in real-time using the browser's Web Audio API.
 
 ---
 
