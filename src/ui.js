@@ -121,7 +121,7 @@ export function showScreen(activeScreen) {
 /**
  * Fetches and renders leaderboard entries into DOM table
  */
-export async function renderLeaderboard(fetchLeaderboardFn) {
+export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null) {
   const entriesContainer = document.getElementById("leaderboard-entries");
   if (!entriesContainer) return;
 
@@ -146,6 +146,16 @@ export async function renderLeaderboard(fetchLeaderboardFn) {
       else if (rank === 3) rankClass = "rank-3";
 
       const row = document.createElement("tr");
+
+      // Check if this row matches the newly submitted entry to highlight
+      if (
+        highlightInfo &&
+        entry.username === highlightInfo.username &&
+        entry.score === highlightInfo.score
+      ) {
+        row.classList.add("row-highlight");
+      }
+
       row.innerHTML = `
         <td class="${rankClass}" style="font-weight: bold; text-align: center;">${rank}</td>
         <td>${entry.username}</td>
@@ -157,5 +167,45 @@ export async function renderLeaderboard(fetchLeaderboardFn) {
     console.error("Error rendering leaderboard:", error);
     entriesContainer.innerHTML =
       '<tr><td colspan="3" style="text-align: center; color: var(--color-magenta);">TRANSMISSION ERROR</td></tr>';
+  }
+}
+
+/**
+ * Toggles Game Over UI between State 1 (Regular) and State 2 (New High Score Prompt)
+ */
+export function showGameOverState(isQualified, { score, rank }) {
+  const regularSubstate = document.getElementById("game-over-regular");
+  const highscoreSubstate = document.getElementById("game-over-highscore");
+  const scoreValRegular = document.getElementById("final-score-val-regular");
+  const scoreValHighscore = document.getElementById("final-score-val-highscore");
+  const predictedRankVal = document.getElementById("predicted-rank-val");
+  const submitStatusMsg = document.getElementById("submit-status-msg");
+  const submitScoreBtn = document.getElementById("submit-score-btn");
+  const usernameInput = document.getElementById("username");
+
+  if (scoreValRegular) scoreValRegular.textContent = score.toLocaleString();
+  if (scoreValHighscore) scoreValHighscore.textContent = score.toLocaleString();
+
+  if (submitStatusMsg) {
+    submitStatusMsg.classList.add("hidden");
+    submitStatusMsg.textContent = "";
+  }
+
+  if (isQualified) {
+    if (regularSubstate) regularSubstate.classList.add("hidden");
+    if (highscoreSubstate) highscoreSubstate.classList.remove("hidden");
+    if (predictedRankVal) predictedRankVal.textContent = `RANK #${rank}`;
+
+    if (usernameInput) {
+      usernameInput.value = "";
+      usernameInput.disabled = false;
+    }
+    if (submitScoreBtn) {
+      submitScoreBtn.disabled = false;
+      submitScoreBtn.textContent = "SUBMIT RECORD";
+    }
+  } else {
+    if (highscoreSubstate) highscoreSubstate.classList.add("hidden");
+    if (regularSubstate) regularSubstate.classList.remove("hidden");
   }
 }

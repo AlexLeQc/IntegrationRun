@@ -81,70 +81,16 @@ create policy "Allow public insert access" on public.high_scores
 - Consequently, the three lanes extend down to the bottom, occupying **5/6th (≈83%)** of the total canvas height.
 - The track grid is rendered using graphite pencil sketch lines with organic hand-drawn line jitter.
 
-### Scoreboard & High Scores
+### Scoreboard & High Scores (Arcade Leaderboard System)
 
-- Score automatically increases continuously over time as the player survives (accumulating at a rate of +10 points per second elapsed).
-- Leaderboard retrieves and submits scores to a Supabase database, falling back automatically to local storage if API keys are absent.
-
-### Lives & Health System
-
-- The player starts with 3 lives.
-- Lives are represented in the HUD using custom hand-drawn crayon/marker heart SVG elements filled with bright crayon red (`#FF3B30`) and dark wobbly stroke outlines (`#2C2C2E`).
-- When the player hits an obstacle, it triggers a screen flash and screen shake effect, removing 1 heart from the visual health indicator on the screen.
-- When 0 hearts remain, the Game Over state is triggered.
-
-### Collectibles & Coins
-
-- Coins are procedurally generated in lane patterns (such as lines of 3–5 consecutive items) or individually placed (e.g. directly above hurdles to reward jump triggers).
-- Styled as spinning glowing golden coins (`coin.png` asset or procedural gold disk with rich golden yellow fills, a bright highlight ring, and marker stroke outlines).
-- **Airborne Ground Shadows**: When coins spawn at elevated heights (`heightOffset > 0`, e.g. jump-height above hurdles), a soft semi-transparent oval shadow (`rgba(0, 0, 0, 0.3)`) renders directly on the lane track beneath them, scaling dynamically with perspective `zScale` to provide a clear visual depth cue indicating a jump is required.
-- Collecting a coin immediately increases the player's active score by **+100 points** and triggers a colorful particle explosion.
-
-### Background & Visual Environment
-
-- Bright, playful, hand-drawn sketchbook aesthetic inspired by childhood art class.
-- The background image asset (`background.png`) handles the perspective grid, lateral lane boundaries, horizon line, and visual background environment directly at full contrast, vibrant colors, and true brightness without darkening tint overlays or duplicate line drawing.
-- Procedural canvas drawing maintains clean, transparent layer rendering while preserving internal 3D positioning coordinates (`horizonY = 1/6th` canvas height, 3 lane math) for hazard and player movement.
-- Custom typography loaded from Google Fonts ("Fredoka" for headers, score displays, and buttons; "Kalam" for handwriting notes and body labels).
-- Notebook paper overlay cards (`#main-menu`, `#leaderboard-screen`, `#game-over-screen`, `#hud-overlay`) featuring `backdrop-filter: blur(8px)`, rounded hand-drawn style borders (`border: 3px solid #2C2C2E; border-radius: 18px 12px 20px 14px`), and soft cardboard drop shadows.
-
----
-
-## Unified 3D Perspective & Depth Rendering Architecture
-
-Doodle Runner uses a unified 3D perspective projection model and dynamic z-depth sorting pipeline to guarantee accurate visual spatial representation and eliminate clipping glitches between player and environment objects.
-
-### Unified World-Space Coordinate System
-
-All renderable game objects exist in a shared 3D world space:
-- **`lane` / `posX`**: Horizontal track position (`lane` = 0, 1, 2 or interpolated `posX` between 0 and 360).
-- **`worldY`**: Vertical elevation height above the ground track plane (0 for ground, > 0 for jumps and airborne coins).
-- **`z`**: World depth along the track, running from `0.0` at the horizon vanishing point to `1.0` at the screen bottom.
-- **Player Fixed Depth**: The player is positioned at a fixed depth plane on the track (`player.z = 0.85`). Player jumping increases `worldY = player.jumpHeight` without changing world depth `z`.
-
-### Perspective Projection (`perspective.js`)
-
-All 3D world coordinates map into 2D canvas screen space through a single, shared projection function (`projectPosition` / `projectLane`):
-
-$$\text{screenX} = \text{vanishingX} + (\text{posX} - \text{vanishingX}) \times z$$
-$$\text{screenY} = \text{horizonY} + (\text{screenHeight} - \text{horizonY}) \times z - \text{worldY} \times z$$
-$$\text{zScale} = z$$
-
-Obstacles, coins, player, shadows, and track elements all use this identical mathematical transformation.
-
-### World Depth Sorting Pipeline
-
-To prevent visual z-sorting artifacts (such as hurdles appearing behind the player after jumping, or beams drawing beneath a sliding player):
-1. **Queue Construction**: Every frame in `Game.draw()`, all active obstacles, coins, airborne coin ground shadows, and the player are inserted into a flat `renderQueue`.
-2. **Depth Sorting**: The queue is sorted ascending by world depth `z` (farther objects with smaller `z` draw first; closer objects with larger `z` draw last).
-3. **Queue Execution**: The sorted render calls are executed sequentially before drawing particle effects and HUD overlays.
-
-Because the player is included directly in this queue at `z = 0.85`, objects with `z < 0.85` draw before the player, while objects that have passed the player (`z > 0.85`) draw in front of the player automatically and seamlessly.
-
-### World-Space Coin Collection & Shadow Rendering
-
-- **World-Space Collection**: Coins are evaluated for pickup based on 3D world coordinates (`z` within `0.80 - 0.88`, lane match, and `player.jumpHeight` overlapping `coin.heightOffset`) rather than 2D screen bounding boxes.
-- **Ground Shadows**: Airborne coins (`heightOffset > 0`) project a semi-transparent ground shadow directly beneath their position at ground level (`worldY = 0`), scaling with perspective `zScale` and shrinking slightly as `worldY` increases to reinforce visual elevation depth.
+- Score automatically increases continuously over time as the player survives (accumulating at a rate of +10 points per second elapsed) plus +100 points for collected coins.
+- **Top 20 Enforced Limit**: The leaderboard maintains a strict maximum limit of **20 entries** (`limit = 20`).
+- **Arcade Qualification Check**: On Game Over, `qualifiesForLeaderboard(score)` evaluates if the player's score qualifies for the Top 20:
+  - If `scores.length < 20`: Always qualifies.
+  - If `scores.length === 20`: Qualifies if `score > 20thPlaceScore`.
+- **Tie-Breaking Rule**: Higher score ranks better. If two entries have identical scores, the older entry is kept first, and the new score inserts *after* existing identical scores.
+- **Automatic Database Trimming**: Calling `submitHighScore(name, score)` inserts the entry, calculates rank, and executes `deleteLowestScore()` to purge any 21st lowest entry.
+- Parity between online (Supabase) and offline (`localStorage` fallback) modes.
 
 ---
 
@@ -164,15 +110,23 @@ The game user interface is structured into notebook card modal overlays and an i
 - **Health Indicator**: 3 hand-drawn crayon heart elements transitioning from bright red fill to empty sketch outline on damage.
 - **Damage Flash**: `#damage-flash` overlay element that flashes red on obstacle collision alongside canvas screen shake.
 
-### Game Over Screen (`#game-over-screen`)
-- **Header**: Playful "GAME OVER" notebook header.
-- **Final Score**: Displays total score achieved in the session.
-- **Leaderboard Submission Form**: 3-character uppercase initials input box (`#username`) and `SUBMIT RECORD` button.
-- **Restart Button**: `RETRY RUN` button allowing immediate game loop restart.
+### Dual-State Game Over Screen (`#game-over-screen`)
 
-### Leaderboard Overlay (`#leaderboard-screen`)
-- **Rankings Table**: Top 10 high score records formatted with rank numbers (1st, 2nd, 3rd highlighted with gold, silver, bronze marker accents), username initials, and numeric score.
-- **Navigation**: `BACK TO MENU` button returning smoothly to the Main Menu.
+- **Modal Fit & Layout**: Centered vertically inside `#game-over-screen` with `max-height: 90vh; overflow-y: auto;` and compact touch-friendly padding (`12px 20px` for buttons and input fields). Headers are contained strictly inside the modal card borders.
+- **State 1 – Regular Game Over (Not Qualified)**:
+  - Displayed when final score does NOT qualify for the Top 20.
+  - Skips name input prompt completely.
+  - Displays header "GAME OVER", final score, and action buttons in a 2-tier layout: top primary button `[RETRY RUN]` (full width) and bottom row container (`.button-row`) with `[MAIN MENU]` and `[SKETCHBOOK]` side-by-side.
+
+- **State 2 – New High Score Prompt (Qualified)**:
+  - Displayed when final score qualifies for the Top 20.
+  - Displays header "🎉 NEW HIGH SCORE!", a compact combined header badge (`RANK #X • SCORE: 001250`), and name entry form (2–12 characters, uppercase/trimmed).
+  - Upon submission, displays `✔ SCORE SUBMITTED!` and automatically transitions to the Leaderboard Screen with the player's new entry highlighted.
+
+### Leaderboard Screen (`#leaderboard-screen`)
+- **Vertical Spacing & Layout**: `#leaderboard-screen` is configured as a flex container (`flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box; padding: 1.5rem 1rem;`). The `.screen-title` stays firmly at the top, `#leaderboard-back-btn` is pinned cleanly at the bottom, and `.leaderboard-table-container` fills the spacious center (`flex: 1; min-height: 55vh; width: 100%; overflow-y: auto; margin: 1rem 0;`).
+- **Rankings Table & Styling**: Top 20 high score records formatted with rank numbers (1st, 2nd, 3rd highlighted with gold, silver, bronze marker accents), runner names, and numeric scores. Table rows feature expanded padding (`padding: 10px 12px`) and larger font sizes to fill vertical card height comfortably without looking tiny or cramped. Styled with a subtle paper card background, notebook border line, and custom sketch scrollbar. Newly submitted scores are highlighted with a gold marker stroke background.
+- **Navigation**: `BACK` button returning smoothly to the Main Menu.
 
 ---
 

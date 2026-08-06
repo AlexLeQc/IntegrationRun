@@ -61,21 +61,39 @@
         <button id="leaderboard-back-btn" class="neon-btn outline">BACK</button>
       </div>
 
-      <!-- Game Over Screen -->
+      <!-- Game Over Screen (Dual-State Arcade Flow) -->
       <div id="game-over-screen" class="screen-overlay hidden">
-        <h2 class="screen-title text-magenta">GAME OVER!</h2>
-        <div class="final-score-container">
-          <span class="score-label">FINAL SCORE</span>
-          <span id="final-score-val" class="score-value">0</span>
+        <!-- State 1: Regular Game Over (Not Qualified) -->
+        <div id="game-over-regular" class="game-over-substate hidden">
+          <h2 class="screen-title text-magenta">GAME OVER</h2>
+          <div class="final-score-container">
+            <span class="score-label">FINAL SCORE</span>
+            <span id="final-score-val-regular" class="score-value">0</span>
+          </div>
+          <div class="menu-actions">
+            <button id="retry-btn-regular" class="neon-btn cyan">RETRY RUN</button>
+            <div class="button-row">
+              <button id="main-menu-btn-regular" class="neon-btn outline">MAIN MENU</button>
+              <button id="leaderboard-btn-regular" class="neon-btn magenta">SKETCHBOOK</button>
+            </div>
+          </div>
         </div>
-        
-        <form id="score-submit-form" class="score-form">
-          <label for="username" class="form-label">ENTER YOUR INITIALS</label>
-          <input type="text" id="username" class="form-input" minlength="2" maxlength="3" required placeholder="AAA" autocomplete="off" />
-          <button type="submit" id="submit-score-btn" class="neon-btn cyan">SUBMIT RECORD</button>
-        </form>
 
-        <button id="restart-btn" class="neon-btn outline">RETRY RUN</button>
+        <!-- State 2: New High Score Qualified -->
+        <div id="game-over-highscore" class="game-over-substate hidden">
+          <h2 class="screen-title text-cyan">🎉 NEW HIGH SCORE!</h2>
+          <div class="rank-badge-container header-badge">
+            <span id="predicted-rank-val" class="rank-badge-val">RANK #1</span>
+            <span class="badge-bullet">•</span>
+            <span class="badge-score-text">SCORE: <span id="final-score-val-highscore" class="score-value-inline">0</span></span>
+          </div>
+          <form id="score-submit-form" class="score-form">
+            <label for="username" class="form-label">ENTER YOUR NAME</label>
+            <input type="text" id="username" class="form-input" minlength="2" maxlength="12" required placeholder="PLAYER 1" autocomplete="off" />
+            <button type="submit" id="submit-score-btn" class="neon-btn cyan">SUBMIT RECORD</button>
+          </form>
+          <div id="submit-status-msg" class="submit-status hidden"></div>
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.js"></script>
