@@ -2,12 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>DOODLE RUNNER</title>
     <!-- Google Fonts for playful sketchbook styling -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Kalam:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="game-container">
@@ -33,11 +39,15 @@
 
       <!-- Main Menu Screen -->
       <div id="main-menu" class="screen-overlay active">
-        <h1 class="game-title">DOODLE<br><span class="highlight">RUNNER</span></h1>
+        <h1 class="game-title">
+          DOODLE<br /><span class="highlight">RUNNER</span>
+        </h1>
         <p class="game-subtitle">Swipe left/right to dodge doodles!</p>
         <div class="menu-actions">
           <button id="start-btn" class="neon-btn cyan">START DASH</button>
-          <button id="leaderboard-btn" class="neon-btn magenta">SKETCHBOOK</button>
+          <button id="leaderboard-btn" class="neon-btn magenta">
+            SKETCHBOOK
+          </button>
         </div>
       </div>
 
@@ -71,26 +81,48 @@
             <span id="final-score-val-regular" class="score-value">0</span>
           </div>
           <div class="menu-actions">
-            <button id="retry-btn-regular" class="neon-btn cyan">RETRY RUN</button>
+            <button id="retry-btn-regular" class="neon-btn cyan">
+              RETRY RUN
+            </button>
             <div class="button-row">
-              <button id="main-menu-btn-regular" class="neon-btn outline">MAIN MENU</button>
-              <button id="leaderboard-btn-regular" class="neon-btn magenta">SKETCHBOOK</button>
+              <button id="main-menu-btn-regular" class="neon-btn outline">
+                MAIN MENU
+              </button>
+              <button id="leaderboard-btn-regular" class="neon-btn magenta">
+                SKETCHBOOK
+              </button>
             </div>
           </div>
         </div>
 
         <!-- State 2: New High Score Qualified -->
         <div id="game-over-highscore" class="game-over-substate hidden">
-          <h2 class="screen-title text-cyan">🎉 NEW HIGH SCORE!</h2>
+          <h2 class="screen-title text-cyan">NEW HIGH SCORE!</h2>
           <div class="rank-badge-container header-badge">
             <span id="predicted-rank-val" class="rank-badge-val">RANK #1</span>
             <span class="badge-bullet">•</span>
-            <span class="badge-score-text">SCORE: <span id="final-score-val-highscore" class="score-value-inline">0</span></span>
+            <span class="badge-score-text"
+              >SCORE:
+              <span id="final-score-val-highscore" class="score-value-inline"
+                >0</span
+              ></span
+            >
           </div>
           <form id="score-submit-form" class="score-form">
             <label for="username" class="form-label">ENTER YOUR NAME</label>
-            <input type="text" id="username" class="form-input" minlength="2" maxlength="12" required placeholder="PLAYER 1" autocomplete="off" />
-            <button type="submit" id="submit-score-btn" class="neon-btn cyan">SUBMIT RECORD</button>
+            <input
+              type="text"
+              id="username"
+              class="form-input"
+              minlength="2"
+              maxlength="12"
+              required
+              placeholder="PLAYER 1"
+              autocomplete="off"
+            />
+            <button type="submit" id="submit-score-btn" class="neon-btn cyan">
+              SUBMIT RECORD
+            </button>
           </form>
           <div id="submit-status-msg" class="submit-status hidden"></div>
         </div>

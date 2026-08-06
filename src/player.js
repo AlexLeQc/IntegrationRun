@@ -43,19 +43,33 @@ export class Player {
   }
 
   jump() {
-    if (!this.isJumping && !this.isSliding) {
+    // Slide-to-Jump Cancel: cancel active slide state and restore normal scale
+    if (this.isSliding) {
+      this.isSliding = false;
+      this.slideTime = 0;
+    }
+
+    // Initiate fresh jump arc trajectory
+    if (!this.isJumping) {
       this.isJumping = true;
       this.jumpTime = 0;
+      this.jumpHeight = 0;
       audioManager.play('jump');
     }
   }
 
   slide() {
-    if (!this.isJumping && !this.isSliding) {
-      this.isSliding = true;
-      this.slideTime = 0;
-      audioManager.play('slide');
+    // Jump-to-Slide Cancel: cancel mid-jump arc and snap immediately to ground level
+    if (this.isJumping) {
+      this.isJumping = false;
+      this.jumpTime = 0;
+      this.jumpHeight = 0;
     }
+
+    // Activate/restart Slide state with a full slide timer reset
+    this.isSliding = true;
+    this.slideTime = 0;
+    audioManager.play('slide');
   }
 
   reset() {

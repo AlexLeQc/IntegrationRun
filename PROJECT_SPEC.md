@@ -62,6 +62,9 @@ create policy "Allow public insert access" on public.high_scores
 - Moves horizontally between three lanes (left, middle, right) using swipe touch inputs on mobile or arrow/AD keys on desktop.
 - Can transition into a **Jumping** state (elevated Y-offset tracking a jump arc).
 - Can transition into a **Sliding** state (vertically compressed ship layout and hitbox).
+- **Movement State Canceling (Jump/Slide Overrides)**:
+  - **Jump-to-Slide Cancel**: Swiping Down (or pressing Down/S) while in mid-jump immediately cancels the jump arc, snaps/drops the player down to ground level (`jumpHeight = 0`, `isJumping = false`), and initiates the Slide state (`isSliding = true`) with a full slide timer reset.
+  - **Slide-to-Jump Cancel**: Swiping Up (or pressing Up/W) while in mid-slide immediately cancels the slide squish (`isSliding = false`), restores normal player vertical scale, and initiates the Jump arc (`isJumping = true`) with a fresh jump arc trajectory.
 - Movements are smoothly interpolated for a responsive and fluid feel.
 
 ### Obstacles & Hazards

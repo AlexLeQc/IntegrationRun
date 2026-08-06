@@ -57,8 +57,10 @@ export class InputHandler {
       } else if (key === 'arrowright' || key === 'd') {
         if (this.onSwipeRight) this.onSwipeRight();
       } else if (key === 'arrowup' || key === 'w') {
+        if (e.key.startsWith('Arrow')) e.preventDefault();
         if (this.onSwipeUp) this.onSwipeUp();
       } else if (key === 'arrowdown' || key === 's') {
+        if (e.key.startsWith('Arrow')) e.preventDefault();
         if (this.onSwipeDown) this.onSwipeDown();
       }
     });

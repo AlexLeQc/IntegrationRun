@@ -507,7 +507,7 @@ body {
 .button-row .neon-btn {
   flex: 1;
   min-width: 0;
-  padding: 12px 14px;
+  padding: 12px 5px;
 }
 
 /* Single Header Badge (Combined Rank & Score) */
