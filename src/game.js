@@ -1,5 +1,5 @@
 import { InputHandler } from './input.js';
-import { Player } from './player.js';
+import { Player, drawWaterBalloon } from './player.js';
 import { ObstacleManager } from './obstacles.js';
 import { CoinManager } from './collectibles.js';
 import { ScreenShake, triggerDamageFlash } from './ui.js';
@@ -32,6 +32,10 @@ export class Game {
     // Assets container
     this.assets = null;
 
+    // Active laser projectiles fired by the player
+    this.projectiles = [];
+    this._lastShot = 0; // shot cooldown timestamp
+
     // Instantiate game sub-modules
     this.player = new Player(this.width, this.height);
     this.obstacleManager = new ObstacleManager(this.width, this.height, this.horizonY);
@@ -48,20 +52,14 @@ export class Game {
     // Preload image assets asynchronously
     this.initAssets();
 
-    // Setup input handler
+    // Setup input handler — Spacebar & quick tap fire a water balloon
     this.input = new InputHandler(
       () => this.player.moveLane(-1),
       () => this.player.moveLane(1),
       () => this.player.jump(),
-      () => this.player.slide()
+      () => this.player.slide(),
+      () => this.fireProjectile()
     );
-
-    // Test damage listener (Spacebar)
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && this.isRunning) {
-        this.takeDamage();
-      }
-    });
   }
 
   async initAssets() {
@@ -81,6 +79,8 @@ export class Game {
     this.scoreDecimal = 0;
     this.lives = 3;
     this.gridOffset = 0;
+    this.projectiles = [];
+    this._lastShot = 0;
 
     this.player.reset();
     this.obstacleManager.reset();
@@ -121,6 +121,19 @@ export class Game {
         this.onGameOver(this.score);
       }
     }
+  }
+
+  fireProjectile() {
+    if (!this.isRunning) return;
+    const now = performance.now();
+    if (now - this._lastShot < 200) return; // 200ms shot cooldown
+    this._lastShot = now;
+
+    this.projectiles.push({
+      lane: this.player.lane,
+      z: this.player.z - 0.03 // launch slightly in front of player
+    });
+    audioManager.play('shoot');
   }
 
   update(deltaTime) {
@@ -167,9 +180,50 @@ export class Game {
     // 7. Check Collisions between Player and Hazards
     this.obstacleManager.checkCollisions(this.player, (obs, ox, oy) => {
       this.takeDamage();
-      const particleColor = obs.type === 'beam' ? '#00f0ff' : '#ff007f';
+      const particleColor = obs.type === 'beam' ? '#00f0ff' : obs.type === 'gouv' ? '#FF2D55' : '#ff007f';
       this.coinManager.spawnParticles(ox, oy, particleColor, 14);
     });
+
+    // 8. Update laser projectiles
+    const PROJ_SPEED = 2.2;
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const proj = this.projectiles[i];
+      proj.z -= PROJ_SPEED * deltaTime;
+
+      if (proj.z <= 0.04) {
+        this.projectiles.splice(i, 1);
+        continue;
+      }
+
+      // Check for obstacle or GOUV in same lane within hit range
+      let hit = false;
+      for (let j = this.obstacleManager.obstacles.length - 1; j >= 0; j--) {
+        const obs = this.obstacleManager.obstacles[j];
+        if (obs.lane !== proj.lane) continue;
+        // Projectile travels from player.z toward 0; obstacle must be ahead of current projectile position
+        if (obs.z > this.player.z) continue; // behind player, skip
+        if (Math.abs(obs.z - proj.z) > 0.12) continue; // not close enough yet
+
+        hit = true;
+        if (obs.type === 'gouv') {
+          // GOUV destroyed — award bonus points and spawn particles
+          const result = this.obstacleManager.destroyGouv(j);
+          if (result) {
+            this.scoreDecimal += 250;
+            this.score = Math.floor(this.scoreDecimal);
+            if (this.onUpdateHUD) this.onUpdateHUD({ score: this.score, lives: this.lives });
+            audioManager.play('destroy');
+            // Blue water splash particles
+            this.coinManager.spawnParticles(result.x, result.y, '#00f0ff', 16);
+            this.coinManager.spawnParticles(result.x, result.y, '#0288D1', 12);
+            this.coinManager.spawnParticles(result.x, result.y, '#E0F7FA', 8);
+          }
+        }
+        // Standard obstacle blocks the laser — no reward
+        this.projectiles.splice(i, 1);
+        break;
+      }
+    }
   }
 
   draw() {
@@ -238,6 +292,17 @@ export class Game {
       render: () => this.player.draw(this.ctx, this.width, this.height, this.horizonY)
     });
 
+    // 4. Add active laser projectiles
+    this.projectiles.forEach((proj) => {
+      if (proj.z > 0.04) {
+        renderQueue.push({
+          z: proj.z,
+          typePriority: 4,
+          render: () => this.drawProjectile(proj)
+        });
+      }
+    });
+
     // Sort renderQueue ascending by world depth z (farther objects z small draw first, closer objects z large draw last)
     renderQueue.sort((a, b) => {
       if (Math.abs(a.z - b.z) > 0.0001) {
@@ -259,6 +324,10 @@ export class Game {
     });
 
     this.ctx.restore();
+  }
+
+  drawProjectile(proj) {
+    drawWaterBalloon(this.ctx, proj, this.width, this.height, this.horizonY);
   }
 
   drawSun() {

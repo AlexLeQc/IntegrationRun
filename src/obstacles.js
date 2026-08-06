@@ -29,8 +29,9 @@ export class ObstacleManager {
 
   spawnObstacle(score, onSpawnCoin) {
     const lane = Math.floor(Math.random() * 3);
-    const types = ['barrier', 'hurdle', 'beam'];
-    const type = types[Math.floor(Math.random() * types.length)];
+    // GOUV targets spawn ~15% of the time; rest are standard obstacle types
+    const rand = Math.random();
+    const type = rand < 0.15 ? 'gouv' : ['barrier', 'hurdle', 'beam'][Math.floor(Math.random() * 3)];
     const speed = 0.35 + Math.min(0.25, score / 25000);
 
     const obs = {
@@ -107,6 +108,8 @@ export class ObstacleManager {
             if (!player.isJumping) collided = true;
           } else if (obs.type === 'beam') {
             if (!player.isSliding) collided = true;
+          } else if (obs.type === 'gouv') {
+            collided = true; // GOUV always hits if not shot down
           }
 
           if (collided) {
@@ -289,9 +292,61 @@ export class ObstacleManager {
           ctx.stroke();
         }
       }
+    } else if (obs.type === 'gouv') {
+      const w = (this.width / 3) * zScale;
+      const gouvAsset = this.assets && this.assets.gouv;
+      const aspect = (gouvAsset && gouvAsset.height > 0) ? (gouvAsset.height / gouvAsset.width) : 1.2;
+      const h = w * aspect;
+
+      if (gouvAsset) {
+        ctx.drawImage(gouvAsset, x - w / 2, y - h, w, h);
+      } else {
+        // Hot-pink / magenta procedural fallback box
+        ctx.fillStyle = obs.collided ? '#FF3B30' : '#FF2D55';
+        ctx.strokeStyle = '#2C2C2E';
+        ctx.lineWidth = 1.5 + 2.0 * zScale;
+        ctx.beginPath();
+        ctx.rect(x - w / 2, y - h, w, h);
+        ctx.fill();
+        ctx.stroke();
+
+        // White crosshair target doodle
+        const cx = x;
+        const cy = y - h * 0.55;
+        const cr = Math.min(w, h) * 0.28;
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = Math.max(1, 1.5 * zScale);
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx - cr * 1.6, cy);
+        ctx.lineTo(cx + cr * 1.6, cy);
+        ctx.moveTo(cx, cy - cr * 1.6);
+        ctx.lineTo(cx, cy + cr * 1.6);
+        ctx.stroke();
+
+        // Inner ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr * 0.45, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
 
     ctx.shadowBlur = 0;
+  }
+
+  /**
+   * Destroys a GOUV target at the given index. Returns screen position { x, y } for particle FX.
+   */
+  destroyGouv(index) {
+    if (index >= 0 && index < this.obstacles.length) {
+      const obs = this.obstacles[index];
+      const proj = projectLane(this.width, this.height, this.horizonY, obs.lane, 0, obs.z);
+      this.obstacles.splice(index, 1);
+      return { x: proj.x, y: proj.y };
+    }
+    return null;
   }
 
   draw(ctx) {

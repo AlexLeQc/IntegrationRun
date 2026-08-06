@@ -71,11 +71,32 @@ create policy "Allow public insert access" on public.high_scores
 
 - Obstacles are procedurally generated in the active lanes.
 - They spawn at the vanishing point (horizon) and move down towards the screen bottom, scaling up exponentially in size to create a 3D perspective effect.
-- Hazards are divided into **three categorized types**:
+- Hazards are divided into **four categorized types**:
   - **Hand-Drawn Cardboard Box**: 3D cardboard box with marker outlines, tape strips, and warm brown fill requiring a lane change.
   - **Pencil Fence / Hurdle**: Low-profile wooden pencil hurdle requiring a **Jump** (collision is bypassed if player is currently jumping).
   - **Ink-Splatter Beam Arch**: Overhead laser arch styled as dark ink pillars and a vibrant splattered ink bar requiring a **Slide** (collision is bypassed if player is currently sliding).
-- Colliding with an obstacle decreases the player's life count and destroys the obstacle.
+  - **GOUV Target** *(special shootable hazard)*: A hot-pink/magenta target that can be **destroyed by a laser shot** for bonus points, or avoided. If not destroyed before reaching the player, it triggers a normal collision (−1 life, screen flash/shake, hit sound).
+
+### GOUV Targets & Tap-Shooting Mechanic (Water Balloons)
+
+- **Spawn**: GOUV targets spawn procedurally in one of the 3 lanes at the horizon (~15% of obstacle spawns) and move down the track at the same speed as standard obstacles, scaling with perspective `zScale`.
+- **Asset**: Renders `public/assets/gouv.png` scaled by `zScale`. Falls back to a magenta/hot-pink procedural box with a white target crosshair doodle if the asset is missing.
+- **Player Collision (Penalty)**: If a GOUV reaches the player without being destroyed, it triggers a normal obstacle collision (−1 life, screen flash, screen shake, plays `hit` sound).
+- **Water Balloon Projectile Theme**: Projectiles are themed as blue water balloons rather than laser beams. They render as bright cyan/sky-blue water spheres (`#00f0ff` / `#2196f3`) with specular highlights that scale along the perspective axis (`zScale`) towards the horizon.
+- **Touch Input Separation Rules**:
+  - **Swipes (Movement)**: Any touch gesture with horizontal or vertical drag displacement ($\Delta x \ge 30\text{px}$ or $\Delta y \ge 30\text{px}$) is strictly processed as movement (Lane Shift, Jump, or Slide) and **CANNOT** trigger shooting.
+  - **Quick Taps (Shooting)**: Shooting is triggered ONLY by a stationary quick tap (touch movement $< 15\text{px}$ AND touch duration $< 250\text{ms}$), or `Spacebar` on desktop.
+- **Water Balloon Shooting & Impact**:
+  - **Desktop**: Press `Spacebar` to launch a water balloon in the player's current lane.
+  - **Mobile**: Perform a quick tap ($< 15\text{px}$ drag, $< 250\text{ms}$) anywhere to launch a water balloon in the player's current lane.
+  - The water balloon projectile (`z` decreasing from `player.z` toward horizon) travels down the lane at high speed (~2.2 z-units/sec).
+  - **Blocking Rule**: Standard obstacles (barrier, hurdle, beam) in the same lane between the player and the GOUV block the water balloon — it pops on impact with no reward and no GOUV destruction. The lane must be clear.
+  - **GOUV Hit**: On impact with a GOUV, it pops immediately: spawns a cyan + sky-blue water splash particle explosion (`#00f0ff`, `#0288D1`, `#E0F7FA`), awards **+250 bonus points**, and plays wet, bubbly "splat" / splash sound effects (`shoot` + `destroy`).
+- **Projectile System** (managed in `src/game.js`):
+  - `this.projectiles[]` array tracks active water balloons with `{ lane, z }`.
+  - Each frame: advance `z` toward horizon, check for obstacle/GOUV intersection, remove on hit or when past horizon.
+  - Shot cooldown: 200ms between shots to prevent spam.
+- Colliding with an obstacle (non-GOUV) decreases the player's life count and the obstacle collides normally.
 - The spawn rate and speed gradually increase as the player's score increases.
 
 ### Lanes & Perspective

@@ -338,54 +338,71 @@ export class AudioManager {
   }
 
   createShootSound(now) {
+    // Wet, bubbly water balloon "splat" launch sound
     const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sawtooth';
-    const volume = this.volumes.shoot || 0.30;
+    osc.type = 'sine';
+    const volume = this.volumes.shoot || 0.35;
 
-    osc.frequency.setValueAtTime(880, now);
-    osc.frequency.exponentialRampToValueAtTime(220, now + 0.12);
+    // Pitch drop from 520Hz down to 140Hz with a quick bubbly bend
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(140, now + 0.14);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1000, now);
+    filter.frequency.exponentialRampToValueAtTime(300, now + 0.14);
 
     gain.gain.setValueAtTime(volume, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
-    osc.connect(gain);
+    osc.connect(filter);
+    filter.connect(gain);
     gain.connect(this.masterGain);
 
     osc.start(now);
-    osc.stop(now + 0.12);
+    osc.stop(now + 0.14);
 
     osc.onended = () => {
       try {
         osc.disconnect();
+        filter.disconnect();
         gain.disconnect();
       } catch (e) {}
     };
   }
 
   createDestroySound(now) {
+    // Bubbly water splash / pop impact sound
     const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
     const gain = this.ctx.createGain();
 
-    osc.type = 'square';
+    osc.type = 'triangle';
     const volume = this.volumes.destroy || 0.45;
 
-    osc.frequency.setValueAtTime(160, now);
-    osc.frequency.exponentialRampToValueAtTime(30, now + 0.20);
+    osc.frequency.setValueAtTime(380, now);
+    osc.frequency.exponentialRampToValueAtTime(70, now + 0.18);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1400, now);
+    filter.frequency.exponentialRampToValueAtTime(250, now + 0.18);
 
     gain.gain.setValueAtTime(volume, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.20);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
 
-    osc.connect(gain);
+    osc.connect(filter);
+    filter.connect(gain);
     gain.connect(this.masterGain);
 
     osc.start(now);
-    osc.stop(now + 0.20);
+    osc.stop(now + 0.18);
 
     osc.onended = () => {
       try {
         osc.disconnect();
+        filter.disconnect();
         gain.disconnect();
       } catch (e) {}
     };

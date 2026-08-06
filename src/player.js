@@ -178,3 +178,56 @@ export class Player {
     ctx.restore();
   }
 }
+
+/**
+ * Renders an active water balloon projectile traveling down a track lane toward the horizon.
+ */
+export function drawWaterBalloon(ctx, proj, width = 360, height = 640, horizonY = 640 / 6) {
+  const laneWidth = width / 3;
+  const posX = laneWidth * proj.lane + laneWidth / 2;
+  const vanishingX = width / 2;
+  const zScale = proj.z;
+
+  const x = vanishingX + (posX - vanishingX) * zScale;
+  const y = horizonY + (height - horizonY) * zScale;
+  const radius = Math.max(3, 14 * zScale);
+
+  ctx.save();
+
+  // Water balloon outer glow and body
+  ctx.shadowColor = '#00f0ff';
+  ctx.shadowBlur = 10 * zScale;
+
+  // Blue water balloon radial gradient (#00f0ff -> #0288D1)
+  const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
+  grad.addColorStop(0, '#E0F7FA');
+  grad.addColorStop(0.45, '#00F0FF');
+  grad.addColorStop(1, '#0288D1');
+
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = '#0055CC';
+  ctx.lineWidth = Math.max(1, 1.5 * zScale);
+
+  // Teardrop / rounded water balloon shape
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Balloon tie knot at top/back
+  const knotRadius = Math.max(1, radius * 0.28);
+  ctx.fillStyle = '#0288D1';
+  ctx.beginPath();
+  ctx.arc(x, y - radius * 0.85, knotRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Specular highlight shine
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.arc(x - radius * 0.32, y - radius * 0.32, radius * 0.26, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+

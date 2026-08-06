@@ -11,7 +11,8 @@ const DEFAULT_ASSET_PATHS = {
   beam: '/assets/beam.png',
   obstacle: '/assets/obstacle.png',
   coin: '/assets/coin.png',
-  background: '/assets/background.png'
+  background: '/assets/background.png',
+  gouv: '/assets/gouv.png'
 };
 
 export const DEFAULT_SOUND_PATHS = {
