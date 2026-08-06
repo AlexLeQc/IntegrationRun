@@ -115,6 +115,11 @@ body {
   transform: scale(0.95) rotate(-1deg);
 }
 
+/* Generic hide utility — used by game-over substates, status messages, etc. */
+.hidden {
+  display: none !important;
+}
+
 .screen-overlay.active {
   opacity: 1;
   pointer-events: auto;

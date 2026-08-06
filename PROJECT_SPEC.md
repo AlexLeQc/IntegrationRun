@@ -87,12 +87,13 @@ create policy "Allow public insert access" on public.high_scores
 ### Scoreboard & High Scores (Arcade Leaderboard System)
 
 - Score automatically increases continuously over time as the player survives (accumulating at a rate of +10 points per second elapsed) plus +100 points for collected coins.
-- **Top 20 Enforced Limit**: The leaderboard maintains a strict maximum limit of **20 entries** (`limit = 20`).
-- **Arcade Qualification Check**: On Game Over, `qualifiesForLeaderboard(score)` evaluates if the player's score qualifies for the Top 20:
-  - If `scores.length < 20`: Always qualifies.
-  - If `scores.length === 20`: Qualifies if `score > 20thPlaceScore`.
+- **Centralized Limit Configuration (`MAX_LEADERBOARD_ENTRIES`)**: The maximum number of entries displayed and stored on the global leaderboard is governed globally by the exported constant `MAX_LEADERBOARD_ENTRIES` (default `20` in `src/supabase.js`). Changing this single value scales the leaderboard limit across database queries, local storage fallbacks, qualification logic, and UI rendering.
+- **Arcade Qualification Check**: On Game Over, `qualifiesForLeaderboard(score)` evaluates if the player's score qualifies using ALL stored entries:
+  - If the board is **completely empty** (0 entries): any score qualifies at rank 1.
+  - If the board has existing entries: qualifies **only if** `score > lowestExistingScore` (the score of the last entry currently on the board). Open cap slots do NOT automatically qualify a score.
+  - If the board is full (`entries >= MAX_LEADERBOARD_ENTRIES`): additionally validates that `score > allScores[MAX_LEADERBOARD_ENTRIES - 1].score`.
 - **Tie-Breaking Rule**: Higher score ranks better. If two entries have identical scores, the older entry is kept first, and the new score inserts *after* existing identical scores.
-- **Automatic Database Trimming**: Calling `submitHighScore(name, score)` inserts the entry, calculates rank, and executes `deleteLowestScore()` to purge any 21st lowest entry.
+- **Automatic Database Trimming**: Calling `submitHighScore(name, score)` inserts the entry, calculates rank, and executes `deleteLowestScore()` to purge any entries exceeding `MAX_LEADERBOARD_ENTRIES`.
 - Parity between online (Supabase) and offline (`localStorage` fallback) modes.
 
 ---
@@ -116,14 +117,17 @@ The game user interface is structured into notebook card modal overlays and an i
 ### Dual-State Game Over Screen (`#game-over-screen`)
 
 - **Modal Fit & Layout**: Centered vertically inside `#game-over-screen` with `max-height: 90vh; overflow-y: auto;` and compact touch-friendly padding (`12px 20px` for buttons and input fields). Headers are contained strictly inside the modal card borders.
+- **Arcade Qualification Check**: On Game Over, `qualifiesForLeaderboard(finalScore)` determines which substate to display:
+  - Reads ALL stored entries to determine the true total count and current lowest score.
+  - Qualifies if board is empty OR `finalScore > lowestExistingScore` (open cap slots do NOT qualify a score by themselves).
 - **State 1 – Regular Game Over (Not Qualified)**:
-  - Displayed when final score does NOT qualify for the Top 20.
-  - Skips name input prompt completely.
+  - Displayed when final score does NOT beat the current lowest leaderboard entry.
+  - Hides `#game-over-highscore` completely and skips the name entry form and rank badge.
   - Displays header "GAME OVER", final score, and action buttons in a 2-tier layout: top primary button `[RETRY RUN]` (full width) and bottom row container (`.button-row`) with `[MAIN MENU]` and `[SKETCHBOOK]` side-by-side.
 
 - **State 2 – New High Score Prompt (Qualified)**:
-  - Displayed when final score qualifies for the Top 20.
-  - Displays header "🎉 NEW HIGH SCORE!", a compact combined header badge (`RANK #X • SCORE: 001250`), and name entry form (2–12 characters, uppercase/trimmed).
+  - Displayed ONLY when final score beats the current lowest leaderboard entry.
+  - Hides `#game-over-regular` completely and displays header "NEW HIGH SCORE!", a compact combined header badge (`RANK #X • SCORE: 001250`), and name entry form (2–12 characters, uppercase/trimmed).
   - Upon submission, displays `✔ SCORE SUBMITTED!` and automatically transitions to the Leaderboard Screen with the player's new entry highlighted.
 
 ### Leaderboard Screen (`#leaderboard-screen`)
@@ -182,7 +186,7 @@ The application follows a modular architecture using ES modules for clean separa
 - **`src/game.js`**: Main `Game` orchestrator managing asset preloading, the `requestAnimationFrame` loop, delta time calculations, notebook background/doodle sun/pencil grid rendering, module coordination, and collision checks.
 - **`src/input.js`**: `InputHandler` managing keyboard and mobile touch swipe input events.
 - **`src/audio.js`**: `AudioManager` class and singleton instance managing Web Audio synthesis, single `AudioContext` lifecycle, master mixer gain nodes, sound cooldowns, and mobile gesture unlocking.
-- **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations.
+- **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations. Defines and exports `MAX_LEADERBOARD_ENTRIES` constant governing global leaderboard entry limits across database queries, qualification checks, local storage slicing, and UI rendering.
 - **`src/main.js`**: Application entrypoint initializing DOM events, game instance, responsive canvas scaling, and screen management.
 
 ---

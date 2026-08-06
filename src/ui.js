@@ -1,7 +1,4 @@
-/**
- * UI Module
- * Handles DOM screen transitions, HUD score & heart rendering, damage flash, screen shake, and leaderboard table.
- */
+import { MAX_LEADERBOARD_ENTRIES } from './supabase.js';
 
 export class ScreenShake {
   constructor() {
@@ -129,16 +126,16 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
     '<tr><td colspan="3" style="text-align: center; color: rgba(255, 255, 255, 0.4);">CONNECTING NETWORK...</td></tr>';
 
   try {
-    const scores = await fetchLeaderboardFn();
+    const scores = await fetchLeaderboardFn(MAX_LEADERBOARD_ENTRIES);
     entriesContainer.innerHTML = "";
 
-    if (scores.length === 0) {
+    if (!scores || scores.length === 0) {
       entriesContainer.innerHTML =
         '<tr><td colspan="3" style="text-align: center; color: rgba(255, 255, 255, 0.4);">NO RECORDS FOUND</td></tr>';
       return;
     }
 
-    scores.forEach((entry, index) => {
+    scores.slice(0, MAX_LEADERBOARD_ENTRIES).forEach((entry, index) => {
       const rank = index + 1;
       let rankClass = "";
       if (rank === 1) rankClass = "rank-1";
@@ -183,6 +180,8 @@ export function showGameOverState(isQualified, { score, rank }) {
   const submitScoreBtn = document.getElementById("submit-score-btn");
   const usernameInput = document.getElementById("username");
 
+  console.log(`[UI] showGameOverState isQualified=${isQualified} score=${score} rank=${rank}`);
+
   if (scoreValRegular) scoreValRegular.textContent = score.toLocaleString();
   if (scoreValHighscore) scoreValHighscore.textContent = score.toLocaleString();
 
@@ -191,10 +190,14 @@ export function showGameOverState(isQualified, { score, rank }) {
     submitStatusMsg.textContent = "";
   }
 
+  // Always start by hiding BOTH substates, then reveal the correct one
+  if (regularSubstate) regularSubstate.classList.add("hidden");
+  if (highscoreSubstate) highscoreSubstate.classList.add("hidden");
+
   if (isQualified) {
-    if (regularSubstate) regularSubstate.classList.add("hidden");
+    console.log("[UI] → Showing HIGH SCORE state");
     if (highscoreSubstate) highscoreSubstate.classList.remove("hidden");
-    if (predictedRankVal) predictedRankVal.textContent = `RANK #${rank}`;
+    if (predictedRankVal) predictedRankVal.textContent = rank ? `RANK #${rank}` : `TOP ${MAX_LEADERBOARD_ENTRIES}`;
 
     if (usernameInput) {
       usernameInput.value = "";
@@ -205,7 +208,7 @@ export function showGameOverState(isQualified, { score, rank }) {
       submitScoreBtn.textContent = "SUBMIT RECORD";
     }
   } else {
-    if (highscoreSubstate) highscoreSubstate.classList.add("hidden");
+    console.log("[UI] → Showing REGULAR game over state");
     if (regularSubstate) regularSubstate.classList.remove("hidden");
   }
 }

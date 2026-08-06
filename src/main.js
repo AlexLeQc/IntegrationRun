@@ -37,6 +37,7 @@ let game;
 async function onGameOver(score) {
   try {
     const qualification = await qualifiesForLeaderboard(score);
+    console.log(`[GAMEOVER] score=${score} qualifies=${qualification.qualifies} rank=${qualification.rank}`);
     showGameOverState(qualification.qualifies, { score, rank: qualification.rank });
     showScreen(gameOverScreen);
   } catch (e) {

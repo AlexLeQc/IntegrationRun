@@ -1,4 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
+
+export const MAX_LEADERBOARD_ENTRIES = 5;
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -8,126 +10,213 @@ let supabase = null;
 if (supabaseUrl && supabaseAnonKey) {
   try {
     supabase = createClient(supabaseUrl, supabaseAnonKey);
-    console.log('Supabase client initialized successfully.');
+    console.log("Supabase client initialized successfully.");
   } catch (error) {
-    console.error('Failed to initialize Supabase client:', error);
+    console.error("Failed to initialize Supabase client:", error);
   }
 } else {
-  console.log('No Supabase credentials found. Running in Local Storage Fallback mode.');
+  console.log(
+    "No Supabase credentials found. Running in Local Storage Fallback mode.",
+  );
 }
 
 const DEFAULT_LEADERBOARD = [
-  { username: 'NEO', score: 12500, created_at: new Date('2026-01-01').toISOString() },
-  { username: 'TRX', score: 9800, created_at: new Date('2026-01-02').toISOString() },
-  { username: 'CYB', score: 7500, created_at: new Date('2026-01-03').toISOString() },
-  { username: 'SYN', score: 5000, created_at: new Date('2026-01-04').toISOString() },
-  { username: 'RUN', score: 3200, created_at: new Date('2026-01-05').toISOString() },
+  {
+    username: "Snitch",
+    score: 12500,
+    created_at: new Date("2026-01-01").toISOString(),
+  },
+  {
+    username: "TRX",
+    score: 9800,
+    created_at: new Date("2026-01-02").toISOString(),
+  },
+  {
+    username: "CYB",
+    score: 7500,
+    created_at: new Date("2026-01-03").toISOString(),
+  },
+  {
+    username: "SYN",
+    score: 5000,
+    created_at: new Date("2026-01-04").toISOString(),
+  },
+  {
+    username: "RUN",
+    score: 3200,
+    created_at: new Date("2026-01-05").toISOString(),
+  },
 ];
 
 /**
- * Fetches the top scores (up to limit = 20) ordered by score desc, created_at asc.
+ * Returns ALL local scores sorted by score desc, created_at asc (no limit slice).
+ * Used internally for qualification checks that need the true total entry count.
  */
-export async function getTopScores(limit = 20) {
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('high_scores')
-        .select('id, username, score, created_at')
-        .order('score', { ascending: false })
-        .order('created_at', { ascending: true })
-        .limit(limit);
-      
-      if (!error && data) {
-        return data;
-      }
-      console.warn('Supabase leaderboard fetch failed, falling back to local storage:', error);
-    } catch (e) {
-      console.warn('Exception during Supabase fetch:', e);
-    }
-  }
-
-  // Local Storage Fallback
-  const stored = localStorage.getItem('neon_runner_leaderboard');
+function getAllLocalScores() {
+  const stored = localStorage.getItem("neon_runner_leaderboard");
   let leaderboard = stored ? JSON.parse(stored) : [...DEFAULT_LEADERBOARD];
 
   if (!stored) {
-    localStorage.setItem('neon_runner_leaderboard', JSON.stringify(DEFAULT_LEADERBOARD));
+    localStorage.setItem(
+      "neon_runner_leaderboard",
+      JSON.stringify(DEFAULT_LEADERBOARD),
+    );
   }
 
   leaderboard.sort((a, b) => {
-    if (b.score !== a.score) {
-      return b.score - a.score;
-    }
+    if (b.score !== a.score) return b.score - a.score;
     return new Date(a.created_at || 0) - new Date(b.created_at || 0);
   });
 
-  return leaderboard.slice(0, limit);
+  return leaderboard;
+}
+
+/**
+ * Fetches the top scores (up to limit = MAX_LEADERBOARD_ENTRIES) ordered by score desc, created_at asc.
+ */
+export async function getTopScores(limit = MAX_LEADERBOARD_ENTRIES) {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("high_scores")
+        .select("id, username, score, created_at")
+        .order("score", { ascending: false })
+        .order("created_at", { ascending: true })
+        .limit(limit);
+
+      if (!error && data && data.length > 0) {
+        return data;
+      }
+      console.warn(
+        "Supabase leaderboard fetch returned no rows or failed, falling back to local storage:",
+        error,
+      );
+    } catch (e) {
+      console.warn("Exception during Supabase fetch:", e);
+    }
+  }
+
+  // Local Storage Fallback — return only top `limit` for display
+  return getAllLocalScores().slice(0, limit);
 }
 
 /**
  * Backward compatibility alias for fetchLeaderboard
  */
 export async function fetchLeaderboard() {
-  return getTopScores(20);
+  return getTopScores(MAX_LEADERBOARD_ENTRIES);
 }
 
 /**
- * Checks whether a score qualifies for the Top 20 leaderboard
+ * Checks whether a score qualifies for the leaderboard
  * and calculates predicted 1-indexed rank position.
+ *
+ * Rules:
+ *  - If the board is completely empty: any score qualifies.
+ *  - If the board has fewer entries than MAX_LEADERBOARD_ENTRIES AND the score
+ *    beats the current lowest entry: qualifies.
+ *  - If the board is full (entries >= MAX_LEADERBOARD_ENTRIES): qualifies only
+ *    if score > the last-place entry.
+ *  - Otherwise: does NOT qualify (score is not good enough to make the list).
  */
 export async function qualifiesForLeaderboard(score) {
-  if (score <= 0) return { qualifies: false, rank: null };
+  if (!score || score <= 0) {
+    return { qualifies: false, rank: null };
+  }
 
-  const topScores = await getTopScores(20);
+  let allScores;
 
-  // Calculate rank: new score inserts AFTER existing identical scores (older entry first)
+  if (supabase) {
+    // Supabase: fetch all scores to get true total count and find lowest
+    try {
+      const { data, error } = await supabase
+        .from("high_scores")
+        .select("id, score, created_at")
+        .order("score", { ascending: false })
+        .order("created_at", { ascending: true });
+
+      if (!error && data) {
+        allScores = data;
+      } else {
+        // Supabase failed — fall through to local
+        allScores = getAllLocalScores();
+      }
+    } catch (e) {
+      allScores = getAllLocalScores();
+    }
+  } else {
+    // Local storage: read ALL entries for accurate count and lowest score
+    allScores = getAllLocalScores();
+  }
+
+  const totalCount = allScores.length;
+
+  // Board is truly empty: any score qualifies at rank 1
+  if (totalCount === 0) {
+    return { qualifies: true, rank: 1 };
+  }
+
+  // Calculate predicted rank among ALL existing scores
   let rank = 1;
-  for (let i = 0; i < topScores.length; i++) {
-    if (topScores[i].score >= score) {
+  for (let i = 0; i < allScores.length; i++) {
+    if (allScores[i].score >= score) {
       rank++;
     } else {
       break;
     }
   }
 
-  if (topScores.length < 20) {
-    return { qualifies: true, rank };
+  // Score must beat the current lowest entry on the board to qualify.
+  // This applies whether the board is full or has open slots —
+  // we don't want to show the form just because there are empty cap slots.
+  const lowestExistingScore = allScores[totalCount - 1].score;
+
+  if (score <= lowestExistingScore) {
+    return { qualifies: false, rank: null };
   }
 
-  const scoreAt20thPlace = topScores[19].score;
-  if (score > scoreAt20thPlace) {
-    return { qualifies: true, rank };
+  // Score beats the lowest existing entry.
+  // If board is already full, it must also beat the last-place cap entry.
+  if (totalCount >= MAX_LEADERBOARD_ENTRIES) {
+    const lastPlaceScore = allScores[MAX_LEADERBOARD_ENTRIES - 1].score;
+    if (score <= lastPlaceScore) {
+      return { qualifies: false, rank: null };
+    }
   }
 
-  return { qualifies: false, rank: null };
+  return { qualifies: true, rank };
 }
 
 /**
- * Deletes any scores ranking beyond 20th place to maintain strict Top 20 limit.
+ * Deletes any scores ranking beyond MAX_LEADERBOARD_ENTRIES place to maintain strict limit.
  */
 export async function deleteLowestScore() {
   if (supabase) {
     try {
       const { data, error } = await supabase
-        .from('high_scores')
-        .select('id, score, created_at')
-        .order('score', { ascending: false })
-        .order('created_at', { ascending: true });
-      
-      if (!error && data && data.length > 20) {
-        const excessIds = data.slice(20).map((item) => item.id);
+        .from("high_scores")
+        .select("id, score, created_at")
+        .order("score", { ascending: false })
+        .order("created_at", { ascending: true });
+
+      if (!error && data && data.length > MAX_LEADERBOARD_ENTRIES) {
+        const excessIds = data
+          .slice(MAX_LEADERBOARD_ENTRIES)
+          .map((item) => item.id);
         if (excessIds.length > 0) {
-          await supabase.from('high_scores').delete().in('id', excessIds);
-          console.log(`Deleted ${excessIds.length} excess low score(s) from Supabase.`);
+          await supabase.from("high_scores").delete().in("id", excessIds);
+          console.log(
+            `Deleted ${excessIds.length} excess low score(s) from Supabase.`,
+          );
         }
       }
     } catch (e) {
-      console.warn('Error during Supabase deleteLowestScore:', e);
+      console.warn("Error during Supabase deleteLowestScore:", e);
     }
   }
 
   // Local Storage Fallback
-  const stored = localStorage.getItem('neon_runner_leaderboard');
+  const stored = localStorage.getItem("neon_runner_leaderboard");
   if (stored) {
     try {
       let leaderboard = JSON.parse(stored);
@@ -135,22 +224,25 @@ export async function deleteLowestScore() {
         if (b.score !== a.score) return b.score - a.score;
         return new Date(a.created_at || 0) - new Date(b.created_at || 0);
       });
-      if (leaderboard.length > 20) {
-        leaderboard = leaderboard.slice(0, 20);
-        localStorage.setItem('neon_runner_leaderboard', JSON.stringify(leaderboard));
+      if (leaderboard.length > MAX_LEADERBOARD_ENTRIES) {
+        leaderboard = leaderboard.slice(0, MAX_LEADERBOARD_ENTRIES);
+        localStorage.setItem(
+          "neon_runner_leaderboard",
+          JSON.stringify(leaderboard),
+        );
       }
     } catch (e) {
-      console.error('Error during localStorage deleteLowestScore:', e);
+      console.error("Error during localStorage deleteLowestScore:", e);
     }
   }
 }
 
 /**
- * Submits a new high score, enforces name validation, trims excess entries > 20,
+ * Submits a new high score, enforces name validation, trims excess entries > MAX_LEADERBOARD_ENTRIES,
  * and returns success status with confirmed rank.
  */
 export async function submitHighScore(username, score) {
-  const cleanUsername = (username || '').toUpperCase().trim().slice(0, 12);
+  const cleanUsername = (username || "").toUpperCase().trim().slice(0, 12);
   if (!cleanUsername || cleanUsername.length < 2) {
     return { success: false, rank: null };
   }
@@ -163,38 +255,40 @@ export async function submitHighScore(username, score) {
   const newEntry = {
     username: cleanUsername,
     score,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   };
 
   if (supabase) {
     try {
-      const { error } = await supabase
-        .from('high_scores')
-        .insert([newEntry]);
-      
+      const { error } = await supabase.from("high_scores").insert([newEntry]);
+
       if (!error) {
-        console.log('Score submitted successfully to Supabase.');
+        console.log("Score submitted successfully to Supabase.");
         await deleteLowestScore();
-        return { success: true, rank: qualification.rank, username: cleanUsername };
+        return {
+          success: true,
+          rank: qualification.rank,
+          username: cleanUsername,
+        };
       }
-      console.error('Supabase score submission failed:', error);
+      console.error("Supabase score submission failed:", error);
     } catch (e) {
-      console.error('Exception during Supabase score submission:', e);
+      console.error("Exception during Supabase score submission:", e);
     }
   }
 
   // Local Storage Fallback
-  const stored = localStorage.getItem('neon_runner_leaderboard');
+  const stored = localStorage.getItem("neon_runner_leaderboard");
   let leaderboard = stored ? JSON.parse(stored) : [...DEFAULT_LEADERBOARD];
   leaderboard.push(newEntry);
   leaderboard.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return new Date(a.created_at || 0) - new Date(b.created_at || 0);
   });
-  leaderboard = leaderboard.slice(0, 20);
+  leaderboard = leaderboard.slice(0, MAX_LEADERBOARD_ENTRIES);
 
-  localStorage.setItem('neon_runner_leaderboard', JSON.stringify(leaderboard));
-  console.log('Score saved locally in fallback mode.');
+  localStorage.setItem("neon_runner_leaderboard", JSON.stringify(leaderboard));
+  console.log("Score saved locally in fallback mode.");
   return { success: true, rank: qualification.rank, username: cleanUsername };
 }
 
