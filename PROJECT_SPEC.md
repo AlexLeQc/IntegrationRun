@@ -139,7 +139,7 @@ The game user interface is structured into notebook card modal overlays and an i
 
 ## Centralized Audio System Architecture
 
-Doodle Runner features a deterministic, production-ready Web Audio pipeline managed by a central `AudioManager` ([audio.js](file:///Users/alexisguerard/Projects/Gamefeeling/src/audio.js)).
+Doodle Runner features a deterministic, production-ready Web Audio pipeline managed by a central `AudioManager` ([audio.js](file:///Users/alexisguerard/Projects/Gamefeeling/src/audio.js)) with support from `loadAudioAssets` in [assets.js](file:///Users/alexisguerard/Projects/Gamefeeling/src/assets.js).
 
 ### Single AudioContext Lifecycle
 
@@ -147,29 +147,39 @@ Doodle Runner features a deterministic, production-ready Web Audio pipeline mana
 - **Autoplay & Mobile Unlock**: Global event listeners on `pointerdown`, `keydown`, `touchstart`, and `click` automatically resume the `AudioContext` on the first user gesture to comply with browser autoplay restrictions.
 - **Tab Visibility Handling**: A `visibilitychange` listener resumes the suspended `AudioContext` when returning to an active browser tab.
 
+### Custom Sound Preloading & Dual-Engine Playback Pipeline
+
+- **Audio Buffer Preloader**: `AudioManager` preloads custom sound files (`/assets/coin.mp3`, `/assets/jump.mp3`, `/assets/slide.mp3`, `/assets/hit.mp3`, `/assets/shoot.mp3`, `/assets/destroy.mp3`, `/assets/click.mp3`, `/assets/gameOver.mp3`).
+- **Primary Playback Engine (`AudioBufferSourceNode`)**: When a sound is triggered (e.g. `audioManager.play('coin')`), `AudioManager` checks if a preloaded `AudioBuffer` exists in its buffer cache. If available, it instantiates an `AudioBufferSourceNode`, routes it through the sound's gain mix to `masterGain`, and plays the custom audio file.
+- **Procedural Synthesis Fallback**: If a custom sound file is missing (404), fails to fetch, or fails decoding, the buffer entry remains `null`. `AudioManager` gracefully falls back to synthesized Web Audio API procedural sound generators (`OscillatorNode`, `BiquadFilterNode`, `GainNode`).
+
 ### Master Mixer & Volumes
 
-All synthesized sounds route through a central `MasterGain` node:
+All sound channels route through a central `MasterGain` node:
 - **Master Gain**: Default `0.5` (supports global mute toggle).
 - **Sound-Specific Mix Volumes**:
-  - `coin`: 0.25 (dual-tone upward sweep D5 -> A5)
-  - `jump`: 0.35 (upward pitch slide 150 Hz -> 420 Hz)
-  - `slide`: 0.30 (lowpass filtered triangle swoop 600 Hz -> 150 Hz)
-  - `hit`: 0.50 (low impact pitch dive and crunch)
-  - `gameOver`: 0.60 (descending 3-note bass tone)
-  - `click`: 0.20 (crisp UI button click)
+  - `coin`: 0.25 (dual-tone upward sweep D5 -> A5 in fallback)
+  - `jump`: 0.35 (upward pitch slide 150 Hz -> 420 Hz in fallback)
+  - `slide`: 0.30 (lowpass filtered triangle swoop 600 Hz -> 150 Hz in fallback)
+  - `hit`: 0.50 (low impact pitch dive and crunch in fallback)
+  - `shoot`: 0.30 (rapid high-frequency laser sweep in fallback)
+  - `destroy`: 0.45 (heavy impact crunch in fallback)
+  - `gameOver`: 0.60 (descending 3-note bass tone in fallback)
+  - `click`: 0.20 (crisp UI button click in fallback)
 
 ### Sound Cooldowns & Node Memory Management
 
 - **Cooldown Policy**: Minimum replay intervals prevent audio choking and overlap stuttering during rapid gameplay events:
   - `coin`: 45ms
   - `click`: 50ms
+  - `shoot`: 80ms
   - `jump`: 100ms
   - `slide`: 100ms
+  - `destroy`: 100ms
   - `hit`: 150ms
   - `gameOver`: 500ms
-- **Self-Cleaning Nodes**: Temporary audio nodes (`OscillatorNode`, `GainNode`, `BiquadFilterNode`) schedule playback using `ctx.currentTime` and automatically disconnect themselves in `onended` handlers to prevent memory leaks.
-- **Debug Mode**: Exposes `AUDIO_DEBUG` toggle and `audioManager.setDebug(true)` for console logging context state, sound play requests, resume events, and cooldown skips.
+- **Self-Cleaning Nodes**: Temporary audio nodes (`AudioBufferSourceNode`, `OscillatorNode`, `GainNode`, `BiquadFilterNode`) schedule playback using `ctx.currentTime` and automatically disconnect themselves in `onended` handlers to prevent memory leaks.
+- **Debug Mode**: Exposes `AUDIO_DEBUG` toggle and `audioManager.setDebug(true)` for console logging context state, sound play requests, buffer vs fallback usage, resume events, and cooldown skips.
 
 ---
 

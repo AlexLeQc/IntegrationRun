@@ -1,6 +1,9 @@
+import { loadAudioAssets, DEFAULT_SOUND_PATHS } from './assets.js';
+
 /**
  * Centralized Web Audio API Sound Manager for Doodle Runner
- * Handles single AudioContext lifecycle, master mixing, self-disconnecting nodes,
+ * Handles single AudioContext lifecycle, preloaded custom sound files (AudioBufferSourceNode),
+ * procedural Web Audio API synthesis fallback, master mixing, self-disconnecting nodes,
  * sound cooldowns, tab visibility resume, mobile interaction unlocking, and optional debugging.
  */
 
@@ -11,14 +14,19 @@ export class AudioManager {
     this.isMuted = false;
     this.debug = false;
 
+    // Cache of preloaded AudioBuffers keyed by sound name (e.g. coin, jump)
+    this.buffers = {};
+
     // Cooldown management (in milliseconds)
     this.cooldowns = {
       coin: 45,
+      click: 50,
+      shoot: 80,
       jump: 100,
       slide: 100,
+      destroy: 100,
       hit: 150,
-      gameOver: 500,
-      click: 50
+      gameOver: 500
     };
     this.lastPlayed = {};
 
@@ -28,6 +36,8 @@ export class AudioManager {
       jump: 0.35,
       slide: 0.30,
       hit: 0.50,
+      shoot: 0.30,
+      destroy: 0.45,
       gameOver: 0.60,
       click: 0.20
     };
@@ -64,8 +74,22 @@ export class AudioManager {
       this.setupVisibilityListeners();
 
       this.log('AudioContext created. State:', this.ctx.state);
+
+      // Asynchronously preload custom sound files from public/assets/
+      this.preloadSounds();
     } catch (e) {
       console.warn('Failed to initialize AudioContext:', e);
+    }
+  }
+
+  async preloadSounds(paths = DEFAULT_SOUND_PATHS) {
+    if (!this.ctx) return;
+    try {
+      const loaded = await loadAudioAssets(this.ctx, paths);
+      Object.assign(this.buffers, loaded);
+      this.log('Custom audio buffers preloaded:', this.buffers);
+    } catch (e) {
+      this.log('Audio preloading error, falling back to Web Audio API synthesis:', e);
     }
   }
 
@@ -134,6 +158,15 @@ export class AudioManager {
     const now = this.ctx.currentTime + 0.005; // tiny offset for smooth Web Audio scheduling
 
     try {
+      // Check if preloaded AudioBuffer exists for this sound
+      const buffer = this.buffers[soundName];
+      if (buffer) {
+        this.playAudioBuffer(soundName, buffer, now);
+        return;
+      }
+
+      // Procedural Web Audio API synthesis fallback if buffer missing/null
+      this.log(`No audio buffer for '${soundName}', using Web Audio API synthesis fallback.`);
       switch (soundName) {
         case 'coin':
           this.createCoinSound(now);
@@ -147,6 +180,12 @@ export class AudioManager {
         case 'hit':
           this.createHitSound(now);
           break;
+        case 'shoot':
+          this.createShootSound(now);
+          break;
+        case 'destroy':
+          this.createDestroySound(now);
+          break;
         case 'gameOver':
           this.createGameOverSound(now);
           break;
@@ -159,6 +198,28 @@ export class AudioManager {
     } catch (e) {
       console.warn(`Error playing sound '${soundName}':`, e);
     }
+  }
+
+  playAudioBuffer(soundName, buffer, now) {
+    const source = this.ctx.createBufferSource();
+    const gain = this.ctx.createGain();
+
+    source.buffer = buffer;
+    const volume = this.volumes[soundName] || 0.3;
+
+    gain.gain.setValueAtTime(volume, now);
+
+    source.connect(gain);
+    gain.connect(this.masterGain);
+
+    source.start(now);
+
+    source.onended = () => {
+      try {
+        source.disconnect();
+        gain.disconnect();
+      } catch (e) {}
+    };
   }
 
   createCoinSound(now) {
@@ -276,6 +337,60 @@ export class AudioManager {
     };
   }
 
+  createShootSound(now) {
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    const volume = this.volumes.shoot || 0.30;
+
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(220, now + 0.12);
+
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + 0.12);
+
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch (e) {}
+    };
+  }
+
+  createDestroySound(now) {
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'square';
+    const volume = this.volumes.destroy || 0.45;
+
+    osc.frequency.setValueAtTime(160, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.20);
+
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.20);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + 0.20);
+
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch (e) {}
+    };
+  }
+
   createGameOverSound(now) {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -334,3 +449,4 @@ export class AudioManager {
 }
 
 export const audioManager = new AudioManager();
+
