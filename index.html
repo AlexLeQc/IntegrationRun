@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>DOODLE RUNNER</title>
+    <title>C YINK UNE SEMAINE</title>
     <!-- Google Fonts for playful sketchbook styling -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -31,7 +31,7 @@
             <span id="hud-score" class="hud-value">000000</span>
           </div>
           <div class="hud-item">
-            <span class="hud-label">LIVES</span>
+            <span class="hud-label">VIES</span>
             <div id="hud-lives" class="hud-lives-container"></div>
           </div>
         </div>
@@ -40,31 +40,31 @@
       <!-- Main Menu Screen -->
       <div id="main-menu" class="screen-overlay active">
         <h1 class="game-title">
-          DOODLE<br /><span class="highlight">RUNNER</span>
+          C YINK<br /><span class="highlight">UNE SEMAINE</span>
         </h1>
-        <p class="game-subtitle">Swipe left/right to dodge doodles!</p>
+        <p class="game-subtitle">Survie a ta semaine d'intégration!</p>
         <div class="menu-actions">
-          <button id="start-btn" class="neon-btn cyan">START DASH</button>
+          <button id="start-btn" class="neon-btn cyan">JOUER</button>
           <button id="leaderboard-btn" class="neon-btn magenta">
-            SKETCHBOOK
+            LEADERBOARD
           </button>
         </div>
       </div>
 
       <!-- Leaderboard Screen -->
       <div id="leaderboard-screen" class="screen-overlay hidden">
-        <h2 class="screen-title">SKETCHBOOK HALL OF FAME</h2>
+        <h2 class="screen-title">LES TRYHARDs</h2>
         <div class="leaderboard-tabs">
-          <button id="tab-individual" class="tab-btn active">INDIVIDUAL</button>
-          <button id="tab-teams" class="tab-btn">TOP TEAMS</button>
+          <button id="tab-individual" class="tab-btn active">INDIVIDUEL</button>
+          <button id="tab-teams" class="tab-btn">ÉQUIPES</button>
         </div>
         <div class="leaderboard-table-container">
           <table class="leaderboard-table">
             <thead id="leaderboard-thead">
               <tr>
                 <th style="width: 12%">#</th>
-                <th style="text-align: left">RUNNER</th>
-                <th style="text-align: left">TEAM</th>
+                <th style="text-align: left">NEUVE</th>
+                <th style="text-align: left">ÉQUIPE</th>
                 <th style="text-align: right">SCORE</th>
               </tr>
             </thead>
@@ -73,7 +73,7 @@
             </tbody>
           </table>
         </div>
-        <button id="leaderboard-back-btn" class="neon-btn outline">BACK</button>
+        <button id="leaderboard-back-btn" class="neon-btn outline">RETOUR</button>
       </div>
 
       <!-- Game Over Screen (Dual-State Arcade Flow) -->
@@ -82,19 +82,19 @@
         <div id="game-over-regular" class="game-over-substate hidden">
           <h2 class="screen-title text-magenta">GAME OVER</h2>
           <div class="final-score-container">
-            <span class="score-label">FINAL SCORE</span>
+            <span class="score-label">SCORE FINAL</span>
             <span id="final-score-val-regular" class="score-value">0</span>
           </div>
           <div class="menu-actions">
             <button id="retry-btn-regular" class="neon-btn cyan">
-              RETRY RUN
+              RÉESSAYER
             </button>
             <div class="button-row">
               <button id="main-menu-btn-regular" class="neon-btn outline">
-                MAIN MENU
+                MENU PRINCIPAL
               </button>
               <button id="leaderboard-btn-regular" class="neon-btn magenta">
-                SKETCHBOOK
+                LEADERBOARD
               </button>
             </div>
           </div>
@@ -102,9 +102,10 @@
 
         <!-- State 2: New High Score Qualified -->
         <div id="game-over-highscore" class="game-over-substate hidden">
-          <h2 class="screen-title text-cyan">NEW HIGH SCORE!</h2>
+          <h2 class="screen-title text-cyan">GOD DAMM!</h2>
+          <p class="game-subtitle" style="margin-bottom: 0.5rem;">Ahh ouais pas mal le score</p>
           <div class="rank-badge-container header-badge">
-            <span id="predicted-rank-val" class="rank-badge-val">RANK #1</span>
+            <span id="predicted-rank-val" class="rank-badge-val">RANG #1</span>
             <span class="badge-bullet">•</span>
             <span class="badge-score-text"
               >SCORE:
@@ -114,7 +115,7 @@
             >
           </div>
           <form id="score-submit-form" class="score-form">
-            <label for="username" class="form-label">ENTER YOUR NAME</label>
+            <label for="username" class="form-label">ENTRE TON NOM</label>
             <input
               type="text"
               id="username"
@@ -122,15 +123,15 @@
               minlength="2"
               maxlength="12"
               required
-              placeholder="PLAYER 1"
+              placeholder="JOUEUR 1"
               autocomplete="off"
             />
-            <label for="team-select" class="form-label">SELECT YOUR TEAM</label>
+            <label for="team-select" class="form-label">SÉLECTIONNE TON ÉQUIPE</label>
             <select id="team-select" class="form-select" required>
-              <option value="" disabled selected>CHOOSE A TEAM...</option>
+              <option value="" disabled selected>CHOISIS UNE ÉQUIPE...</option>
               <option value="Schtroumpfettes Pompettes">Schtroumpfettes Pompettes</option>
               <option value="Passe-MontAngine de Poitrine">Passe-MontAngine de Poitrine</option>
-              <option value="Johnny Alcooo-Test">Johnny Alcooo-Test</option>
+              <option value="Johnny Alcoo-Test">Johnny Alcoo-Test</option>
               <option value="Les Mélodibroues">Les Mélodibroues</option>
               <option value="Garfeeling">Garfeeling</option>
               <option value="Loups-Guru">Loups-Guru</option>
@@ -148,9 +149,10 @@
               <option value="Teletobeerz">Teletobeerz</option>
               <option value="Busch Lightyear">Busch Lightyear</option>
               <option value="Babush Ice">Babush Ice</option>
+              <option value="GOUV">GOUV</option>
             </select>
             <button type="submit" id="submit-score-btn" class="neon-btn cyan">
-              SUBMIT RECORD
+              TU FLEX TU BOIS
             </button>
           </form>
           <div id="submit-status-msg" class="submit-status hidden"></div>

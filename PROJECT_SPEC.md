@@ -159,15 +159,16 @@ create policy "Allow public insert access" on public.high_scores
 The game user interface is structured into notebook card modal overlays and an in-game HUD:
 
 ### Main Menu Screen (`#main-menu`)
-- **Title Banner**: Doodle Runner logo with sketchy marker fonts and bright primary accent fills.
-- **Controls & Instructions**: Visual summary of mobile swipe gestures (Swipe Left/Right, Swipe Up to Jump, Swipe Down to Slide) and desktop keys (Arrow keys / WASD).
+- **Title Banner**: `C YINK UNE SEMAINE` logo with sketchy marker fonts and bright primary accent fills.
+- **Subtitle**: `"Survie a ta semaine d'intégration!"`
+- **Controls & Instructions**: Visual summary of mobile swipe gestures ("Glisse vers le haut pour Sauter", "Glisse vers le bas pour Glisser") and action keys ("Appuie sur Espace pour lancer des ballons d'eau").
 - **Action Buttons**:
-  - **`START DASH`**: Initializes the game loop and transitions to the HUD overlay.
-  - **`SKETCHBOOK`**: Opens the global high scores leaderboard overlay.
+  - **`JOUER`**: Initializes the game loop and transitions to the HUD overlay.
+  - **`LEADERBOARD`**: Opens the global high scores leaderboard overlay.
 
 ### In-Game HUD (`#hud-overlay`)
-- **Score Display**: 6-digit zero-padded score counter (e.g. `001250`) rendered on a lined paper badge.
-- **Health Indicator**: 3 hand-drawn crayon heart elements transitioning from bright red fill to empty sketch outline on damage.
+- **Score Display**: `SCORE` 6-digit zero-padded score counter (e.g. `001250`) rendered on a lined paper badge.
+- **Health Indicator**: `VIES` header with 3 hand-drawn crayon heart elements transitioning from bright red fill to empty sketch outline on damage.
 - **Damage Flash**: `#damage-flash` overlay element that flashes red on obstacle collision alongside canvas screen shake.
 
 ### Dual-State Game Over Screen (`#game-over-screen`)
@@ -179,21 +180,22 @@ The game user interface is structured into notebook card modal overlays and an i
 - **State 1 – Regular Game Over (Not Qualified)**:
   - Displayed when final score does NOT beat the current lowest leaderboard entry.
   - Hides `#game-over-highscore` completely and skips the name entry form and rank badge.
-  - Displays header "GAME OVER", final score, and action buttons in a 2-tier layout: top primary button `[RETRY RUN]` (full width) and bottom row container (`.button-row`) with `[MAIN MENU]` and `[SKETCHBOOK]` side-by-side.
+  - Displays header "GAME OVER", score label "SCORE FINAL", final score, and action buttons in a 2-tier layout: top primary button `[RÉESSAYER]` (full width) and bottom row container (`.button-row`) with `[MENU PRINCIPAL]` and `[LEADERBOARD]` side-by-side.
 
 - **State 2 – New High Score Prompt (Qualified)**:
   - Displayed ONLY when final score beats the current lowest leaderboard entry.
-  - Hides `#game-over-regular` completely and displays header "NEW HIGH SCORE!", a compact combined header badge (`RANK #X • SCORE: 001250`), and score submission form (`#score-submit-form`).
-  - **Form Requirements**: Requires both **Runner Name** (input field `#username`, 2–12 characters, uppercase/trimmed) and **Team Selection** (styled `<select id="team-select" required>` dropdown populated with the 20 orientation teams).
-  - Upon submission, displays `✔ SCORE SUBMITTED!` and automatically transitions to the Leaderboard Screen with the player's new entry highlighted.
+  - Hides `#game-over-regular` completely and displays header "GOD DAMM!", subtitle "Ahh ouais pas mal le score", a compact combined header badge (`RANG #X • SCORE: 001250`), and score submission form (`#score-submit-form`).
+  - **Form Requirements**: Requires both **Runner Name** (input field `#username` with label "ENTRE TON NOM" and placeholder "JOUEUR 1", 2–12 characters, uppercase/trimmed) and **Team Selection** (styled `<select id="team-select" required>` dropdown with label "SÉLECTIONNE TON ÉQUIPE" populated with the orientation teams).
+  - Primary Action Button: `[TU FLEX TU BOIS]`
+  - Upon submission, displays `✔ SCORE SOUMIS !` and automatically transitions to the Leaderboard Screen with the player's new entry highlighted.
 
 ### Leaderboard Screen (`#leaderboard-screen`)
-- **Vertical Spacing & Layout**: `#leaderboard-screen` is configured as a flex container (`flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box; padding: 1.5rem 1rem;`). The `.screen-title` stays firmly at the top, tab toggles (`#tab-individual` and `#tab-teams`) sit directly below, `#leaderboard-back-btn` is pinned cleanly at the bottom, and `.leaderboard-table-container` fills the spacious center (`flex: 1; min-height: 50vh; width: 100%; overflow-y: auto; margin: 0.75rem 0;`).
+- **Vertical Spacing & Layout**: `#leaderboard-screen` is configured as a flex container (`flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box; padding: 1.5rem 1rem;`). The `.screen-title` ("LES TRYHARDs") stays firmly at the top, tab toggles (`#tab-individual` and `#tab-teams`) sit directly below, `#leaderboard-back-btn` is pinned cleanly at the bottom, and `.leaderboard-table-container` fills the spacious center (`flex: 1; min-height: 50vh; width: 100%; overflow-y: auto; margin: 0.75rem 0;`).
 - **Dual-Tab System**:
-  - `[INDIVIDUAL]` Tab: Displays top 20 runner scores (`#`, `RUNNER`, `TEAM`, `SCORE`).
-  - `[TOP TEAMS]` Tab: Displays team rankings (`#`, `TEAM NAME`, `PLAYERS`, `TOTAL POINTS`), computing total points and runner count per team from the leaderboard dataset.
+  - `[INDIVIDUEL]` Tab: Displays top 20 runner scores (`#`, `NEUVE`, `ÉQUIPE`, `SCORE`).
+  - `[ÉQUIPES]` Tab: Displays team rankings (`#`, `ÉQUIPE`, `MEMBRES`, `POINTS TOTAL`), computing total points and runner count per team from the leaderboard dataset.
 - **Rankings Table & Styling**: Formatted with rank numbers (1st, 2nd, 3rd highlighted with gold, silver, bronze marker accents). Styled with a subtle paper card background, notebook border line, custom sketch scrollbar, and notebook button tab toggles. Newly submitted scores are highlighted with a gold marker stroke background.
-- **Navigation**: `BACK` button returning smoothly to the Main Menu.
+- **Navigation**: `RETOUR` button returning smoothly to the Main Menu.
 
 ---
 

@@ -125,7 +125,7 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
 
   const colCount = activeTab === "teams" ? 4 : 4;
   entriesContainer.innerHTML =
-    `<tr><td colspan="${colCount}" style="text-align: center; color: rgba(44, 44, 46, 0.5);">CONNECTING NETWORK...</td></tr>`;
+    `<tr><td colspan="${colCount}" style="text-align: center; color: rgba(44, 44, 46, 0.5);">CONNEXION AU RÉSEAU...</td></tr>`;
 
   try {
     const scores = await fetchLeaderboardFn(MAX_LEADERBOARD_ENTRIES);
@@ -135,9 +135,9 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
         theadContainer.innerHTML = `
           <tr>
             <th style="width: 12%">#</th>
-            <th style="text-align: left">TEAM NAME</th>
-            <th style="text-align: center">PLAYERS</th>
-            <th style="text-align: right">TOTAL POINTS</th>
+            <th style="text-align: left">ÉQUIPE</th>
+            <th style="text-align: center">MEMBRES</th>
+            <th style="text-align: right">POINTS TOTAL</th>
           </tr>
         `;
       }
@@ -147,7 +147,7 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
 
       if (!teamRankings || teamRankings.length === 0) {
         entriesContainer.innerHTML =
-          `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">NO TEAMS FOUND</td></tr>`;
+          `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">AUCUNE ÉQUIPE TROUVÉE</td></tr>`;
         return;
       }
 
@@ -178,8 +178,8 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
         theadContainer.innerHTML = `
           <tr>
             <th style="width: 10%">#</th>
-            <th style="text-align: left">RUNNER</th>
-            <th style="text-align: left">TEAM</th>
+            <th style="text-align: left">NEUVE</th>
+            <th style="text-align: left">ÉQUIPE</th>
             <th style="text-align: right">SCORE</th>
           </tr>
         `;
@@ -189,7 +189,7 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
 
       if (!scores || scores.length === 0) {
         entriesContainer.innerHTML =
-          `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">NO RECORDS FOUND</td></tr>`;
+          `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">AUCUN ENREGISTREMENT TROUVÉ</td></tr>`;
         return;
       }
 
@@ -210,7 +210,7 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
           row.classList.add("row-highlight");
         }
 
-        const teamName = entry.team || "Independent";
+        const teamName = entry.team || "Indépendant";
 
         row.innerHTML = `
           <td class="${rankClass}" style="font-weight: bold; text-align: center;">${rank}</td>
@@ -224,7 +224,7 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
   } catch (error) {
     console.error("Error rendering leaderboard:", error);
     entriesContainer.innerHTML =
-      `<tr><td colspan="${colCount}" style="text-align: center; color: var(--color-magenta);">TRANSMISSION ERROR</td></tr>`;
+      `<tr><td colspan="${colCount}" style="text-align: center; color: var(--color-magenta);">ERREUR DE TRANSMISSION</td></tr>`;
   }
 }
 
@@ -259,7 +259,7 @@ export function showGameOverState(isQualified, { score, rank }) {
   if (isQualified) {
     console.log("[UI] → Showing HIGH SCORE state");
     if (highscoreSubstate) highscoreSubstate.classList.remove("hidden");
-    if (predictedRankVal) predictedRankVal.textContent = rank ? `RANK #${rank}` : `TOP ${MAX_LEADERBOARD_ENTRIES}`;
+    if (predictedRankVal) predictedRankVal.textContent = rank ? `RANG #${rank}` : `TOP ${MAX_LEADERBOARD_ENTRIES}`;
 
     if (usernameInput) {
       usernameInput.value = "";
@@ -271,7 +271,7 @@ export function showGameOverState(isQualified, { score, rank }) {
     }
     if (submitScoreBtn) {
       submitScoreBtn.disabled = false;
-      submitScoreBtn.textContent = "SUBMIT RECORD";
+      submitScoreBtn.textContent = "TU FLEX TU BOIS";
     }
   } else {
     console.log("[UI] → Showing REGULAR game over state");

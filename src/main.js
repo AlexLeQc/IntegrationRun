@@ -145,14 +145,14 @@ scoreSubmitForm.addEventListener('submit', async (e) => {
   usernameInput.disabled = true;
   if (teamSelect) teamSelect.disabled = true;
   submitScoreBtn.disabled = true;
-  submitScoreBtn.textContent = 'SAVING...';
+  submitScoreBtn.textContent = 'ENREGISTREMENT...';
 
   try {
     const res = await submitHighScore(name, team, game.score);
 
     if (res && res.success) {
       if (submitStatusMsg) {
-        submitStatusMsg.textContent = '✔ SCORE SUBMITTED!';
+        submitStatusMsg.textContent = '✔ SCORE SOUMIS !';
         submitStatusMsg.classList.remove('hidden');
       }
 
@@ -162,14 +162,14 @@ scoreSubmitForm.addEventListener('submit', async (e) => {
         await setLeaderboardTab('individual', { username: res.username, score: game.score, team: res.team });
       }, 750);
     } else {
-      submitScoreBtn.textContent = 'RETRY';
+      submitScoreBtn.textContent = 'RÉESSAYER';
       submitScoreBtn.disabled = false;
       usernameInput.disabled = false;
       if (teamSelect) teamSelect.disabled = false;
     }
   } catch (error) {
     console.error('Submission failed:', error);
-    submitScoreBtn.textContent = 'RETRY';
+    submitScoreBtn.textContent = 'RÉESSAYER';
     submitScoreBtn.disabled = false;
     usernameInput.disabled = false;
     if (teamSelect) teamSelect.disabled = false;

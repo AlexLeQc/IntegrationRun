@@ -5,7 +5,7 @@ export const MAX_LEADERBOARD_ENTRIES = 20;
 export const INTEGRATION_TEAMS = [
   "Schtroumpfettes Pompettes",
   "Passe-MontAngine de Poitrine",
-  "Johnny Alcooo-Test",
+  "Johnny Alcoo-Test",
   "Les Mélodibroues",
   "Garfeeling",
   "Loups-Guru",
@@ -23,6 +23,7 @@ export const INTEGRATION_TEAMS = [
   "Teletobeerz",
   "Busch Lightyear",
   "Babush Ice",
+  "GOUV",
 ];
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -45,9 +46,9 @@ if (supabaseUrl && supabaseAnonKey) {
 
 const DEFAULT_LEADERBOARD = [
   {
-    username: "Snitch",
-    team: "Schtroumpfettes Pompettes",
-    score: 12500,
+    username: "Bïzoùnę SåùTę",
+    team: "GOUV",
+    score: 676767,
     created_at: new Date("2026-01-01").toISOString(),
   },
   {
@@ -58,7 +59,7 @@ const DEFAULT_LEADERBOARD = [
   },
   {
     username: "CYB",
-    team: "Johnny Alcooo-Test",
+    team: "Johnny Alcoo-Test",
     score: 7500,
     created_at: new Date("2026-01-03").toISOString(),
   },
@@ -376,4 +377,3 @@ export async function fetchTeamLeaderboard(scoresInput = null) {
     ...item,
   }));
 }
-
