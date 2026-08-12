@@ -1,4 +1,8 @@
-import { MAX_LEADERBOARD_ENTRIES, fetchTeamLeaderboard, INTEGRATION_TEAMS } from './supabase.js';
+import {
+  MAX_LEADERBOARD_ENTRIES,
+  fetchTeamLeaderboard,
+  INTEGRATION_TEAMS,
+} from "./supabase.js";
 
 export class ScreenShake {
   constructor() {
@@ -118,14 +122,17 @@ export function showScreen(activeScreen) {
 /**
  * Fetches and renders leaderboard entries into DOM table for individual or team tabs
  */
-export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null, activeTab = "individual") {
+export async function renderLeaderboard(
+  fetchLeaderboardFn,
+  highlightInfo = null,
+  activeTab = "individual",
+) {
   const entriesContainer = document.getElementById("leaderboard-entries");
   const theadContainer = document.getElementById("leaderboard-thead");
   if (!entriesContainer) return;
 
   const colCount = activeTab === "teams" ? 4 : 4;
-  entriesContainer.innerHTML =
-    `<tr><td colspan="${colCount}" style="text-align: center; color: rgba(44, 44, 46, 0.5);">CONNEXION AU RÉSEAU...</td></tr>`;
+  entriesContainer.innerHTML = `<tr><td colspan="${colCount}" style="text-align: center; color: rgba(44, 44, 46, 0.5);">CONNEXION AU RÉSEAU...</td></tr>`;
 
   try {
     const scores = await fetchLeaderboardFn(MAX_LEADERBOARD_ENTRIES);
@@ -146,8 +153,7 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
       entriesContainer.innerHTML = "";
 
       if (!teamRankings || teamRankings.length === 0) {
-        entriesContainer.innerHTML =
-          `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">AUCUNE ÉQUIPE TROUVÉE</td></tr>`;
+        entriesContainer.innerHTML = `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">AUCUNE ÉQUIPE TROUVÉE</td></tr>`;
         return;
       }
 
@@ -160,7 +166,11 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
 
         const row = document.createElement("tr");
 
-        if (highlightInfo && highlightInfo.team && entry.team === highlightInfo.team) {
+        if (
+          highlightInfo &&
+          highlightInfo.team &&
+          entry.team === highlightInfo.team
+        ) {
           row.classList.add("row-highlight");
         }
 
@@ -188,8 +198,7 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
       entriesContainer.innerHTML = "";
 
       if (!scores || scores.length === 0) {
-        entriesContainer.innerHTML =
-          `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">AUCUN ENREGISTREMENT TROUVÉ</td></tr>`;
+        entriesContainer.innerHTML = `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">AUCUN ENREGISTREMENT TROUVÉ</td></tr>`;
         return;
       }
 
@@ -214,8 +223,8 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
 
         row.innerHTML = `
           <td class="${rankClass}" style="font-weight: bold; text-align: center;">${rank}</td>
-          <td style="font-weight: 600;">${entry.username}</td>
-          <td><span class="team-badge-text" title="${teamName}">${teamName}</span></td>
+          <td style="font-weight: 600; text-align: left;">${entry.username}</td>
+          <td style="text-align: left;"><span class="team-badge-text" title="${teamName}">${teamName}</span></td>
           <td style="text-align: right; font-family: var(--font-display); color: var(--color-cyan);">${entry.score.toLocaleString()}</td>
         `;
         entriesContainer.appendChild(row);
@@ -223,8 +232,7 @@ export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null
     }
   } catch (error) {
     console.error("Error rendering leaderboard:", error);
-    entriesContainer.innerHTML =
-      `<tr><td colspan="${colCount}" style="text-align: center; color: var(--color-magenta);">ERREUR DE TRANSMISSION</td></tr>`;
+    entriesContainer.innerHTML = `<tr><td colspan="${colCount}" style="text-align: center; color: var(--color-magenta);">ERREUR DE TRANSMISSION</td></tr>`;
   }
 }
 
@@ -235,14 +243,18 @@ export function showGameOverState(isQualified, { score, rank }) {
   const regularSubstate = document.getElementById("game-over-regular");
   const highscoreSubstate = document.getElementById("game-over-highscore");
   const scoreValRegular = document.getElementById("final-score-val-regular");
-  const scoreValHighscore = document.getElementById("final-score-val-highscore");
+  const scoreValHighscore = document.getElementById(
+    "final-score-val-highscore",
+  );
   const predictedRankVal = document.getElementById("predicted-rank-val");
   const submitStatusMsg = document.getElementById("submit-status-msg");
   const submitScoreBtn = document.getElementById("submit-score-btn");
   const usernameInput = document.getElementById("username");
   const teamSelect = document.getElementById("team-select");
 
-  console.log(`[UI] showGameOverState isQualified=${isQualified} score=${score} rank=${rank}`);
+  console.log(
+    `[UI] showGameOverState isQualified=${isQualified} score=${score} rank=${rank}`,
+  );
 
   if (scoreValRegular) scoreValRegular.textContent = score.toLocaleString();
   if (scoreValHighscore) scoreValHighscore.textContent = score.toLocaleString();
@@ -259,7 +271,10 @@ export function showGameOverState(isQualified, { score, rank }) {
   if (isQualified) {
     console.log("[UI] → Showing HIGH SCORE state");
     if (highscoreSubstate) highscoreSubstate.classList.remove("hidden");
-    if (predictedRankVal) predictedRankVal.textContent = rank ? `RANG #${rank}` : `TOP ${MAX_LEADERBOARD_ENTRIES}`;
+    if (predictedRankVal)
+      predictedRankVal.textContent = rank
+        ? `RANG #${rank}`
+        : `TOP ${MAX_LEADERBOARD_ENTRIES}`;
 
     if (usernameInput) {
       usernameInput.value = "";

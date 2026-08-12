@@ -73,7 +73,9 @@
             </tbody>
           </table>
         </div>
-        <button id="leaderboard-back-btn" class="neon-btn outline">RETOUR</button>
+        <button id="leaderboard-back-btn" class="neon-btn outline">
+          RETOUR
+        </button>
       </div>
 
       <!-- Game Over Screen (Dual-State Arcade Flow) -->
@@ -89,21 +91,21 @@
             <button id="retry-btn-regular" class="neon-btn cyan">
               RÉESSAYER
             </button>
-            <div class="button-row">
-              <button id="main-menu-btn-regular" class="neon-btn outline">
-                MENU PRINCIPAL
-              </button>
-              <button id="leaderboard-btn-regular" class="neon-btn magenta">
-                LEADERBOARD
-              </button>
-            </div>
+            <button id="main-menu-btn-regular" class="neon-btn outline">
+              MENU PRINCIPAL
+            </button>
+            <button id="leaderboard-btn-regular" class="neon-btn magenta">
+              LEADERBOARD
+            </button>
           </div>
         </div>
 
         <!-- State 2: New High Score Qualified -->
         <div id="game-over-highscore" class="game-over-substate hidden">
           <h2 class="screen-title text-cyan">GOD DAMM!</h2>
-          <p class="game-subtitle" style="margin-bottom: 0.5rem;">Ahh ouais pas mal le score</p>
+          <p class="game-subtitle" style="margin-bottom: 0.5rem">
+            Ahh ouais pas mal le score
+          </p>
           <div class="rank-badge-container header-badge">
             <span id="predicted-rank-val" class="rank-badge-val">RANG #1</span>
             <span class="badge-bullet">•</span>
@@ -126,19 +128,29 @@
               placeholder="JOUEUR 1"
               autocomplete="off"
             />
-            <label for="team-select" class="form-label">SÉLECTIONNE TON ÉQUIPE</label>
+            <label for="team-select" class="form-label"
+              >SÉLECTIONNE TON ÉQUIPE</label
+            >
             <select id="team-select" class="form-select" required>
               <option value="" disabled selected>CHOISIS UNE ÉQUIPE...</option>
-              <option value="Schtroumpfettes Pompettes">Schtroumpfettes Pompettes</option>
-              <option value="Passe-MontAngine de Poitrine">Passe-MontAngine de Poitrine</option>
+              <option value="Schtroumpfettes Pompettes">
+                Schtroumpfettes Pompettes
+              </option>
+              <option value="Passe-MontAngine de Poitrine">
+                Passe-MontAngine de Poitrine
+              </option>
               <option value="Johnny Alcoo-Test">Johnny Alcoo-Test</option>
               <option value="Les Mélodibroues">Les Mélodibroues</option>
               <option value="Garfeeling">Garfeeling</option>
               <option value="Loups-Guru">Loups-Guru</option>
               <option value="Bubly Ponge">Bubly Ponge</option>
               <option value="Justin Bieberon">Justin Bieberon</option>
-              <option value="Kabusch et les Krashpoils">Kabusch et les Krashpoils</option>
-              <option value="Arc'teryx et Obétwist">Arc'teryx et Obétwist</option>
+              <option value="Kabusch et les Krashpoils">
+                Kabusch et les Krashpoils
+              </option>
+              <option value="Arc'teryx et Obétwist">
+                Arc'teryx et Obétwist
+              </option>
               <option value="Tequila Spies">Tequila Spies</option>
               <option value="Buzzball chasseur">Buzzball chasseur</option>
               <option value="Pabst Patrouille">Pabst Patrouille</option>
