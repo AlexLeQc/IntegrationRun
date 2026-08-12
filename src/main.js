@@ -172,9 +172,14 @@ if (skipSubmitMenuBtn) {
   });
 }
 
-// State 2 Score Submission Form
+// State 2 Score Submission Form — Finding 4: 5-second cooldown guard
+let lastSubmitTime = 0;
 scoreSubmitForm.addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  const now = Date.now();
+  if (now - lastSubmitTime < 5000) return; // 5-second submission cooldown
+  lastSubmitTime = now;
 
   const name = usernameInput.value.toUpperCase().trim();
   const team = teamSelect ? teamSelect.value : '';

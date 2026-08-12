@@ -175,12 +175,24 @@ export async function renderLeaderboard(
           row.classList.add("row-highlight");
         }
 
-        row.innerHTML = `
-          <td class="${rankClass}" style="font-weight: bold; text-align: center;">${rank}</td>
-          <td style="text-align: left; font-weight: 600;">${entry.team}</td>
-          <td style="text-align: center; font-weight: 600;">${entry.playerCount}</td>
-          <td style="text-align: right; font-family: var(--font-display); color: var(--color-cyan);">${entry.totalScore.toLocaleString()}</td>
-        `;
+        const tdRank = document.createElement("td");
+        if (rankClass) tdRank.className = rankClass;
+        tdRank.style.cssText = "font-weight: bold; text-align: center;";
+        tdRank.textContent = rank;
+
+        const tdTeam = document.createElement("td");
+        tdTeam.style.cssText = "text-align: left; font-weight: 600;";
+        tdTeam.textContent = entry.team;
+
+        const tdMembers = document.createElement("td");
+        tdMembers.style.cssText = "text-align: center; font-weight: 600;";
+        tdMembers.textContent = entry.playerCount;
+
+        const tdScore = document.createElement("td");
+        tdScore.style.cssText = "text-align: right; font-family: var(--font-display); color: var(--color-cyan);";
+        tdScore.textContent = entry.totalScore.toLocaleString();
+
+        row.append(tdRank, tdTeam, tdMembers, tdScore);
         entriesContainer.appendChild(row);
       });
     } else {
@@ -222,12 +234,28 @@ export async function renderLeaderboard(
 
         const teamName = entry.team || "Indépendant";
 
-        row.innerHTML = `
-          <td class="${rankClass}" style="font-weight: bold; text-align: center;">${rank}</td>
-          <td style="font-weight: 600; text-align: left;">${entry.username}</td>
-          <td style="text-align: left;"><span class="team-badge-text" title="${teamName}">${teamName}</span></td>
-          <td style="text-align: right; font-family: var(--font-display); color: var(--color-cyan);">${entry.score.toLocaleString()}</td>
-        `;
+        const tdRank = document.createElement("td");
+        if (rankClass) tdRank.className = rankClass;
+        tdRank.style.cssText = "font-weight: bold; text-align: center;";
+        tdRank.textContent = rank;
+
+        const tdName = document.createElement("td");
+        tdName.style.cssText = "font-weight: 600; text-align: left;";
+        tdName.textContent = entry.username;
+
+        const tdTeam = document.createElement("td");
+        tdTeam.style.cssText = "text-align: left;";
+        const teamSpan = document.createElement("span");
+        teamSpan.className = "team-badge-text";
+        teamSpan.title = teamName;
+        teamSpan.textContent = teamName;
+        tdTeam.appendChild(teamSpan);
+
+        const tdScore = document.createElement("td");
+        tdScore.style.cssText = "text-align: right; font-family: var(--font-display); color: var(--color-cyan);";
+        tdScore.textContent = entry.score.toLocaleString();
+
+        row.append(tdRank, tdName, tdTeam, tdScore);
         entriesContainer.appendChild(row);
       });
     }

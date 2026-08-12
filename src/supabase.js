@@ -264,14 +264,22 @@ export async function submitHighScore(username, team, score) {
     team = INTEGRATION_TEAMS[0];
   }
 
+  // Finding 3 — Score integrity check: must be a finite positive integer within bounds
+  const safeScore = Math.floor(Number(score));
+  if (!Number.isFinite(safeScore) || safeScore <= 0 || safeScore > 10_000_000) {
+    return { success: false, rank: null };
+  }
+
   const cleanUsername = (username || "").toUpperCase().trim().slice(0, 12);
   if (!cleanUsername || cleanUsername.length < 2) {
     return { success: false, rank: null };
   }
 
-  const cleanTeam = (team || "").trim() || INTEGRATION_TEAMS[0];
+  // Finding 2 — Team allowlist check: must be a recognized integration team
+  const trimmedTeam = (team || "").trim() || INTEGRATION_TEAMS[0];
+  const cleanTeam = INTEGRATION_TEAMS.includes(trimmedTeam) ? trimmedTeam : INTEGRATION_TEAMS[0];
 
-  const qualification = await qualifiesForLeaderboard(score);
+  const qualification = await qualifiesForLeaderboard(safeScore);
   if (!qualification.qualifies) {
     return { success: false, rank: null };
   }
@@ -279,7 +287,7 @@ export async function submitHighScore(username, team, score) {
   const newEntry = {
     username: cleanUsername,
     team: cleanTeam,
-    score,
+    score: safeScore,
     created_at: new Date().toISOString(),
   };
 
