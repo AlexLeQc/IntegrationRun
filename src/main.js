@@ -14,6 +14,11 @@ const startBtn = document.getElementById('start-btn');
 const leaderboardBtn = document.getElementById('leaderboard-btn');
 const leaderboardBackBtn = document.getElementById('leaderboard-back-btn');
 
+// Leaderboard Tabs
+const tabIndividual = document.getElementById('tab-individual');
+const tabTeams = document.getElementById('tab-teams');
+let currentTab = 'individual';
+
 // Regular Game Over buttons (State 1)
 const retryBtnRegular = document.getElementById('retry-btn-regular');
 const mainMenuBtnRegular = document.getElementById('main-menu-btn-regular');
@@ -22,16 +27,36 @@ const leaderboardBtnRegular = document.getElementById('leaderboard-btn-regular')
 // High Score submit form (State 2)
 const scoreSubmitForm = document.getElementById('score-submit-form');
 const usernameInput = document.getElementById('username');
+const teamSelect = document.getElementById('team-select');
 const submitScoreBtn = document.getElementById('submit-score-btn');
 const submitStatusMsg = document.getElementById('submit-status-msg');
 
 const canvas = document.getElementById('game-canvas');
 
-// Initialize audio system
-audioManager.init();
+// AudioManager initializes lazily on first play() call (requires user gesture first).
+// Do NOT call audioManager.init() here — it creates AudioContext before any user interaction
+// which puts it into 'suspended' state. Instead, init happens automatically on first play().
+
+// Global gesture-based audio context resume (redundant safety net).
+// Ensures ANY user interaction across the entire document (including overlay tabs,
+// form inputs, team dropdown selections) will re-awaken a suspended AudioContext.
+["pointerdown", "touchstart", "click", "keydown"].forEach((evt) => {
+  document.addEventListener(evt, () => audioManager.resume(), {
+    capture: true,
+    passive: true,
+  });
+});
 
 // Game instance
 let game;
+
+// Helper to switch leaderboard tabs
+async function setLeaderboardTab(tab, highlightInfo = null) {
+  currentTab = tab;
+  if (tabIndividual) tabIndividual.classList.toggle('active', tab === 'individual');
+  if (tabTeams) tabTeams.classList.toggle('active', tab === 'teams');
+  await renderLeaderboard(getTopScores, highlightInfo, currentTab);
+}
 
 // Trigger Game Over screen with Arcade qualification logic
 async function onGameOver(score) {
@@ -50,6 +75,21 @@ async function onGameOver(score) {
 // Initialize the game instance
 game = new Game(canvas, updateHUD, onGameOver);
 
+// Tab toggle listeners
+if (tabIndividual) {
+  tabIndividual.addEventListener('click', async () => {
+    audioManager.play('click');
+    await setLeaderboardTab('individual');
+  });
+}
+
+if (tabTeams) {
+  tabTeams.addEventListener('click', async () => {
+    audioManager.play('click');
+    await setLeaderboardTab('teams');
+  });
+}
+
 // Bind event listeners with audio triggers
 startBtn.addEventListener('click', () => {
   audioManager.play('click');
@@ -60,7 +100,7 @@ startBtn.addEventListener('click', () => {
 leaderboardBtn.addEventListener('click', async () => {
   audioManager.play('click');
   showScreen(leaderboardScreen);
-  await renderLeaderboard(getTopScores);
+  await setLeaderboardTab(currentTab);
 });
 
 leaderboardBackBtn.addEventListener('click', () => {
@@ -88,7 +128,7 @@ if (leaderboardBtnRegular) {
   leaderboardBtnRegular.addEventListener('click', async () => {
     audioManager.play('click');
     showScreen(leaderboardScreen);
-    await renderLeaderboard(getTopScores);
+    await setLeaderboardTab(currentTab);
   });
 }
 
@@ -97,14 +137,18 @@ scoreSubmitForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const name = usernameInput.value.toUpperCase().trim();
+  const team = teamSelect ? teamSelect.value : '';
+
   if (name.length < 2 || name.length > 12) return;
+  if (!team) return;
 
   usernameInput.disabled = true;
+  if (teamSelect) teamSelect.disabled = true;
   submitScoreBtn.disabled = true;
   submitScoreBtn.textContent = 'SAVING...';
 
   try {
-    const res = await submitHighScore(name, game.score);
+    const res = await submitHighScore(name, team, game.score);
 
     if (res && res.success) {
       if (submitStatusMsg) {
@@ -115,18 +159,20 @@ scoreSubmitForm.addEventListener('submit', async (e) => {
       // Smooth transition to leaderboard showing highlighted score
       setTimeout(async () => {
         showScreen(leaderboardScreen);
-        await renderLeaderboard(getTopScores, { username: res.username, score: game.score });
+        await setLeaderboardTab('individual', { username: res.username, score: game.score, team: res.team });
       }, 750);
     } else {
       submitScoreBtn.textContent = 'RETRY';
       submitScoreBtn.disabled = false;
       usernameInput.disabled = false;
+      if (teamSelect) teamSelect.disabled = false;
     }
   } catch (error) {
     console.error('Submission failed:', error);
     submitScoreBtn.textContent = 'RETRY';
     submitScoreBtn.disabled = false;
     usernameInput.disabled = false;
+    if (teamSelect) teamSelect.disabled = false;
   }
 });
 
@@ -138,3 +184,4 @@ function resizeCanvas() {
 
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
+

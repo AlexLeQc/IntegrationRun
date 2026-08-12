@@ -1,6 +1,29 @@
 import { createClient } from "@supabase/supabase-js";
 
-export const MAX_LEADERBOARD_ENTRIES = 5;
+export const MAX_LEADERBOARD_ENTRIES = 20;
+
+export const INTEGRATION_TEAMS = [
+  "Schtroumpfettes Pompettes",
+  "Passe-MontAngine de Poitrine",
+  "Johnny Alcooo-Test",
+  "Les Mélodibroues",
+  "Garfeeling",
+  "Loups-Guru",
+  "Bubly Ponge",
+  "Justin Bieberon",
+  "Kabusch et les Krashpoils",
+  "Arc'teryx et Obétwist",
+  "Tequila Spies",
+  "Buzzball chasseur",
+  "Pabst Patrouille",
+  "Homme sur Bière",
+  "Clope penguin",
+  "Pokérhum",
+  "Pabst-Partout",
+  "Teletobeerz",
+  "Busch Lightyear",
+  "Babush Ice",
+];
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -23,26 +46,31 @@ if (supabaseUrl && supabaseAnonKey) {
 const DEFAULT_LEADERBOARD = [
   {
     username: "Snitch",
+    team: "Schtroumpfettes Pompettes",
     score: 12500,
     created_at: new Date("2026-01-01").toISOString(),
   },
   {
     username: "TRX",
+    team: "Passe-MontAngine de Poitrine",
     score: 9800,
     created_at: new Date("2026-01-02").toISOString(),
   },
   {
     username: "CYB",
+    team: "Johnny Alcooo-Test",
     score: 7500,
     created_at: new Date("2026-01-03").toISOString(),
   },
   {
     username: "SYN",
+    team: "Garfeeling",
     score: 5000,
     created_at: new Date("2026-01-04").toISOString(),
   },
   {
     username: "RUN",
+    team: "Bubly Ponge",
     score: 3200,
     created_at: new Date("2026-01-05").toISOString(),
   },
@@ -79,7 +107,7 @@ export async function getTopScores(limit = MAX_LEADERBOARD_ENTRIES) {
     try {
       const { data, error } = await supabase
         .from("high_scores")
-        .select("id, username, score, created_at")
+        .select("id, username, team, score, created_at")
         .order("score", { ascending: false })
         .order("created_at", { ascending: true })
         .limit(limit);
@@ -238,14 +266,22 @@ export async function deleteLowestScore() {
 }
 
 /**
- * Submits a new high score, enforces name validation, trims excess entries > MAX_LEADERBOARD_ENTRIES,
- * and returns success status with confirmed rank.
+ * Submits a new high score, enforces name validation, saves team selection,
+ * trims excess entries > MAX_LEADERBOARD_ENTRIES, and returns success status with confirmed rank.
  */
-export async function submitHighScore(username, score) {
+export async function submitHighScore(username, team, score) {
+  // Support both (username, team, score) and legacy (username, score)
+  if (typeof team === "number" && score === undefined) {
+    score = team;
+    team = INTEGRATION_TEAMS[0];
+  }
+
   const cleanUsername = (username || "").toUpperCase().trim().slice(0, 12);
   if (!cleanUsername || cleanUsername.length < 2) {
     return { success: false, rank: null };
   }
+
+  const cleanTeam = (team || "").trim() || INTEGRATION_TEAMS[0];
 
   const qualification = await qualifiesForLeaderboard(score);
   if (!qualification.qualifies) {
@@ -254,6 +290,7 @@ export async function submitHighScore(username, score) {
 
   const newEntry = {
     username: cleanUsername,
+    team: cleanTeam,
     score,
     created_at: new Date().toISOString(),
   };
@@ -269,6 +306,7 @@ export async function submitHighScore(username, score) {
           success: true,
           rank: qualification.rank,
           username: cleanUsername,
+          team: cleanTeam,
         };
       }
       console.error("Supabase score submission failed:", error);
@@ -289,12 +327,53 @@ export async function submitHighScore(username, score) {
 
   localStorage.setItem("neon_runner_leaderboard", JSON.stringify(leaderboard));
   console.log("Score saved locally in fallback mode.");
-  return { success: true, rank: qualification.rank, username: cleanUsername };
+  return {
+    success: true,
+    rank: qualification.rank,
+    username: cleanUsername,
+    team: cleanTeam,
+  };
 }
 
 /**
  * Backward compatibility alias for submitScore
  */
-export async function submitScore(username, score) {
-  return submitHighScore(username, score);
+export async function submitScore(username, team, score) {
+  return submitHighScore(username, team, score);
 }
+
+/**
+ * Computes team standings from top scores (or provided scores list).
+ * Groups entries by team, calculates sum of scores per team and player count,
+ * sorts teams in descending order by total score, and assigns team rank.
+ */
+export async function fetchTeamLeaderboard(scoresInput = null) {
+  let scores = scoresInput;
+  if (!scores) {
+    scores = await getTopScores(MAX_LEADERBOARD_ENTRIES);
+  }
+
+  const teamMap = {};
+
+  (scores || []).forEach((entry) => {
+    const teamName = entry.team || "Independent";
+    if (!teamMap[teamName]) {
+      teamMap[teamName] = {
+        team: teamName,
+        totalScore: 0,
+        playerCount: 0,
+      };
+    }
+    teamMap[teamName].totalScore += entry.score || 0;
+    teamMap[teamName].playerCount += 1;
+  });
+
+  const teamList = Object.values(teamMap);
+  teamList.sort((a, b) => b.totalScore - a.totalScore);
+
+  return teamList.map((item, index) => ({
+    rank: index + 1,
+    ...item,
+  }));
+}
+

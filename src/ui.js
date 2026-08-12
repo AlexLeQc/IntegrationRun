@@ -1,4 +1,4 @@
-import { MAX_LEADERBOARD_ENTRIES } from './supabase.js';
+import { MAX_LEADERBOARD_ENTRIES, fetchTeamLeaderboard, INTEGRATION_TEAMS } from './supabase.js';
 
 export class ScreenShake {
   constructor() {
@@ -116,54 +116,115 @@ export function showScreen(activeScreen) {
 }
 
 /**
- * Fetches and renders leaderboard entries into DOM table
+ * Fetches and renders leaderboard entries into DOM table for individual or team tabs
  */
-export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null) {
+export async function renderLeaderboard(fetchLeaderboardFn, highlightInfo = null, activeTab = "individual") {
   const entriesContainer = document.getElementById("leaderboard-entries");
+  const theadContainer = document.getElementById("leaderboard-thead");
   if (!entriesContainer) return;
 
+  const colCount = activeTab === "teams" ? 4 : 4;
   entriesContainer.innerHTML =
-    '<tr><td colspan="3" style="text-align: center; color: rgba(255, 255, 255, 0.4);">CONNECTING NETWORK...</td></tr>';
+    `<tr><td colspan="${colCount}" style="text-align: center; color: rgba(44, 44, 46, 0.5);">CONNECTING NETWORK...</td></tr>`;
 
   try {
     const scores = await fetchLeaderboardFn(MAX_LEADERBOARD_ENTRIES);
-    entriesContainer.innerHTML = "";
 
-    if (!scores || scores.length === 0) {
-      entriesContainer.innerHTML =
-        '<tr><td colspan="3" style="text-align: center; color: rgba(255, 255, 255, 0.4);">NO RECORDS FOUND</td></tr>';
-      return;
-    }
-
-    scores.slice(0, MAX_LEADERBOARD_ENTRIES).forEach((entry, index) => {
-      const rank = index + 1;
-      let rankClass = "";
-      if (rank === 1) rankClass = "rank-1";
-      else if (rank === 2) rankClass = "rank-2";
-      else if (rank === 3) rankClass = "rank-3";
-
-      const row = document.createElement("tr");
-
-      // Check if this row matches the newly submitted entry to highlight
-      if (
-        highlightInfo &&
-        entry.username === highlightInfo.username &&
-        entry.score === highlightInfo.score
-      ) {
-        row.classList.add("row-highlight");
+    if (activeTab === "teams") {
+      if (theadContainer) {
+        theadContainer.innerHTML = `
+          <tr>
+            <th style="width: 12%">#</th>
+            <th style="text-align: left">TEAM NAME</th>
+            <th style="text-align: center">PLAYERS</th>
+            <th style="text-align: right">TOTAL POINTS</th>
+          </tr>
+        `;
       }
 
-      row.innerHTML = `
-        <td class="${rankClass}" style="font-weight: bold; text-align: center;">${rank}</td>
-        <td>${entry.username}</td>
-        <td style="text-align: right; font-family: var(--font-display); color: var(--color-cyan);">${entry.score.toLocaleString()}</td>
-      `;
-      entriesContainer.appendChild(row);
-    });
+      const teamRankings = await fetchTeamLeaderboard(scores);
+      entriesContainer.innerHTML = "";
+
+      if (!teamRankings || teamRankings.length === 0) {
+        entriesContainer.innerHTML =
+          `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">NO TEAMS FOUND</td></tr>`;
+        return;
+      }
+
+      teamRankings.forEach((entry) => {
+        const rank = entry.rank;
+        let rankClass = "";
+        if (rank === 1) rankClass = "rank-1";
+        else if (rank === 2) rankClass = "rank-2";
+        else if (rank === 3) rankClass = "rank-3";
+
+        const row = document.createElement("tr");
+
+        if (highlightInfo && highlightInfo.team && entry.team === highlightInfo.team) {
+          row.classList.add("row-highlight");
+        }
+
+        row.innerHTML = `
+          <td class="${rankClass}" style="font-weight: bold; text-align: center;">${rank}</td>
+          <td style="font-weight: 600;">${entry.team}</td>
+          <td style="text-align: center; font-weight: 600;">${entry.playerCount}</td>
+          <td style="text-align: right; font-family: var(--font-display); color: var(--color-cyan);">${entry.totalScore.toLocaleString()}</td>
+        `;
+        entriesContainer.appendChild(row);
+      });
+    } else {
+      // Individual runner rankings
+      if (theadContainer) {
+        theadContainer.innerHTML = `
+          <tr>
+            <th style="width: 10%">#</th>
+            <th style="text-align: left">RUNNER</th>
+            <th style="text-align: left">TEAM</th>
+            <th style="text-align: right">SCORE</th>
+          </tr>
+        `;
+      }
+
+      entriesContainer.innerHTML = "";
+
+      if (!scores || scores.length === 0) {
+        entriesContainer.innerHTML =
+          `<tr><td colspan="4" style="text-align: center; color: rgba(44, 44, 46, 0.5);">NO RECORDS FOUND</td></tr>`;
+        return;
+      }
+
+      scores.slice(0, MAX_LEADERBOARD_ENTRIES).forEach((entry, index) => {
+        const rank = index + 1;
+        let rankClass = "";
+        if (rank === 1) rankClass = "rank-1";
+        else if (rank === 2) rankClass = "rank-2";
+        else if (rank === 3) rankClass = "rank-3";
+
+        const row = document.createElement("tr");
+
+        if (
+          highlightInfo &&
+          entry.username === highlightInfo.username &&
+          entry.score === highlightInfo.score
+        ) {
+          row.classList.add("row-highlight");
+        }
+
+        const teamName = entry.team || "Independent";
+
+        row.innerHTML = `
+          <td class="${rankClass}" style="font-weight: bold; text-align: center;">${rank}</td>
+          <td style="font-weight: 600;">${entry.username}</td>
+          <td><span class="team-badge-text" title="${teamName}">${teamName}</span></td>
+          <td style="text-align: right; font-family: var(--font-display); color: var(--color-cyan);">${entry.score.toLocaleString()}</td>
+        `;
+        entriesContainer.appendChild(row);
+      });
+    }
   } catch (error) {
     console.error("Error rendering leaderboard:", error);
     entriesContainer.innerHTML =
-      '<tr><td colspan="3" style="text-align: center; color: var(--color-magenta);">TRANSMISSION ERROR</td></tr>';
+      `<tr><td colspan="${colCount}" style="text-align: center; color: var(--color-magenta);">TRANSMISSION ERROR</td></tr>`;
   }
 }
 
@@ -179,6 +240,7 @@ export function showGameOverState(isQualified, { score, rank }) {
   const submitStatusMsg = document.getElementById("submit-status-msg");
   const submitScoreBtn = document.getElementById("submit-score-btn");
   const usernameInput = document.getElementById("username");
+  const teamSelect = document.getElementById("team-select");
 
   console.log(`[UI] showGameOverState isQualified=${isQualified} score=${score} rank=${rank}`);
 
@@ -202,6 +264,10 @@ export function showGameOverState(isQualified, { score, rank }) {
     if (usernameInput) {
       usernameInput.value = "";
       usernameInput.disabled = false;
+    }
+    if (teamSelect) {
+      teamSelect.value = "";
+      teamSelect.disabled = false;
     }
     if (submitScoreBtn) {
       submitScoreBtn.disabled = false;

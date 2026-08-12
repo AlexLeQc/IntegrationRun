@@ -5,25 +5,25 @@
  */
 
 const DEFAULT_ASSET_PATHS = {
-  player: '/assets/player.png',
-  barrier: '/assets/barrier.png',
-  hurdle: '/assets/hurdle.png',
-  beam: '/assets/beam.png',
-  obstacle: '/assets/obstacle.png',
-  coin: '/assets/coin.png',
-  background: '/assets/background.png',
-  gouv: '/assets/gouv.png'
+  player: "/assets/player.png",
+  barrier: "/assets/barrier.png",
+  hurdle: "/assets/hurdle.png",
+  beam: "/assets/beam.png",
+  obstacle: "/assets/obstacle.png",
+  coin: "/assets/coin.png",
+  background: "/assets/background.png",
+  gouv: "/assets/gouv.png",
 };
 
 export const DEFAULT_SOUND_PATHS = {
-  coin: '/assets/coin.mp3',
-  jump: '/assets/jump.mp3',
-  slide: '/assets/slide.mp3',
-  hit: '/assets/hit.mp3',
-  shoot: '/assets/shoot.mp3',
-  destroy: '/assets/destroy.mp3',
-  click: '/assets/click.mp3',
-  gameOver: '/assets/gameOver.mp3'
+  coin: "/assets/coin.mp3",
+  jump: "/assets/jump.mp3",
+  slide: "/assets/slide.mp3",
+  hit: "/assets/hit.mp3",
+  shoot: "/assets/shoot.mp3",
+  destroy: "/assets/destroy.mp3",
+  click: "/assets/click.mp3",
+  gameOver: "/assets/gameOver.mp3",
 };
 
 export async function loadAssets(paths = DEFAULT_ASSET_PATHS) {
@@ -53,7 +53,10 @@ export async function loadAssets(paths = DEFAULT_ASSET_PATHS) {
  * Preloads audio file buffers asynchronously from public/assets/.
  * Returns a dictionary mapping sound names to AudioBuffers (or null if missing/failed).
  */
-export async function loadAudioAssets(audioContext, paths = DEFAULT_SOUND_PATHS) {
+export async function loadAudioAssets(
+  audioContext,
+  paths = DEFAULT_SOUND_PATHS,
+) {
   const loadedBuffers = {};
   if (!audioContext) return loadedBuffers;
 
@@ -81,4 +84,3 @@ export async function loadAudioAssets(audioContext, paths = DEFAULT_SOUND_PATHS)
   await Promise.all(loadPromises);
   return loadedBuffers;
 }
-

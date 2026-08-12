@@ -54,12 +54,17 @@
       <!-- Leaderboard Screen -->
       <div id="leaderboard-screen" class="screen-overlay hidden">
         <h2 class="screen-title">SKETCHBOOK HALL OF FAME</h2>
+        <div class="leaderboard-tabs">
+          <button id="tab-individual" class="tab-btn active">INDIVIDUAL</button>
+          <button id="tab-teams" class="tab-btn">TOP TEAMS</button>
+        </div>
         <div class="leaderboard-table-container">
           <table class="leaderboard-table">
-            <thead>
+            <thead id="leaderboard-thead">
               <tr>
-                <th style="width: 20%">#</th>
+                <th style="width: 12%">#</th>
                 <th style="text-align: left">RUNNER</th>
+                <th style="text-align: left">TEAM</th>
                 <th style="text-align: right">SCORE</th>
               </tr>
             </thead>
@@ -120,6 +125,30 @@
               placeholder="PLAYER 1"
               autocomplete="off"
             />
+            <label for="team-select" class="form-label">SELECT YOUR TEAM</label>
+            <select id="team-select" class="form-select" required>
+              <option value="" disabled selected>CHOOSE A TEAM...</option>
+              <option value="Schtroumpfettes Pompettes">Schtroumpfettes Pompettes</option>
+              <option value="Passe-MontAngine de Poitrine">Passe-MontAngine de Poitrine</option>
+              <option value="Johnny Alcooo-Test">Johnny Alcooo-Test</option>
+              <option value="Les Mélodibroues">Les Mélodibroues</option>
+              <option value="Garfeeling">Garfeeling</option>
+              <option value="Loups-Guru">Loups-Guru</option>
+              <option value="Bubly Ponge">Bubly Ponge</option>
+              <option value="Justin Bieberon">Justin Bieberon</option>
+              <option value="Kabusch et les Krashpoils">Kabusch et les Krashpoils</option>
+              <option value="Arc'teryx et Obétwist">Arc'teryx et Obétwist</option>
+              <option value="Tequila Spies">Tequila Spies</option>
+              <option value="Buzzball chasseur">Buzzball chasseur</option>
+              <option value="Pabst Patrouille">Pabst Patrouille</option>
+              <option value="Homme sur Bière">Homme sur Bière</option>
+              <option value="Clope penguin">Clope penguin</option>
+              <option value="Pokérhum">Pokérhum</option>
+              <option value="Pabst-Partout">Pabst-Partout</option>
+              <option value="Teletobeerz">Teletobeerz</option>
+              <option value="Busch Lightyear">Busch Lightyear</option>
+              <option value="Babush Ice">Babush Ice</option>
+            </select>
             <button type="submit" id="submit-score-btn" class="neon-btn cyan">
               SUBMIT RECORD
             </button>

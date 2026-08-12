@@ -109,12 +109,47 @@ create policy "Allow public insert access" on public.high_scores
 
 - Score automatically increases continuously over time as the player survives (accumulating at a rate of +10 points per second elapsed) plus +100 points for collected coins.
 - **Centralized Limit Configuration (`MAX_LEADERBOARD_ENTRIES`)**: The maximum number of entries displayed and stored on the global leaderboard is governed globally by the exported constant `MAX_LEADERBOARD_ENTRIES` (default `20` in `src/supabase.js`). Changing this single value scales the leaderboard limit across database queries, local storage fallbacks, qualification logic, and UI rendering.
+- **Database Schema & SQL Setup**:
+  ```sql
+  CREATE TABLE high_scores (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    team VARCHAR(50) NOT NULL,
+    score INT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+  ```
+- **20 Integration Teams**:
+  Players select their orientation team from a custom list of 20 orientation teams (`INTEGRATION_TEAMS` exported from `src/supabase.js`):
+  1. `Schtroumpfettes Pompettes`
+  2. `Passe-MontAngine de Poitrine`
+  3. `Johnny Alcooo-Test`
+  4. `Les Mélodibroues`
+  5. `Garfeeling`
+  6. `Loups-Guru`
+  7. `Bubly Ponge`
+  8. `Justin Bieberon`
+  9. `Kabusch et les Krashpoils`
+  10. `Arc'teryx et Obétwist`
+  11. `Tequila Spies`
+  12. `Buzzball chasseur`
+  13. `Pabst Patrouille`
+  14. `Homme sur Bière`
+  15. `Clope penguin`
+  16. `Pokérhum`
+  17. `Pabst-Partout`
+  18. `Teletobeerz`
+  19. `Busch Lightyear`
+  20. `Babush Ice`
+- **Dual-Tab Leaderboard System**:
+  - **`[INDIVIDUAL]` Tab**: Displays individual player ranks (1st, 2nd, 3rd with gold, silver, bronze marker accents), runner names, team badges/names, and personal scores (Top `MAX_LEADERBOARD_ENTRIES`).
+  - **`[TOP TEAMS]` Tab**: Displays overall team standings (Rank, Team Name, Total Combined Score of all team players in the Top 20, and Player Count).
 - **Arcade Qualification Check**: On Game Over, `qualifiesForLeaderboard(score)` evaluates if the player's score qualifies using ALL stored entries:
   - If the board is **completely empty** (0 entries): any score qualifies at rank 1.
   - If the board has existing entries: qualifies **only if** `score > lowestExistingScore` (the score of the last entry currently on the board). Open cap slots do NOT automatically qualify a score.
   - If the board is full (`entries >= MAX_LEADERBOARD_ENTRIES`): additionally validates that `score > allScores[MAX_LEADERBOARD_ENTRIES - 1].score`.
 - **Tie-Breaking Rule**: Higher score ranks better. If two entries have identical scores, the older entry is kept first, and the new score inserts *after* existing identical scores.
-- **Automatic Database Trimming**: Calling `submitHighScore(name, score)` inserts the entry, calculates rank, and executes `deleteLowestScore()` to purge any entries exceeding `MAX_LEADERBOARD_ENTRIES`.
+- **Automatic Database Trimming**: Calling `submitHighScore(username, team, score)` inserts the entry with the selected team, calculates rank, and executes `deleteLowestScore()` to purge any entries exceeding `MAX_LEADERBOARD_ENTRIES`.
 - Parity between online (Supabase) and offline (`localStorage` fallback) modes.
 
 ---
@@ -148,12 +183,16 @@ The game user interface is structured into notebook card modal overlays and an i
 
 - **State 2 – New High Score Prompt (Qualified)**:
   - Displayed ONLY when final score beats the current lowest leaderboard entry.
-  - Hides `#game-over-regular` completely and displays header "NEW HIGH SCORE!", a compact combined header badge (`RANK #X • SCORE: 001250`), and name entry form (2–12 characters, uppercase/trimmed).
+  - Hides `#game-over-regular` completely and displays header "NEW HIGH SCORE!", a compact combined header badge (`RANK #X • SCORE: 001250`), and score submission form (`#score-submit-form`).
+  - **Form Requirements**: Requires both **Runner Name** (input field `#username`, 2–12 characters, uppercase/trimmed) and **Team Selection** (styled `<select id="team-select" required>` dropdown populated with the 20 orientation teams).
   - Upon submission, displays `✔ SCORE SUBMITTED!` and automatically transitions to the Leaderboard Screen with the player's new entry highlighted.
 
 ### Leaderboard Screen (`#leaderboard-screen`)
-- **Vertical Spacing & Layout**: `#leaderboard-screen` is configured as a flex container (`flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box; padding: 1.5rem 1rem;`). The `.screen-title` stays firmly at the top, `#leaderboard-back-btn` is pinned cleanly at the bottom, and `.leaderboard-table-container` fills the spacious center (`flex: 1; min-height: 55vh; width: 100%; overflow-y: auto; margin: 1rem 0;`).
-- **Rankings Table & Styling**: Top 20 high score records formatted with rank numbers (1st, 2nd, 3rd highlighted with gold, silver, bronze marker accents), runner names, and numeric scores. Table rows feature expanded padding (`padding: 10px 12px`) and larger font sizes to fill vertical card height comfortably without looking tiny or cramped. Styled with a subtle paper card background, notebook border line, and custom sketch scrollbar. Newly submitted scores are highlighted with a gold marker stroke background.
+- **Vertical Spacing & Layout**: `#leaderboard-screen` is configured as a flex container (`flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box; padding: 1.5rem 1rem;`). The `.screen-title` stays firmly at the top, tab toggles (`#tab-individual` and `#tab-teams`) sit directly below, `#leaderboard-back-btn` is pinned cleanly at the bottom, and `.leaderboard-table-container` fills the spacious center (`flex: 1; min-height: 50vh; width: 100%; overflow-y: auto; margin: 0.75rem 0;`).
+- **Dual-Tab System**:
+  - `[INDIVIDUAL]` Tab: Displays top 20 runner scores (`#`, `RUNNER`, `TEAM`, `SCORE`).
+  - `[TOP TEAMS]` Tab: Displays team rankings (`#`, `TEAM NAME`, `PLAYERS`, `TOTAL POINTS`), computing total points and runner count per team from the leaderboard dataset.
+- **Rankings Table & Styling**: Formatted with rank numbers (1st, 2nd, 3rd highlighted with gold, silver, bronze marker accents). Styled with a subtle paper card background, notebook border line, custom sketch scrollbar, and notebook button tab toggles. Newly submitted scores are highlighted with a gold marker stroke background.
 - **Navigation**: `BACK` button returning smoothly to the Main Menu.
 
 ---
@@ -166,7 +205,13 @@ Doodle Runner features a deterministic, production-ready Web Audio pipeline mana
 
 - **Single Global Context**: Created once and reused across the application. Gameplay code never instantiates new `AudioContext` or audio nodes directly.
 - **Autoplay & Mobile Unlock**: Global event listeners on `pointerdown`, `keydown`, `touchstart`, and `click` automatically resume the `AudioContext` on the first user gesture to comply with browser autoplay restrictions.
+- **Universal Gesture Re-Unlocking**: Unlock listeners are bound to `document.body` (with `capture: true, passive: true`) rather than just `window`, ensuring DOM interactions inside overlay screens (such as clicking leaderboard tabs `#tab-individual` / `#tab-teams`, submitting the high-score form, or selecting the team dropdown `#team-select`) correctly propagate to the unlock handler and awaken suspended audio contexts. A redundant global resume binding on `document` level in `main.js` provides an additional safety net by calling `audioManager.resume()` on any `pointerdown`, `touchstart`, `click`, or `keydown` event across the entire page.
+- **Play-Time Resume Guard**: Inside `play(soundName)`, if `ctx.state === 'suspended'`, `ctx.resume()` is called and sound scheduling is deferred via `.then()` until the context transitions to `'running'`, preventing silently discarded nodes.
 - **Tab Visibility Handling**: A `visibilitychange` listener resumes the suspended `AudioContext` when returning to an active browser tab.
+
+### Overlay Event Isolation Policy
+
+- UI event listeners on the leaderboard screen (e.g. tab buttons `#tab-individual`, `#tab-teams`, `#leaderboard-back-btn`) and Game Over form inputs **MUST NOT** call `e.stopPropagation()` in ways that would prevent global audio unlock listeners (bound with `capture: true`) from catching user gestures. All current overlay handlers are verified clean of propagation blocking.
 
 ### Custom Sound Preloading & Dual-Engine Playback Pipeline
 
@@ -200,6 +245,7 @@ All sound channels route through a central `MasterGain` node:
   - `hit`: 150ms
   - `gameOver`: 500ms
 - **Self-Cleaning Nodes**: Temporary audio nodes (`AudioBufferSourceNode`, `OscillatorNode`, `GainNode`, `BiquadFilterNode`) schedule playback using `ctx.currentTime` and automatically disconnect themselves in `onended` handlers to prevent memory leaks.
+- **Audio Node Lifecycle Safety**: All audio node creation and playback methods (`playAudioBuffer`, `createCoinSound`, `createJumpSound`, etc.) are wrapped in `try...catch` blocks. If a sound buffer, context state, or Web Audio node operation fails temporarily, the error is logged via `console.warn` and the game loop continues uninterrupted.
 - **Debug Mode**: Exposes `AUDIO_DEBUG` toggle and `audioManager.setDebug(true)` for console logging context state, sound play requests, buffer vs fallback usage, resume events, and cooldown skips.
 
 ---
