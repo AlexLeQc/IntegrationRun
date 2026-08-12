@@ -48,7 +48,169 @@
           <button id="leaderboard-btn" class="neon-btn magenta">
             LEADERBOARD
           </button>
+          <button id="tutorial-btn" class="neon-btn outline">RÈGLES</button>
         </div>
+      </div>
+
+      <!-- Tutorial / Rules Screen -->
+      <div id="tutorial-screen" class="screen-overlay hidden">
+        <h2 class="screen-title">RÈGLES DU JEU</h2>
+        <div class="tutorial-container">
+          <!-- Commandes Section -->
+          <div class="tutorial-card">
+            <h3 class="tutorial-card-title">COMMANDES</h3>
+            <div class="tutorial-row">
+              <div class="tutorial-icon-badge">↔️</div>
+              <div class="tutorial-text">
+                <strong>Changer de voie</strong>
+                <span>Glisse Gauche / Droite</span>
+              </div>
+            </div>
+            <div class="tutorial-row">
+              <div class="tutorial-icon-badge">⬆️</div>
+              <div class="tutorial-text">
+                <strong>Sauter</strong>
+                <span>Glisse Vers le Haut</span>
+              </div>
+            </div>
+            <div class="tutorial-row">
+              <div class="tutorial-icon-badge">⬇️</div>
+              <div class="tutorial-text">
+                <strong>Glisser</strong>
+                <span>Glisse Vers le Bas</span>
+              </div>
+            </div>
+            <div class="tutorial-row">
+              <div class="tutorial-icon-badge">💧</div>
+              <div class="tutorial-text">
+                <strong>Lancer un Ballon d'eau</strong>
+                <span>Tapote l'écran</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Obstacles & Hazards Section -->
+          <div class="tutorial-card">
+            <h3 class="tutorial-card-title">OBSTACLES & DANGERS</h3>
+            <div class="tutorial-row">
+              <div class="tutorial-img-wrap">
+                <img
+                  src="/assets/barrier.png"
+                  alt="Boîte en Carton"
+                  onerror="
+                    this.style.display = 'none';
+                    this.nextElementSibling.style.display = 'flex';
+                  "
+                />
+                <div class="tutorial-fallback-icon" style="display: none">
+                  📦
+                </div>
+              </div>
+              <div class="tutorial-text">
+                <strong>Boîte en Carton</strong>
+                <span>Change de voie pour éviter</span>
+              </div>
+            </div>
+            <div class="tutorial-row">
+              <div class="tutorial-img-wrap">
+                <img
+                  src="/assets/hurdle.png"
+                  alt="Haie de Crayon"
+                  onerror="
+                    this.style.display = 'none';
+                    this.nextElementSibling.style.display = 'flex';
+                  "
+                />
+                <div class="tutorial-fallback-icon" style="display: none">
+                  ✏️
+                </div>
+              </div>
+              <div class="tutorial-text">
+                <strong>Haie de Crayon</strong>
+                <span>Saute par-dessus</span>
+              </div>
+            </div>
+            <div class="tutorial-row">
+              <div class="tutorial-img-wrap">
+                <img
+                  src="/assets/beam.png"
+                  alt="Barre"
+                  onerror="
+                    this.style.display = 'none';
+                    this.nextElementSibling.style.display = 'flex';
+                  "
+                />
+                <div class="tutorial-fallback-icon" style="display: none">
+                  📏
+                </div>
+              </div>
+              <div class="tutorial-text">
+                <strong>Barre</strong>
+                <span>Glisse en dessous</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cibles GOUV Section -->
+          <div class="tutorial-card highlight-card">
+            <h3 class="tutorial-card-title text-magenta">CIBLES GOUV</h3>
+            <div class="tutorial-row">
+              <div class="tutorial-img-wrap">
+                <img
+                  src="/assets/gouv.png"
+                  alt="GOUV"
+                  onerror="
+                    this.style.display = 'none';
+                    this.nextElementSibling.style.display = 'flex';
+                  "
+                />
+                <div class="tutorial-fallback-icon" style="display: none">
+                  👮
+                </div>
+              </div>
+              <div class="tutorial-text">
+                <strong>Attention aux GOUVs !</strong>
+                <span
+                  >Ils s'approchent de toi ! Tapote pour leur lancer un ballon
+                  d'eau (+250 pts). Si tu les touches, tu perds une vie !</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Pièces & Vies Section -->
+          <div class="tutorial-card">
+            <h3 class="tutorial-card-title text-cyan">COLLECTIBLES & VIES</h3>
+            <div class="tutorial-row">
+              <div class="tutorial-img-wrap">
+                <img
+                  src="/assets/coin.png"
+                  alt="Pièce"
+                  onerror="
+                    this.style.display = 'none';
+                    this.nextElementSibling.style.display = 'flex';
+                  "
+                />
+                <div class="tutorial-fallback-icon" style="display: none">
+                  🪙
+                </div>
+              </div>
+              <div class="tutorial-text">
+                <strong>Pièces d'Or</strong>
+                <span>Ramasse les pièces pour gagner +100 pts !</span>
+              </div>
+            </div>
+            <div class="tutorial-row">
+              <div class="tutorial-icon-badge">❤️</div>
+              <div class="tutorial-text">
+                <strong>3 Vies (Cœurs)</strong>
+                <span>Évite les dégâts pour survivre toute ta semaine !</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button id="tutorial-back-btn" class="neon-btn outline">RETOUR</button>
       </div>
 
       <!-- Leaderboard Screen -->
@@ -168,6 +330,14 @@
             </button>
           </form>
           <div id="submit-status-msg" class="submit-status hidden"></div>
+          <div class="menu-actions vertical secondary-actions">
+            <button id="skip-submit-retry-btn" class="neon-btn outline small">
+              RÉESSAYER
+            </button>
+            <button id="skip-submit-menu-btn" class="neon-btn outline small">
+              MENU PRINCIPAL
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -9,10 +9,13 @@ const mainMenu = document.getElementById('main-menu');
 const hudOverlay = document.getElementById('hud-overlay');
 const leaderboardScreen = document.getElementById('leaderboard-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
+const tutorialScreen = document.getElementById('tutorial-screen');
 
 const startBtn = document.getElementById('start-btn');
 const leaderboardBtn = document.getElementById('leaderboard-btn');
 const leaderboardBackBtn = document.getElementById('leaderboard-back-btn');
+const tutorialBtn = document.getElementById('tutorial-btn');
+const tutorialBackBtn = document.getElementById('tutorial-back-btn');
 
 // Leaderboard Tabs
 const tabIndividual = document.getElementById('tab-individual');
@@ -30,6 +33,8 @@ const usernameInput = document.getElementById('username');
 const teamSelect = document.getElementById('team-select');
 const submitScoreBtn = document.getElementById('submit-score-btn');
 const submitStatusMsg = document.getElementById('submit-status-msg');
+const skipSubmitRetryBtn = document.getElementById('skip-submit-retry-btn');
+const skipSubmitMenuBtn = document.getElementById('skip-submit-menu-btn');
 
 const canvas = document.getElementById('game-canvas');
 
@@ -110,6 +115,20 @@ leaderboardBackBtn.addEventListener('click', () => {
   showScreen(mainMenu);
 });
 
+if (tutorialBtn) {
+  tutorialBtn.addEventListener('click', () => {
+    audioManager.play('click');
+    showScreen(tutorialScreen);
+  });
+}
+
+if (tutorialBackBtn) {
+  tutorialBackBtn.addEventListener('click', () => {
+    audioManager.play('click');
+    showScreen(mainMenu);
+  });
+}
+
 // State 1 Action Buttons
 if (retryBtnRegular) {
   retryBtnRegular.addEventListener('click', () => {
@@ -133,6 +152,23 @@ if (leaderboardBtnRegular) {
     audioManager.stopBGM();
     showScreen(leaderboardScreen);
     await setLeaderboardTab(currentTab);
+  });
+}
+
+// State 2 Secondary Bypass Action Buttons
+if (skipSubmitRetryBtn) {
+  skipSubmitRetryBtn.addEventListener('click', () => {
+    audioManager.play('click');
+    showScreen(hudOverlay);
+    game.start();
+  });
+}
+
+if (skipSubmitMenuBtn) {
+  skipSubmitMenuBtn.addEventListener('click', () => {
+    audioManager.play('click');
+    audioManager.stopBGM();
+    showScreen(mainMenu);
   });
 }
 

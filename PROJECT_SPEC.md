@@ -165,6 +165,22 @@ The game user interface is structured into notebook card modal overlays and an i
 - **Action Buttons**:
   - **`JOUER`**: Initializes the game loop and transitions to the HUD overlay.
   - **`LEADERBOARD`**: Opens the global high scores leaderboard overlay.
+  - **`RÈGLES`**: Opens the tutorial screen / rules modal overlay (`#tutorial-screen`).
+
+### Tutorial Screen / Modal (`#tutorial-screen`)
+- **Accessibility & Navigation**: Accessible via the `RÈGLES` button on the Main Menu located directly under the Leaderboard button. Includes a prominent `RETOUR` button at the bottom returning smoothly to the Main Menu.
+- **Notebook Modal Card Layout**: Designed as a concise, scrollable notebook modal card (`max-height: 80vh; overflow-y: auto;`) highlighting core gameplay mechanics using hand-drawn graphics and short descriptions in French:
+  - **Commandes (Controls)**: Visual swipe & action icons:
+    - Glisse Gauche/Droite pour changer de voie.
+    - Glisse Haut pour Sauter.
+    - Glisse Bas pour Glisser.
+    - Tapoter l'écran (ou Espace) pour Lancer un Ballon d'eau.
+  - **Obstacles & Hazards**:
+    - **Boîte en Carton (Cardboard Box)**: Changer de voie.
+    - **Haie de Crayon (Pencil Hurdle)**: Sauter par-dessus.
+    - **Barre d'Encre (Ink Beam)**: Glisser en dessous.
+    - **Cibles GOUV**: Les GOUVs s'approchent comme des obstacles ! Tapoter pour leur lancer un ballon d'eau (+250 pts). Si touché, vous perdez une vie.
+  - **Pièces D'or (Coins) & Vies**: Ramasser les pièces (+100 pts). Vous avez 3 cœurs de vie.
 
 ### In-Game HUD (`#hud-overlay`)
 - **Score Display**: `SCORE` 6-digit zero-padded score counter (e.g. `001250`) rendered on a lined paper badge.
@@ -187,7 +203,10 @@ The game user interface is structured into notebook card modal overlays and an i
   - Displayed when `scores.length < MAX_LEADERBOARD_ENTRIES` OR when the final score beats the current lowest leaderboard entry (`score > lowestScore`).
   - Hides `#game-over-regular` completely and displays header "GOD DAMM!", subtitle "Ahh ouais pas mal le score", a compact combined header badge (`RANG #X • SCORE: 001250`), and score submission form (`#score-submit-form`).
   - **Form Requirements**: Requires both **Runner Name** (input field `#username` with label "ENTRE TON NOM" and placeholder "JOUEUR 1", 2–12 characters, uppercase/trimmed) and **Team Selection** (styled `<select id="team-select" required>` dropdown with label "SÉLECTIONNE TON ÉQUIPE" populated with the orientation teams).
-  - Primary Action Button: `[TU FLEX TU BOIS]`
+  - **Primary Action Button**: `[TU FLEX, TU BOIS]` (Submits score and transitions to Leaderboard).
+  - **Secondary Actions (below form)**:
+    - `[RÉESSAYER SANS ENREGISTRER]` (`#skip-submit-retry-btn`): Retries run immediately without submitting score.
+    - `[MENU PRINCIPAL]` (`#skip-submit-menu-btn`): Returns to Main Menu without submitting score.
   - Upon submission, displays `✔ SCORE SOUMIS !` and automatically transitions to the Leaderboard Screen with the player's new entry highlighted.
 
 ### Leaderboard Screen (`#leaderboard-screen`)
