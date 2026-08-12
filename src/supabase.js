@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-export const MAX_LEADERBOARD_ENTRIES = 20;
+export const MAX_LEADERBOARD_ENTRIES = 100;
 
 export const INTEGRATION_TEAMS = [
   "Schtroumpfettes Pompettes",
@@ -27,13 +27,13 @@ export const INTEGRATION_TEAMS = [
 ];
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 let supabase = null;
 
-if (supabaseUrl && supabaseAnonKey) {
+if (supabaseUrl && supabaseKey) {
   try {
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
+    supabase = createClient(supabaseUrl, supabaseKey);
     console.log("Supabase client initialized successfully.");
   } catch (error) {
     console.error("Failed to initialize Supabase client:", error);
@@ -50,30 +50,6 @@ const DEFAULT_LEADERBOARD = [
     team: "GOUV",
     score: 676767,
     created_at: new Date("2026-01-01").toISOString(),
-  },
-  {
-    username: "TRX",
-    team: "Passe-MontAngine de Poitrine",
-    score: 9800,
-    created_at: new Date("2026-01-02").toISOString(),
-  },
-  {
-    username: "CYB",
-    team: "Johnny Alcoo-Test",
-    score: 7500,
-    created_at: new Date("2026-01-03").toISOString(),
-  },
-  {
-    username: "SYN",
-    team: "Garfeeling",
-    score: 5000,
-    created_at: new Date("2026-01-04").toISOString(),
-  },
-  {
-    username: "RUN",
-    team: "Bubly Ponge",
-    score: 3200,
-    created_at: new Date("2026-01-05").toISOString(),
   },
 ];
 
@@ -277,7 +253,9 @@ export async function submitHighScore(username, team, score) {
 
   // Finding 2 — Team allowlist check: must be a recognized integration team
   const trimmedTeam = (team || "").trim() || INTEGRATION_TEAMS[0];
-  const cleanTeam = INTEGRATION_TEAMS.includes(trimmedTeam) ? trimmedTeam : INTEGRATION_TEAMS[0];
+  const cleanTeam = INTEGRATION_TEAMS.includes(trimmedTeam)
+    ? trimmedTeam
+    : INTEGRATION_TEAMS[0];
 
   const qualification = await qualifiesForLeaderboard(safeScore);
   if (!qualification.qualifies) {
