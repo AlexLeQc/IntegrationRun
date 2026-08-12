@@ -99,12 +99,14 @@ startBtn.addEventListener('click', () => {
 
 leaderboardBtn.addEventListener('click', async () => {
   audioManager.play('click');
+  audioManager.stopBGM();
   showScreen(leaderboardScreen);
   await setLeaderboardTab(currentTab);
 });
 
 leaderboardBackBtn.addEventListener('click', () => {
   audioManager.play('click');
+  audioManager.stopBGM();
   showScreen(mainMenu);
 });
 
@@ -120,6 +122,7 @@ if (retryBtnRegular) {
 if (mainMenuBtnRegular) {
   mainMenuBtnRegular.addEventListener('click', () => {
     audioManager.play('click');
+    audioManager.stopBGM();
     showScreen(mainMenu);
   });
 }
@@ -127,6 +130,7 @@ if (mainMenuBtnRegular) {
 if (leaderboardBtnRegular) {
   leaderboardBtnRegular.addEventListener('click', async () => {
     audioManager.play('click');
+    audioManager.stopBGM();
     showScreen(leaderboardScreen);
     await setLeaderboardTab(currentTab);
   });
@@ -158,6 +162,7 @@ scoreSubmitForm.addEventListener('submit', async (e) => {
 
       // Smooth transition to leaderboard showing highlighted score
       setTimeout(async () => {
+        audioManager.stopBGM();
         showScreen(leaderboardScreen);
         await setLeaderboardTab('individual', { username: res.username, score: game.score, team: res.team });
       }, 750);

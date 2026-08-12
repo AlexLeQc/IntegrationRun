@@ -93,11 +93,16 @@ export class Game {
       this.onUpdateHUD({ score: this.score, lives: this.lives });
     }
 
+    // Start background music
+    audioManager.playBGM();
+
     requestAnimationFrame((time) => this.loop(time));
   }
 
   stop() {
     this.isRunning = false;
+    audioManager.stopBGM();
+    audioManager.stopGouvSound();
   }
 
   takeDamage() {
@@ -115,8 +120,8 @@ export class Game {
     }
 
     if (this.lives <= 0) {
-      audioManager.play('gameOver');
       this.stop();
+      audioManager.play('gameOver');
       if (this.onGameOver) {
         this.onGameOver(this.score);
       }
@@ -206,7 +211,7 @@ export class Game {
 
         hit = true;
         if (obs.type === 'gouv') {
-          // GOUV destroyed — award bonus points and spawn particles
+          // GOUV destroyed — award bonus points and spawn splash FX
           const result = this.obstacleManager.destroyGouv(j);
           if (result) {
             this.scoreDecimal += 250;

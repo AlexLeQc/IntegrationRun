@@ -217,14 +217,23 @@ Doodle Runner features a deterministic, production-ready Web Audio pipeline mana
 
 ### Custom Sound Preloading & Dual-Engine Playback Pipeline
 
-- **Audio Buffer Preloader**: `AudioManager` preloads custom sound files (`/assets/coin.mp3`, `/assets/jump.mp3`, `/assets/slide.mp3`, `/assets/hit.mp3`, `/assets/shoot.mp3`, `/assets/destroy.mp3`, `/assets/click.mp3`, `/assets/gameOver.mp3`).
+- **Audio Buffer Preloader**: `AudioManager` preloads custom sound files (`/assets/coin.mp3`, `/assets/jump.mp3`, `/assets/slide.mp3`, `/assets/hit.mp3`, `/assets/shoot.mp3`, `/assets/destroy.mp3`, `/assets/click.mp3`, `/assets/gameOver.mp3`, `/assets/bgm.mp3`, `/assets/gouv_alarm.mp3`).
 - **Primary Playback Engine (`AudioBufferSourceNode`)**: When a sound is triggered (e.g. `audioManager.play('coin')`), `AudioManager` checks if a preloaded `AudioBuffer` exists in its buffer cache. If available, it instantiates an `AudioBufferSourceNode`, routes it through the sound's gain mix to `masterGain`, and plays the custom audio file.
 - **Procedural Synthesis Fallback**: If a custom sound file is missing (404), fails to fetch, or fails decoding, the buffer entry remains `null`. `AudioManager` gracefully falls back to synthesized Web Audio API procedural sound generators (`OscillatorNode`, `BiquadFilterNode`, `GainNode`).
+
+### Background Music (BGM) & GOUV Target Audio
+
+- **Background Music (`bgm.mp3`)**: Optional looping background track loaded from `public/assets/bgm.mp3`. Managed via a dedicated `bgmGain` node (default volume `0.3`) connected to `masterGain`. If the file is missing from assets, BGM playback is skipped silently via `playBGM()` without throwing errors or playing fallback noise.
+- **BGM Lifecycle Rules**:
+  - **Active Playing State**: BGM starts playing strictly when the game transitions into the active playing loop (when the player clicks `JOUER` / `START DASH` or `RÉESSAYER` / `RETRY RUN` via `game.start()`).
+  - **Game Over / Menu States**: BGM stops immediately as soon as the Game Over state is triggered (`game.stop()`) or when navigating to the Main Menu (`#main-menu`) or Leaderboard Screen (`#leaderboard-screen`) via `audioManager.stopBGM()`.
+- **GOUV Warning Sound (`gouv_alarm.mp3` or synthesized alarm tone)**: A looping warning alarm (`startGouvSound()`) that plays at standard fixed volume as soon as a GOUV target spawns on track. The loop stops immediately (`stopGouvSound()`) when the GOUV target is hit by a water balloon or moves past the bottom of the screen.
 
 ### Master Mixer & Volumes
 
 All sound channels route through a central `MasterGain` node:
 - **Master Gain**: Default `0.5` (supports global mute toggle).
+- **Sub-Mix Gain Nodes**: `bgmGain` (volume `0.3`) and `targetGain` (fixed GOUV alarm volume `0.4`).
 - **Sound-Specific Mix Volumes**:
   - `coin`: 0.25 (dual-tone upward sweep D5 -> A5 in fallback)
   - `jump`: 0.35 (upward pitch slide 150 Hz -> 420 Hz in fallback)
@@ -234,6 +243,8 @@ All sound channels route through a central `MasterGain` node:
   - `destroy`: 0.45 (heavy impact crunch in fallback)
   - `gameOver`: 0.60 (descending 3-note bass tone in fallback)
   - `click`: 0.20 (crisp UI button click in fallback)
+  - `bgm`: 0.30 (looping music track)
+  - `gouv_alarm`: 0.40 (standard fixed alarm volume)
 
 ### Sound Cooldowns & Node Memory Management
 
@@ -247,7 +258,7 @@ All sound channels route through a central `MasterGain` node:
   - `hit`: 150ms
   - `gameOver`: 500ms
 - **Self-Cleaning Nodes**: Temporary audio nodes (`AudioBufferSourceNode`, `OscillatorNode`, `GainNode`, `BiquadFilterNode`) schedule playback using `ctx.currentTime` and automatically disconnect themselves in `onended` handlers to prevent memory leaks.
-- **Audio Node Lifecycle Safety**: All audio node creation and playback methods (`playAudioBuffer`, `createCoinSound`, `createJumpSound`, etc.) are wrapped in `try...catch` blocks. If a sound buffer, context state, or Web Audio node operation fails temporarily, the error is logged via `console.warn` and the game loop continues uninterrupted.
+- **Audio Node Lifecycle Safety**: All audio node creation and playback methods (`playAudioBuffer`, `createCoinSound`, `createJumpSound`, `playBGM`, `startGouvSound`, `stopGouvSound`, etc.) are wrapped in `try...catch` blocks. If a sound buffer, context state, or Web Audio node operation fails temporarily, the error is logged via `console.warn` and the game loop continues uninterrupted.
 - **Debug Mode**: Exposes `AUDIO_DEBUG` toggle and `audioManager.setDebug(true)` for console logging context state, sound play requests, buffer vs fallback usage, resume events, and cooldown skips.
 
 ---

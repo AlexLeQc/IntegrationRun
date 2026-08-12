@@ -1,4 +1,5 @@
 import { projectLane } from './perspective.js';
+import { audioManager } from './audio.js';
 
 export class ObstacleManager {
   constructor(width = 360, height = 640, horizonY = 640 * (1 / 6), assets = null) {
@@ -25,6 +26,7 @@ export class ObstacleManager {
     this.obstacles = [];
     this.spawnTimer = 0;
     this.spawnInterval = 1.5;
+    audioManager.stopGouvSound();
   }
 
   spawnObstacle(score, onSpawnCoin) {
@@ -43,6 +45,10 @@ export class ObstacleManager {
     };
 
     this.obstacles.push(obs);
+
+    if (type === 'gouv') {
+      audioManager.startGouvSound();
+    }
 
     // Smart Coin placement above hurdles or under beams
     if (onSpawnCoin) {
@@ -84,7 +90,12 @@ export class ObstacleManager {
 
       // Clean up offscreen obstacles
       if (obs.z > 1.1) {
-        this.obstacles.splice(i, 1);
+        const removed = this.obstacles.splice(i, 1)[0];
+        if (removed && removed.type === 'gouv') {
+          if (!this.obstacles.some(o => o.type === 'gouv')) {
+            audioManager.stopGouvSound();
+          }
+        }
       }
     }
   }
@@ -344,6 +355,9 @@ export class ObstacleManager {
       const obs = this.obstacles[index];
       const proj = projectLane(this.width, this.height, this.horizonY, obs.lane, 0, obs.z);
       this.obstacles.splice(index, 1);
+      if (!this.obstacles.some((o) => o.type === 'gouv')) {
+        audioManager.stopGouvSound();
+      }
       return { x: proj.x, y: proj.y };
     }
     return null;

@@ -11,11 +11,23 @@ export class AudioManager {
   constructor() {
     this.ctx = null;
     this.masterGain = null;
+    this.bgmGain = null;
+    this.targetGain = null;
     this.isMuted = false;
     this.debug = false;
 
+    // Active continuous sound sources
+    this.bgmSource = null;
+    this.gouvAlarmSource = null;
+    this.gouvAlarmOsc = null;
+
     // Cache of preloaded AudioBuffers keyed by sound name (e.g. coin, jump)
     this.buffers = {};
+
+    // Promise that resolves when preloadSounds() finishes
+    this._preloadPromise = null;
+    // Flag: BGM was requested but buffers weren't ready yet
+    this._pendingBGM = false;
 
     // Cooldown management (in milliseconds)
     this.cooldowns = {
@@ -40,6 +52,8 @@ export class AudioManager {
       destroy: 0.45,
       gameOver: 0.6,
       click: 0.2,
+      bgm: 0.3,
+      gouv_alarm: 0.4,
     };
 
     this.unlocked = false;
@@ -70,13 +84,21 @@ export class AudioManager {
       this.masterGain.gain.value = 0.5;
       this.masterGain.connect(this.ctx.destination);
 
+      this.bgmGain = this.ctx.createGain();
+      this.bgmGain.gain.value = this.volumes.bgm || 0.3;
+      this.bgmGain.connect(this.masterGain);
+
+      this.targetGain = this.ctx.createGain();
+      this.targetGain.gain.value = 0;
+      this.targetGain.connect(this.masterGain);
+
       this.setupUnlockListeners();
       this.setupVisibilityListeners();
 
       this.log("AudioContext created. State:", this.ctx.state);
 
       // Asynchronously preload custom sound files from public/assets/
-      this.preloadSounds();
+      this._preloadPromise = this.preloadSounds();
     } catch (e) {
       console.warn("Failed to initialize AudioContext:", e);
     }
@@ -87,7 +109,13 @@ export class AudioManager {
     try {
       const loaded = await loadAudioAssets(this.ctx, paths);
       Object.assign(this.buffers, loaded);
-      this.log("Custom audio buffers preloaded:", this.buffers);
+      this.log("Custom audio buffers preloaded:", Object.keys(this.buffers).filter(k => this.buffers[k]));
+
+      // If playBGM() was called while buffers were still loading, start it now
+      if (this._pendingBGM && this.buffers.bgm) {
+        this._pendingBGM = false;
+        this._startBGMSource();
+      }
     } catch (e) {
       this.log(
         "Audio preloading error, falling back to Web Audio API synthesis:",
@@ -143,6 +171,134 @@ export class AudioManager {
       this.masterGain.gain.value = this.isMuted ? 0 : 0.5;
     }
     return this.isMuted;
+  }
+
+  playBGM() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    // Mark BGM as desired — if buffers haven't finished loading yet,
+    // preloadSounds() will call _startBGMSource() once they're ready.
+    this._pendingBGM = true;
+
+    if (this.ctx.state === "suspended") {
+      this.ctx.resume().then(() => this._startBGMSource());
+      return;
+    }
+
+    this._startBGMSource();
+  }
+
+  _startBGMSource() {
+    if (this.bgmSource) return; // already playing
+    const buffer = this.buffers.bgm;
+    if (!buffer) {
+      // Buffer not loaded yet — _pendingBGM flag will trigger start after preload
+      this.log("BGM buffer not yet available, will start after preload.");
+      return;
+    }
+
+    try {
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(this.bgmGain);
+      source.start(0);
+      this.bgmSource = source;
+      this._pendingBGM = false;
+      this.log("BGM playback started.");
+    } catch (e) {
+      console.warn("Failed to start BGM source:", e);
+    }
+  }
+
+  stopBGM() {
+    this._pendingBGM = false; // Cancel any pending start
+    if (this.bgmSource) {
+      try {
+        this.bgmSource.stop();
+        this.bgmSource.disconnect();
+      } catch (e) {}
+      this.bgmSource = null;
+      this.log("BGM playback stopped.");
+    }
+  }
+
+  startGouvSound() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+    if (this.gouvAlarmSource || this.gouvAlarmOsc) return; // already active
+
+    try {
+      if (this.targetGain) {
+        this.targetGain.gain.setValueAtTime(
+          this.volumes.gouv_alarm || 0.4,
+          this.ctx.currentTime,
+        );
+      }
+
+      const buffer = this.buffers.gouv_alarm;
+      if (buffer) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = true;
+        source.connect(this.targetGain);
+        source.start(0);
+        this.gouvAlarmSource = source;
+        this.log("GOUV warning sound started (fixed volume).");
+      } else {
+        // Synthesis fallback alert siren at fixed volume and pitch
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+
+        osc.connect(filter);
+        filter.connect(this.targetGain);
+        osc.start(0);
+        this.gouvAlarmOsc = osc;
+        this.gouvAlarmFilter = filter;
+        this.log("GOUV synth alarm started (fixed volume).");
+      }
+    } catch (e) {
+      console.warn("Failed to start GOUV sound:", e);
+    }
+  }
+
+  stopGouvSound() {
+    try {
+      if (this.gouvAlarmSource) {
+        this.gouvAlarmSource.stop();
+        this.gouvAlarmSource.disconnect();
+        this.gouvAlarmSource = null;
+      }
+      if (this.gouvAlarmOsc) {
+        this.gouvAlarmOsc.stop();
+        this.gouvAlarmOsc.disconnect();
+        this.gouvAlarmOsc = null;
+        this.gouvAlarmFilter = null;
+      }
+      if (this.targetGain && this.ctx) {
+        this.targetGain.gain.setValueAtTime(0, this.ctx.currentTime);
+      }
+      this.log("GOUV sound stopped.");
+    } catch (e) {
+      this.gouvAlarmSource = null;
+      this.gouvAlarmOsc = null;
+    }
+  }
+
+  // Aliases for compatibility
+  startGouvAlarm() {
+    this.startGouvSound();
+  }
+
+  stopGouvAlarm() {
+    this.stopGouvSound();
   }
 
   play(soundName) {

@@ -24,6 +24,8 @@ export const DEFAULT_SOUND_PATHS = {
   destroy: "/assets/destroy.mp3",
   click: "/assets/click.mp3",
   gameOver: "/assets/gameOver.mp3",
+  bgm: "/assets/bgm.mp3",
+  gouv_alarm: "/assets/gouv_alarm.mp3",
 };
 
 export async function loadAssets(paths = DEFAULT_ASSET_PATHS) {
