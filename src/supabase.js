@@ -141,12 +141,11 @@ export async function fetchLeaderboard() {
  * and calculates predicted 1-indexed rank position.
  *
  * Rules:
- *  - If the board is completely empty: any score qualifies.
- *  - If the board has fewer entries than MAX_LEADERBOARD_ENTRIES AND the score
- *    beats the current lowest entry: qualifies.
- *  - If the board is full (entries >= MAX_LEADERBOARD_ENTRIES): qualifies only
- *    if score > the last-place entry.
- *  - Otherwise: does NOT qualify (score is not good enough to make the list).
+ *  - score must be > 0.
+ *  - Capacity Check: If scores.length < MAX_LEADERBOARD_ENTRIES, the player
+ *    automatically qualifies (open slots available).
+ *  - Threshold Check: If scores.length >= MAX_LEADERBOARD_ENTRIES, the player
+ *    qualifies ONLY IF score > lowestScore (the entry at index MAX - 1).
  */
 export async function qualifiesForLeaderboard(score) {
   if (!score || score <= 0) {
@@ -180,11 +179,6 @@ export async function qualifiesForLeaderboard(score) {
 
   const totalCount = allScores.length;
 
-  // Board is truly empty: any score qualifies at rank 1
-  if (totalCount === 0) {
-    return { qualifies: true, rank: 1 };
-  }
-
   // Calculate predicted rank among ALL existing scores
   let rank = 1;
   for (let i = 0; i < allScores.length; i++) {
@@ -195,25 +189,18 @@ export async function qualifiesForLeaderboard(score) {
     }
   }
 
-  // Score must beat the current lowest entry on the board to qualify.
-  // This applies whether the board is full or has open slots —
-  // we don't want to show the form just because there are empty cap slots.
-  const lowestExistingScore = allScores[totalCount - 1].score;
-
-  if (score <= lowestExistingScore) {
-    return { qualifies: false, rank: null };
+  // Capacity Check: board has open slots — any score > 0 qualifies
+  if (totalCount < MAX_LEADERBOARD_ENTRIES) {
+    return { qualifies: true, rank };
   }
 
-  // Score beats the lowest existing entry.
-  // If board is already full, it must also beat the last-place cap entry.
-  if (totalCount >= MAX_LEADERBOARD_ENTRIES) {
-    const lastPlaceScore = allScores[MAX_LEADERBOARD_ENTRIES - 1].score;
-    if (score <= lastPlaceScore) {
-      return { qualifies: false, rank: null };
-    }
+  // Threshold Check: board is full — must beat the lowest entry
+  const lowestScore = allScores[MAX_LEADERBOARD_ENTRIES - 1].score;
+  if (score > lowestScore) {
+    return { qualifies: true, rank };
   }
 
-  return { qualifies: true, rank };
+  return { qualifies: false, rank: null };
 }
 
 /**

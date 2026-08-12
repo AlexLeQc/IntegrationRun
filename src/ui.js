@@ -176,7 +176,7 @@ export async function renderLeaderboard(
 
         row.innerHTML = `
           <td class="${rankClass}" style="font-weight: bold; text-align: center;">${rank}</td>
-          <td style="font-weight: 600;">${entry.team}</td>
+          <td style="text-align: left; font-weight: 600;">${entry.team}</td>
           <td style="text-align: center; font-weight: 600;">${entry.playerCount}</td>
           <td style="text-align: right; font-family: var(--font-display); color: var(--color-cyan);">${entry.totalScore.toLocaleString()}</td>
         `;

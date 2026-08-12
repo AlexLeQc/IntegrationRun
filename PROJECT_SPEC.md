@@ -175,15 +175,16 @@ The game user interface is structured into notebook card modal overlays and an i
 
 - **Modal Fit & Layout**: Centered vertically inside `#game-over-screen` with `max-height: 90vh; overflow-y: auto;` and compact touch-friendly padding (`12px 20px` for buttons and input fields). Headers are contained strictly inside the modal card borders.
 - **Arcade Qualification Check**: On Game Over, `qualifiesForLeaderboard(finalScore)` determines which substate to display:
-  - Reads ALL stored entries to determine the true total count and current lowest score.
-  - Qualifies if board is empty OR `finalScore > lowestExistingScore` (open cap slots do NOT qualify a score by themselves).
+  - Reads ALL stored entries to determine the true total count.
+  - **Capacity Check** (`scores.length < MAX_LEADERBOARD_ENTRIES`): If the total number of recorded scores is less than `MAX_LEADERBOARD_ENTRIES`, the player automatically qualifies (as long as `score > 0`).
+  - **Threshold Check** (`scores.length >= MAX_LEADERBOARD_ENTRIES`): If the leaderboard is full, the player qualifies ONLY IF `score > lowestScore` (where `lowestScore` is the score of the entry at index `MAX_LEADERBOARD_ENTRIES - 1`).
 - **State 1 – Regular Game Over (Not Qualified)**:
-  - Displayed when final score does NOT beat the current lowest leaderboard entry.
+  - Displayed when the leaderboard is full and the final score does NOT beat the current lowest leaderboard entry.
   - Hides `#game-over-highscore` completely and skips the name entry form and rank badge.
-  - Displays header "GAME OVER", score label "SCORE FINAL", final score, and action buttons in a 2-tier layout: top primary button `[RÉESSAYER]` (full width) and bottom row container (`.button-row`) with `[MENU PRINCIPAL]` and `[LEADERBOARD]` side-by-side.
+  - Displays header "GAME OVER", score label "SCORE FINAL", final score, and action buttons: primary button `[RÉESSAYER]` (full width), `[MENU PRINCIPAL]`, and `[LEADERBOARD]`.
 
 - **State 2 – New High Score Prompt (Qualified)**:
-  - Displayed ONLY when final score beats the current lowest leaderboard entry.
+  - Displayed when `scores.length < MAX_LEADERBOARD_ENTRIES` OR when the final score beats the current lowest leaderboard entry (`score > lowestScore`).
   - Hides `#game-over-regular` completely and displays header "GOD DAMM!", subtitle "Ahh ouais pas mal le score", a compact combined header badge (`RANG #X • SCORE: 001250`), and score submission form (`#score-submit-form`).
   - **Form Requirements**: Requires both **Runner Name** (input field `#username` with label "ENTRE TON NOM" and placeholder "JOUEUR 1", 2–12 characters, uppercase/trimmed) and **Team Selection** (styled `<select id="team-select" required>` dropdown with label "SÉLECTIONNE TON ÉQUIPE" populated with the orientation teams).
   - Primary Action Button: `[TU FLEX TU BOIS]`
