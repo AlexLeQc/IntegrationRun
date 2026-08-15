@@ -33,7 +33,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Kalam:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Fredoka:wght@500;600;700&family=Kalam:wght@400;700&display=swap"
       rel="stylesheet"
     />
   </head>
@@ -78,6 +78,7 @@
           <button id="leaderboard-btn" class="neon-btn magenta">
             LEADERBOARD
           </button>
+          <button id="schedule-btn" class="neon-btn yellow">HORAIRE</button>
           <button id="tutorial-btn" class="neon-btn outline">RÈGLES</button>
         </div>
       </div>
@@ -241,6 +242,170 @@
         </div>
 
         <button id="tutorial-back-btn" class="neon-btn outline">RETOUR</button>
+      </div>
+
+      <!-- Schedule / Horaire Screen -->
+      <div id="schedule-screen" class="screen-overlay hidden">
+        <div class="schedule-container">
+          <div class="hero">
+            <h2>Ta p'tite semaine <span>d'intégration</span></h2>
+            <p class="sub">Faculté de génie · Université de Sherbrooke</p>
+
+            <div class="legend">
+              <span><i class="dot feuille"></i> Accueil officiel</span>
+              <span><i class="dot soleil"></i> Activités</span>
+              <span><i class="dot fraise"></i> Soirées</span>
+            </div>
+          </div>
+
+          <div class="board">
+            <div class="schedule-tabs" id="schedule-tabs">
+              <div class="schedule-tab active" data-day="lundi">
+                <span class="emoji">🐸</span>
+                <span class="date">11 août</span>
+                <span class="name">LUN</span>
+              </div>
+              <div class="schedule-tab" data-day="mardi">
+                <span class="emoji">🧀</span>
+                <span class="date">1 sept.</span>
+                <span class="name">MAR</span>
+              </div>
+              <div class="schedule-tab" data-day="mercredi">
+                <span class="emoji">🎭</span>
+                <span class="date">2 sept.</span>
+                <span class="name">MER</span>
+              </div>
+              <div class="schedule-tab" data-day="jeudi">
+                <span class="emoji">🎈</span>
+                <span class="date">3 sept.</span>
+                <span class="name">JEU</span>
+              </div>
+            </div>
+
+            <div class="schedule-panel active" id="panel-lundi">
+              <p class="daytitle">🐸 Lundi 11 août</p>
+              <div class="timeline">
+                <div class="timeline-item feuille">
+                  <span class="stripe"></span>
+                  <span class="t">7:00 – 8:30</span>
+                  <span class="title">Accueil festif</span>
+                  <span class="loc">Faculté de génie</span>
+                </div>
+                <div class="timeline-item feuille">
+                  <span class="stripe"></span>
+                  <span class="t">8:30 – 10:00</span>
+                  <span class="title">Accueil facultaire</span>
+                  <span class="loc">Salle Maurice-O'Bready</span>
+                </div>
+                <div class="timeline-item feuille">
+                  <span class="stripe"></span>
+                  <span class="t">10:00 – 13:30</span>
+                  <span class="title">Kiosques des groupes & distribution des sacs</span>
+                  <span class="loc">Studio de création</span>
+                </div>
+                <div class="timeline-item soleil">
+                  <span class="stripe"></span>
+                  <span class="t">16:30 – 18:00</span>
+                  <span class="title">Rallye</span>
+                  <span class="loc">Campus principal</span>
+                </div>
+                <div class="timeline-item soleil">
+                  <span class="stripe"></span>
+                  <span class="t">18:00 – 20:00</span>
+                  <span class="title">Souper spaghetti du Café Chaos</span>
+                  <span class="loc">Faculté de génie</span>
+                </div>
+                <div class="timeline-item soleil">
+                  <span class="stripe"></span>
+                  <span class="t">20:00 – minuit</span>
+                  <span class="title">Marathon Monday</span>
+                  <span class="loc">P'tite Grenouille</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="schedule-panel" id="panel-mardi">
+              <p class="daytitle">🧀 Mardi 1 septembre</p>
+              <div class="timeline">
+                <div class="timeline-item soleil">
+                  <span class="stripe"></span>
+                  <span class="t">19:00 – 3:00</span>
+                  <span class="title">Mardi détente</span>
+                  <span class="loc">Départ des autobus devant la Faculté de génie</span>
+                </div>
+              </div>
+              <p class="freeday">Journée libre le reste du temps — check ton horaire sur Horarius</p>
+            </div>
+
+            <div class="schedule-panel" id="panel-mercredi">
+              <p class="daytitle">🎭 Mercredi 2 septembre</p>
+              <div class="timeline">
+                <div class="timeline-item feuille">
+                  <span class="stripe"></span>
+                  <span class="t">16:30 – 18:30</span>
+                  <span class="title">Souper de la doyenne</span>
+                  <span class="loc">Faculté de génie</span>
+                </div>
+                <div class="timeline-item fraise">
+                  <span class="stripe"></span>
+                  <span class="t">19:00 – 23:00</span>
+                  <span class="title">Spectacle de la rentrée de la FEUS</span>
+                  <span class="loc">Campus principal</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="schedule-panel" id="panel-jeudi">
+              <p class="daytitle">🎈 Jeudi 3 septembre</p>
+              <div class="timeline">
+                <div class="timeline-item soleil">
+                  <span class="stripe"></span>
+                  <span class="t">9:30 – 11:00</span>
+                  <span class="title">Activités propres</span>
+                  <span class="loc">Départ devant la Faculté de génie</span>
+                </div>
+                <div class="timeline-item soleil">
+                  <span class="stripe"></span>
+                  <span class="t">11:00 – 12:00</span>
+                  <span class="title">Dîner</span>
+                </div>
+                <div class="timeline-item soleil">
+                  <span class="stripe"></span>
+                  <span class="t">12:00 – 14:00</span>
+                  <span class="title">Activités sales</span>
+                  <span class="loc">Campus principal</span>
+                </div>
+                <div class="timeline-item fraise">
+                  <span class="stripe"></span>
+                  <span class="t">17:00 – 20:00</span>
+                  <span class="title">5 à 8</span>
+                  <span class="loc">Faculté de génie</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dresswrap">
+            <div class="dresstitle">👕 Code vestimentaire</div>
+            <div class="dresscard">
+              <b>Lundi</b>Apporte tes objets à l'accueil festif. Pour la soirée, prévois des vêtements à salir.
+            </div>
+            <div class="dresscard">
+              <b>Mardi</b>Pour la soirée, prévois des vêtements de yoga adaptés à la météo.
+            </div>
+            <div class="dresscard">
+              <b>Mercredi</b>Pour le spectacle de la rentrée, prévois des vêtements propres.
+            </div>
+            <div class="dresscard">
+              <b>Jeudi</b>Maillot de bain sous ton costume pour une belle journée d'activités. Le soir, sors tes plus beaux habits (photo scolaire) !
+            </div>
+            <p class="note">☀️ Heure variable selon ton horaire de cours (disponible sur Horarius)</p>
+          </div>
+
+          <div class="schedule-footer">bonne semaine d'intégration 🎒</div>
+        </div>
+
+        <button id="schedule-back-btn" class="neon-btn outline">RETOUR</button>
       </div>
 
       <!-- Leaderboard Screen -->

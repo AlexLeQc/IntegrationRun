@@ -129,7 +129,8 @@ body {
 /* Cardboard & Notebook Paper Overlay Panels */
 #main-menu,
 #leaderboard-screen,
-#game-over-screen {
+#game-over-screen,
+#schedule-screen {
   background: rgba(250, 248, 245, 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -228,16 +229,16 @@ body {
 .menu-actions {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   width: 100%;
   max-width: 270px;
 }
 
 .neon-btn {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  padding: 12px 20px;
+  padding: 10px 18px;
   border-radius: 14px 10px 16px 12px;
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -269,6 +270,18 @@ body {
 .neon-btn.magenta:active {
   background: #0066ee;
   transform: translate(-2px, -2px) rotate(1.5deg);
+  box-shadow: 6px 6px 0px var(--color-ink);
+}
+
+.neon-btn.yellow {
+  background: #ffcc00;
+  color: var(--color-ink);
+}
+
+.neon-btn.yellow:hover,
+.neon-btn.yellow:active {
+  background: #ffe033;
+  transform: translate(-2px, -2px) rotate(-1deg);
   box-shadow: 6px 6px 0px var(--color-ink);
 }
 
@@ -899,4 +912,327 @@ body {
 #tutorial-back-btn {
   flex-shrink: 0;
   width: 100%;
+}
+
+/* --- Schedule / Horaire Screen Modal Styles --- */
+#schedule-screen {
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 1.25rem 1rem;
+  font-family: "Baloo 2", var(--font-sans);
+}
+
+.schedule-container {
+  flex: 1;
+  width: 100%;
+  max-height: 75vh;
+  overflow-y: auto;
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink) rgba(44, 44, 46, 0.05);
+}
+
+.schedule-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.schedule-container::-webkit-scrollbar-track {
+  background: rgba(44, 44, 46, 0.05);
+  border-radius: 4px;
+}
+
+.schedule-container::-webkit-scrollbar-thumb {
+  background: var(--color-ink);
+  border-radius: 4px;
+}
+
+#schedule-screen .hero {
+  padding: 8px 10px 4px;
+  text-align: center;
+}
+
+#schedule-screen .hero h2 {
+  font-family: "Baloo 2", var(--font-display);
+  font-weight: 800;
+  font-size: clamp(20px, 6vw, 26px);
+  line-height: 1.15;
+  margin: 0;
+  color: var(--color-ink);
+}
+
+#schedule-screen .hero h2 span {
+  color: #ff4b3e;
+}
+
+#schedule-screen .hero .sub {
+  font-weight: 600;
+  color: #6b6b6b;
+  font-size: 12px;
+  margin: 4px 0 0;
+}
+
+#schedule-screen .legend {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 12px auto 0;
+  padding: 0 4px;
+}
+
+#schedule-screen .legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 11px;
+  background: #ffffff;
+  border: 2px solid var(--color-ink);
+  padding: 4px 9px 3px;
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 var(--color-ink);
+  white-space: nowrap;
+}
+
+#schedule-screen .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: none;
+  border: 1.5px solid var(--color-ink);
+}
+
+#schedule-screen .dot.feuille {
+  background: #5cb86b;
+}
+
+#schedule-screen .dot.soleil {
+  background: #ffc93d;
+}
+
+#schedule-screen .dot.fraise {
+  background: #ff7fae;
+}
+
+/* Day Tabs */
+#schedule-screen .board {
+  max-width: 640px;
+  margin: 10px auto 0;
+  padding: 0 2px;
+  width: 100%;
+}
+
+#schedule-screen .schedule-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+#schedule-screen .schedule-tab {
+  background: #ffffff;
+  border: 2.5px solid var(--color-ink);
+  border-radius: 12px;
+  text-align: center;
+  padding: 7px 2px 5px;
+  box-shadow: 2.5px 2.5px 0 var(--color-ink);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#schedule-screen .schedule-tab:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--color-ink);
+}
+
+#schedule-screen .schedule-tab .emoji {
+  font-size: 18px;
+  display: block;
+  line-height: 1;
+}
+
+#schedule-screen .schedule-tab .date {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #8a8a8a;
+  text-transform: uppercase;
+  margin-top: 2px;
+  display: block;
+}
+
+#schedule-screen .schedule-tab .name {
+  font-weight: 800;
+  font-size: 11.5px;
+  margin-top: 1px;
+  color: var(--color-ink);
+  display: block;
+}
+
+#schedule-screen .schedule-tab.active {
+  background: #ffc93d;
+  transform: scale(1.02);
+}
+
+/* Day Panels */
+#schedule-screen .schedule-panel {
+  display: none;
+}
+
+#schedule-screen .schedule-panel.active {
+  display: block;
+  animation: schedulePop 0.18s ease;
+}
+
+@keyframes schedulePop {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#schedule-screen .daytitle {
+  font-weight: 800;
+  font-size: 14.5px;
+  margin: 0 0 10px 2px;
+  text-align: left;
+}
+
+#schedule-screen .timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#schedule-screen .timeline-item {
+  position: relative;
+  background: #ffffff;
+  border: 2.5px solid var(--color-ink);
+  border-radius: 12px;
+  padding: 8px 10px 9px 16px;
+  box-shadow: 2.5px 2.5px 0 var(--color-ink);
+  text-align: left;
+}
+
+#schedule-screen .timeline-item .stripe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  border-radius: 9px 0 0 9px;
+  border-right: 2.5px solid var(--color-ink);
+}
+
+#schedule-screen .timeline-item.feuille .stripe {
+  background: #5cb86b;
+}
+
+#schedule-screen .timeline-item.soleil .stripe {
+  background: #ffc93d;
+}
+
+#schedule-screen .timeline-item.fraise .stripe {
+  background: #ff7fae;
+}
+
+#schedule-screen .timeline-item .t {
+  font-size: 10px;
+  font-weight: 700;
+  color: #777;
+  display: block;
+  margin-bottom: 2px;
+}
+
+#schedule-screen .timeline-item .title {
+  font-weight: 700;
+  font-size: 13.5px;
+  display: block;
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
+#schedule-screen .timeline-item .loc {
+  font-size: 11px;
+  font-weight: 600;
+  color: #777;
+  display: block;
+  margin-top: 2px;
+}
+
+#schedule-screen .freeday {
+  font-weight: 600;
+  font-size: 12px;
+  color: #888;
+  padding: 8px 4px 2px;
+  text-align: center;
+}
+
+/* Dress Code */
+#schedule-screen .dresswrap {
+  max-width: 640px;
+  margin: 18px auto 0;
+  padding: 0 2px;
+  width: 100%;
+  text-align: left;
+}
+
+#schedule-screen .dresstitle {
+  font-weight: 800;
+  font-size: 14.5px;
+  margin-bottom: 8px;
+}
+
+#schedule-screen .dresscard {
+  background: #ffffff;
+  border: 2.5px solid var(--color-ink);
+  border-radius: 12px;
+  padding: 8px 10px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #444;
+  box-shadow: 2.5px 2.5px 0 var(--color-ink);
+  margin-bottom: 8px;
+}
+
+#schedule-screen .dresscard b {
+  display: block;
+  font-weight: 800;
+  font-size: 12.5px;
+  color: var(--color-ink);
+  margin-bottom: 2px;
+}
+
+#schedule-screen .note {
+  text-align: center;
+  font-weight: 700;
+  font-size: 11.5px;
+  color: #555;
+  margin-top: 12px;
+  padding: 0 10px;
+}
+
+#schedule-screen .schedule-footer {
+  text-align: center;
+  margin-top: 16px;
+  font-weight: 700;
+  font-size: 11px;
+  color: #a3a3a3;
+}
+
+#schedule-back-btn {
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: 8px;
 }

@@ -89,8 +89,16 @@ export function showScreen(activeScreen) {
   const leaderboardScreen = document.getElementById("leaderboard-screen");
   const gameOverScreen = document.getElementById("game-over-screen");
   const tutorialScreen = document.getElementById("tutorial-screen");
+  const scheduleScreen = document.getElementById("schedule-screen");
 
-  const screens = [mainMenu, hudOverlay, leaderboardScreen, gameOverScreen, tutorialScreen];
+  const screens = [
+    mainMenu,
+    hudOverlay,
+    leaderboardScreen,
+    gameOverScreen,
+    tutorialScreen,
+    scheduleScreen,
+  ];
   screens.forEach((screen) => {
     if (!screen) return;
     if (screen === activeScreen) {
@@ -112,7 +120,12 @@ export function showScreen(activeScreen) {
       hudOverlay.classList.remove("hidden");
       hudOverlay.classList.add("active");
     }
-  } else if (activeScreen === mainMenu || activeScreen === leaderboardScreen || activeScreen === tutorialScreen) {
+  } else if (
+    activeScreen === mainMenu ||
+    activeScreen === leaderboardScreen ||
+    activeScreen === tutorialScreen ||
+    activeScreen === scheduleScreen
+  ) {
     if (hudOverlay) {
       hudOverlay.classList.remove("active");
       hudOverlay.classList.add("hidden");

@@ -10,12 +10,15 @@ const hudOverlay = document.getElementById('hud-overlay');
 const leaderboardScreen = document.getElementById('leaderboard-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const tutorialScreen = document.getElementById('tutorial-screen');
+const scheduleScreen = document.getElementById('schedule-screen');
 
 const startBtn = document.getElementById('start-btn');
 const leaderboardBtn = document.getElementById('leaderboard-btn');
 const leaderboardBackBtn = document.getElementById('leaderboard-back-btn');
 const tutorialBtn = document.getElementById('tutorial-btn');
 const tutorialBackBtn = document.getElementById('tutorial-back-btn');
+const scheduleBtn = document.getElementById('schedule-btn');
+const scheduleBackBtn = document.getElementById('schedule-back-btn');
 
 // Leaderboard Tabs
 const tabIndividual = document.getElementById('tab-individual');
@@ -128,6 +131,34 @@ if (tutorialBackBtn) {
     showScreen(mainMenu);
   });
 }
+
+if (scheduleBtn) {
+  scheduleBtn.addEventListener('click', () => {
+    audioManager.play('click');
+    showScreen(scheduleScreen);
+  });
+}
+
+if (scheduleBackBtn) {
+  scheduleBackBtn.addEventListener('click', () => {
+    audioManager.play('click');
+    showScreen(mainMenu);
+  });
+}
+
+// Schedule Day Tab Switching
+const scheduleTabs = document.querySelectorAll('#schedule-screen .schedule-tab');
+const schedulePanels = document.querySelectorAll('#schedule-screen .schedule-panel');
+scheduleTabs.forEach((tab) => {
+  tab.addEventListener('click', () => {
+    audioManager.play('click');
+    const day = tab.dataset.day;
+    scheduleTabs.forEach((t) => t.classList.toggle('active', t === tab));
+    schedulePanels.forEach((p) =>
+      p.classList.toggle('active', p.id === 'panel-' + day),
+    );
+  });
+});
 
 // State 1 Action Buttons
 if (retryBtnRegular) {
