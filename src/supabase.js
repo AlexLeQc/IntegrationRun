@@ -24,6 +24,7 @@ export const INTEGRATION_TEAMS = [
   "Busch Lightyear",
   "Babush Ice",
   "GOUV",
+  "CO",
 ];
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

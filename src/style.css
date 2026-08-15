@@ -143,6 +143,46 @@ body {
   box-shadow: 0 10px 24px rgba(44, 44, 46, 0.12);
 }
 
+/* Title Mascot */
+.title-mascot-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.title-mascot {
+  width: clamp(90px, 16vh, 125px);
+  height: clamp(90px, 16vh, 125px);
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(44, 44, 46, 0.15));
+  animation: floatMascot 3s ease-in-out infinite alternate;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.title-mascot:hover {
+  transform: scale(1.08) rotate(3deg);
+}
+
+@keyframes floatMascot {
+  0% {
+    transform: translateY(0px) rotate(-1.5deg);
+  }
+  100% {
+    transform: translateY(-6px) rotate(1.5deg);
+  }
+}
+
+.game-presenter {
+  font-family: var(--font-handwriting);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 2px;
+  transform: rotate(-1.5deg);
+  letter-spacing: 0.5px;
+}
+
 /* Game Title Typography */
 .game-title {
   font-family: var(--font-display);
@@ -150,7 +190,7 @@ body {
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: 1px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: var(--color-ink);
   transform: rotate(-2deg);
   text-shadow: 2px 3px 0px rgba(0, 0, 0, 0.1);
@@ -168,7 +208,7 @@ body {
   font-family: var(--font-handwriting);
   font-size: 1.15rem;
   color: #555558;
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 
 .screen-title {
@@ -689,11 +729,22 @@ body {
 
 /* Adjustments for shorter viewports */
 @media (max-height: 600px) {
+  .title-mascot {
+    width: 70px;
+    height: 70px;
+  }
+  .title-mascot-container {
+    margin-bottom: 2px;
+  }
+  .game-presenter {
+    font-size: 0.95rem;
+    margin-bottom: 0px;
+  }
   .game-title {
-    font-size: 2.5rem;
+    font-size: 2.3rem;
   }
   .game-subtitle {
-    margin-bottom: 18px;
+    margin-bottom: 14px;
   }
   .screen-title {
     font-size: 1.7rem;
