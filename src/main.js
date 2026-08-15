@@ -146,7 +146,35 @@ if (scheduleBackBtn) {
   });
 }
 
-// Schedule Day Tab Switching
+// Schedule Main View & Day Tab Switching
+const tabScheduleView = document.getElementById('tab-schedule-view');
+const tabDresscodeView = document.getElementById('tab-dresscode-view');
+const viewSchedule = document.getElementById('view-schedule');
+const viewDresscode = document.getElementById('view-dresscode');
+const scheduleLegend = document.getElementById('schedule-legend');
+
+if (tabScheduleView) {
+  tabScheduleView.addEventListener('click', () => {
+    audioManager.play('click');
+    tabScheduleView.classList.add('active');
+    if (tabDresscodeView) tabDresscodeView.classList.remove('active');
+    if (viewSchedule) viewSchedule.classList.remove('hidden');
+    if (viewDresscode) viewDresscode.classList.add('hidden');
+    if (scheduleLegend) scheduleLegend.classList.remove('hidden');
+  });
+}
+
+if (tabDresscodeView) {
+  tabDresscodeView.addEventListener('click', () => {
+    audioManager.play('click');
+    tabDresscodeView.classList.add('active');
+    if (tabScheduleView) tabScheduleView.classList.remove('active');
+    if (viewDresscode) viewDresscode.classList.remove('hidden');
+    if (viewSchedule) viewSchedule.classList.add('hidden');
+    if (scheduleLegend) scheduleLegend.classList.add('hidden');
+  });
+}
+
 const scheduleTabs = document.querySelectorAll('#schedule-screen .schedule-tab');
 const schedulePanels = document.querySelectorAll('#schedule-screen .schedule-panel');
 scheduleTabs.forEach((tab) => {

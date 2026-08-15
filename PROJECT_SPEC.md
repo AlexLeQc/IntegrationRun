@@ -251,16 +251,20 @@ The game user interface is structured into notebook card modal overlays and an i
 
 ### Schedule / Horaire Screen (`#schedule-screen`)
 - **Accessibility & Navigation**: Accessible via the `HORAIRE` button on the Main Menu. Includes a prominent `RETOUR` button (`#schedule-back-btn`) at the bottom returning smoothly to the Main Menu.
-- **Schedule Container & Hero Header**: Displays header `"Ta p'tite semaine d'intégration"`, subtitle `"Faculté de génie · Université de Sherbrooke"`, and category color legend:
+- **Top-Level View Switcher**: A dual-tab switcher (`.schedule-main-tabs`) located directly beneath the hero header:
+  - **`[HORAIRE]` (`#tab-schedule-view`)**: Default view showing the schedule category color legend, sticky weekday tabs, and interactive daily timelines.
+  - **`[CODE VESTIMENTAIRE]` (`#tab-dresscode-view`)**: Isolated view displaying the daily clothing guidelines and notes; hides the category color legend.
+- **Schedule Container & Hero Header**: Displays header `"Ta p'tite semaine d'intégration"`, subtitle `"Faculté de génie · Université de Sherbrooke"`, and category color legend (`#schedule-legend`):
   - **Accueil officiel** (Green leaf indicator `.dot.feuille`)
   - **Activités** (Yellow sun indicator `.dot.soleil`)
   - **Soirées** (Red strawberry indicator `.dot.fraise`)
-- **Interactive Daily Schedule Tabs**:
+- **Interactive Daily Schedule View (`#view-schedule`)**:
+  - **Sticky Weekday Selector (`#schedule-tabs`)**: Pinned to the top of `.modal-body` during scroll with `position: sticky; top: 0; backdrop-filter: blur(4px);` to remain accessible across long day timelines.
   - **`LUN` (11 août - 🐸)**: Timeline featuring Accueil festif (7:00 – 8:30, Faculté de génie), Accueil facultaire (8:30 – 10:00, Salle Maurice-O'Bready), Kiosques des groupes & distribution des sacs (10:00 – 13:30, Studio de création), Rallye (16:30 – 18:00, Campus principal), Souper spaghetti du Café Chaos (18:00 – 20:00, Faculté de génie), and Marathon Monday (20:00 – minuit, P'tite Grenouille).
   - **`MAR` (1 sept. - 🧀)**: Timeline featuring Mardi détente (19:00 – 3:00, Bus departure from Faculté de génie) and free day notice for remaining hours.
   - **`MER` (2 sept. - 🎭)**: Timeline featuring Souper de la doyenne (16:30 – 18:30, Faculté de génie) and Spectacle de la rentrée de la FEUS (19:00 – 23:00, Campus principal).
   - **`JEU` (3 sept. - 🎈)**: Timeline featuring Activités propres (9:30 – 11:00, Departure Faculté de génie), Dîner (11:00 – 12:00), Activités sales (12:00 – 14:00, Campus principal), and 5 à 8 (17:00 – 20:00, Faculté de génie).
-- **Dress Code Section (`Code vestimentaire`)**: Daily clothing guidelines for Lundi (clothes to get dirty), Mardi (yoga clothes), Mercredi (clean clothes), and Jeudi (swimsuit under costume, evening attire for school photo).
+- **Isolated Dress Code View (`#view-dresscode`)**: Daily clothing cards for Lundi (clothes to get dirty), Mardi (yoga clothes), Mercredi (clean clothes), and Jeudi (swimsuit under costume, evening attire for school photo). Hidden by default when viewing the main schedule.
 
 ### In-Game HUD (`#hud-overlay`)
 - **Score Display**: `SCORE` 6-digit zero-padded score counter (e.g. `001250`) rendered on a lined paper badge.
