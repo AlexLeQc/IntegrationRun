@@ -831,6 +831,12 @@ body {
   background: #fdfcf7;
 }
 
+.tutorial-card.reward-card {
+  border: 2.5px solid var(--color-ink);
+  background: #fffdf2;
+  box-shadow: 3.5px 3.5px 0px var(--color-red);
+}
+
 .tutorial-card-title {
   font-family: var(--font-handwriting);
   font-size: 1rem;
