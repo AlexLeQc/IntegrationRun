@@ -11,6 +11,15 @@
   --font-display: "Fredoka", sans-serif;
   --font-sans: "Fredoka", sans-serif;
   --font-handwriting: "Kalam", cursive, sans-serif;
+
+  /* Design system tokens */
+  --border-sketch: 2.5px solid var(--color-ink);
+  --border-sketch-heavy: 3px solid var(--color-ink);
+  --shadow-sketch: 3px 3px 0px var(--color-ink);
+  --shadow-sketch-sm: 2.5px 2.5px 0px var(--color-ink);
+  --radius-card: 20px 14px 22px 16px;
+  --radius-inner: 12px;
+  --radius-btn: 14px 10px 16px 12px;
 }
 
 * {
@@ -33,6 +42,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   position: fixed;
   width: 100%;
@@ -44,6 +54,7 @@ body {
   position: relative;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   max-width: 450px;
   max-height: 800px;
   aspect-ratio: 9/16;
@@ -88,19 +99,23 @@ body {
   transition: none;
 }
 
-/* Notebook paper screen overlay settings */
+/* ============================================================
+   SCREEN OVERLAY BASE — all screens share this
+   Safe-area insets applied here once, no per-screen overrides
+   ============================================================ */
 .screen-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 28px;
-  text-align: center;
+  justify-content: center;
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
   box-sizing: border-box;
   z-index: 10;
   transition:
@@ -126,22 +141,85 @@ body {
   transform: scale(1) rotate(0deg);
 }
 
-/* Cardboard & Notebook Paper Overlay Panels */
-#main-menu,
-#leaderboard-screen,
-#game-over-screen,
-#schedule-screen {
+/* ============================================================
+   MODAL SHELL — 3-tier unified card container
+   Used by: #tutorial-screen, #leaderboard-screen,
+            #schedule-screen, #game-over-screen
+   ============================================================ */
+.modal-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-width: 418px; /* Matching max dimensions of #main-menu card (450px - 32px margins) */
+  max-height: 768px; /* Matching max dimensions of #main-menu card (800px - 32px margins) */
+  margin: 0 auto;
+  background: rgba(250, 248, 245, 0.97);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: var(--border-sketch-heavy);
+  border-radius: var(--radius-card);
+  box-shadow: 0 10px 24px rgba(44, 44, 46, 0.12);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Header — titles, tabs; never shrinks */
+.modal-header {
+  flex-shrink: 0;
+  padding: 1.25rem 1rem 0.5rem;
+  text-align: center;
+}
+
+/* Body — scrollable content, fills remaining space */
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink) rgba(44, 44, 46, 0.05);
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: rgba(44, 44, 46, 0.05);
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--color-ink);
+  border-radius: 4px;
+}
+
+/* Footer — pinned action buttons; never shrinks */
+.modal-footer {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ============================================================
+   MAIN MENU — centered layout, not a 3-tier modal
+   ============================================================ */
+#main-menu {
   background: rgba(250, 248, 245, 0.94);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 3px solid var(--color-ink);
-  border-radius: 20px 14px 22px 16px;
+  border: var(--border-sketch-heavy);
+  border-radius: var(--radius-card);
   margin: 16px;
   height: calc(100% - 32px);
   width: calc(100% - 32px);
-  top: 0;
-  left: 0;
   box-shadow: 0 10px 24px rgba(44, 44, 46, 0.12);
+  justify-content: center;
 }
 
 /* Title Mascot */
@@ -192,6 +270,7 @@ body {
   line-height: 1.05;
   letter-spacing: 1px;
   margin-bottom: 6px;
+  text-align: center;
   color: var(--color-ink);
   transform: rotate(-2deg);
   text-shadow: 2px 3px 0px rgba(0, 0, 0, 0.1);
@@ -239,14 +318,22 @@ body {
   font-size: 1.05rem;
   font-weight: 700;
   padding: 10px 18px;
-  border-radius: 14px 10px 16px 12px;
+  border-radius: var(--radius-btn);
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   width: 100%;
-  border: 3px solid var(--color-ink);
+  border: var(--border-sketch-heavy);
   outline: none;
   box-shadow: 4px 4px 0px var(--color-ink);
   letter-spacing: 0.5px;
+}
+
+/* Back/return button token — consistent sizing in all modal footers */
+.btn-back {
+  width: 100%;
+  max-width: 320px;
+  min-height: 48px;
+  margin: 0 auto;
 }
 
 .neon-btn.cyan {
@@ -372,21 +459,12 @@ body {
   stroke-width: 1.5px;
 }
 
-/* Leaderboard Details & Layout */
-#leaderboard-screen {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  border-radius: 0;
-  box-sizing: border-box;
-  padding: 1.5rem 1rem;
+/* Leaderboard header & tab tweaks */
+#leaderboard-screen .modal-header {
+  padding-bottom: 0;
 }
 
 #leaderboard-screen .screen-title {
-  flex-shrink: 0;
   margin-bottom: 0;
 }
 
@@ -428,16 +506,19 @@ body {
   transform: scale(1.02);
 }
 
+/* Leaderboard modal-body inner padding */
+#leaderboard-screen .modal-body {
+  padding: 0.75rem 1rem;
+}
+
 .leaderboard-table-container {
-  flex: 1;
-  min-height: 50vh;
   width: 100%;
+  height: 100%;
   overflow-y: auto;
-  margin: 0.75rem 0;
-  border: 2.5px solid var(--color-ink);
-  border-radius: 12px;
+  border: var(--border-sketch);
+  border-radius: var(--radius-inner);
   background: #faf8f5;
-  box-shadow: 3px 3px 0px var(--color-ink);
+  box-shadow: var(--shadow-sketch);
   scrollbar-width: thin;
   scrollbar-color: var(--color-ink) #efece6;
 }
@@ -498,10 +579,7 @@ body {
   max-width: 100%;
 }
 
-#leaderboard-back-btn {
-  flex-shrink: 0;
-  width: 100%;
-}
+/* #leaderboard-back-btn sizing handled by .btn-back token */
 
 .leaderboard-table tr:hover {
   background: rgba(255, 204, 0, 0.15);
@@ -601,16 +679,11 @@ body {
   box-shadow: 4px 4px 0px var(--color-blue);
 }
 
-/* Dual State Game Over Substates & Modal Fit */
-#game-over-screen {
-  display: flex;
-  flex-direction: column;
+/* Game over — modal-shell handles card framing, content centers inside */
+#game-over-screen .modal-shell {
   justify-content: center;
   align-items: center;
-  max-height: 90vh;
   overflow-y: auto;
-  padding: 24px 16px;
-  box-sizing: border-box;
 }
 
 #game-over-screen .screen-title {
@@ -624,6 +697,8 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100%;
+  padding: 24px 16px;
+  box-sizing: border-box;
 }
 
 /* Button Row (Side-by-Side 2-Tier Layout) */
@@ -763,9 +838,11 @@ body {
     font-size: 1.7rem;
     margin-bottom: 14px;
   }
-  .leaderboard-table-container {
-    min-height: 45vh;
-    margin: 0.5rem 0;
+  .modal-header {
+    padding: 0.75rem 1rem 0.25rem;
+  }
+  .modal-footer {
+    padding: 0.5rem 1rem 0.75rem;
   }
   .score-value {
     font-size: 2.2rem;
@@ -780,39 +857,13 @@ body {
   }
 }
 
-/* --- Tutorial / Rules Screen Modal Styles --- */
-#tutorial-screen {
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  box-sizing: border-box;
-  padding: 1.25rem 1rem 2rem;
-}
-
+/* --- Tutorial / Rules Screen ---
+   Layout handled by .modal-shell tier; .tutorial-container is content-only */
 .tutorial-container {
-  flex: 1;
-  width: 100%;
-  max-height: 70vh;
-  overflow-y: auto;
-  margin: 0.75rem 0;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding-right: 4px;
-}
-
-.tutorial-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.tutorial-container::-webkit-scrollbar-track {
-  background: rgba(44, 44, 46, 0.05);
-  border-radius: 4px;
-}
-
-.tutorial-container::-webkit-scrollbar-thumb {
-  background: var(--color-ink);
-  border-radius: 4px;
+  padding-bottom: 0.5rem;
 }
 
 .tutorial-card {
@@ -914,48 +965,21 @@ body {
   line-height: 1.25;
 }
 
-#tutorial-back-btn {
-  flex-shrink: 0;
-  width: 100%;
-  margin-bottom: 16px;
-}
+/* #tutorial-back-btn sizing handled by .btn-back token */
 
-/* --- Schedule / Horaire Screen Modal Styles --- */
-#schedule-screen {
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  box-sizing: border-box;
-  padding: 1.25rem 1rem 2rem;
-  font-family: "Baloo 2", var(--font-sans);
+/* --- Schedule / Horaire Screen ---
+   Layout handled by .modal-shell tier; .schedule-container is content-only */
+#schedule-screen .modal-header {
+  padding-bottom: 0.25rem;
+  text-align: center;
 }
 
 .schedule-container {
-  flex: 1;
-  width: 100%;
-  max-height: 70vh;
-  overflow-y: auto;
-  margin: 0.5rem 0;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding-right: 4px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-ink) rgba(44, 44, 46, 0.05);
-}
-
-.schedule-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.schedule-container::-webkit-scrollbar-track {
-  background: rgba(44, 44, 46, 0.05);
-  border-radius: 4px;
-}
-
-.schedule-container::-webkit-scrollbar-thumb {
-  background: var(--color-ink);
-  border-radius: 4px;
+  padding-bottom: 0.5rem;
+  font-family: "Baloo 2", var(--font-sans);
 }
 
 #schedule-screen .hero {
@@ -1239,9 +1263,4 @@ body {
   color: #a3a3a3;
 }
 
-#schedule-back-btn {
-  flex-shrink: 0;
-  width: 100%;
-  margin-top: 8px;
-  margin-bottom: 16px;
-}
+/* #schedule-back-btn sizing handled by .btn-back token */

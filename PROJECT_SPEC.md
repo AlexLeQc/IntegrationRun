@@ -156,6 +156,69 @@ create policy "Allow public insert access" on public.high_scores
 
 ---
 
+## UI Architecture & Design System
+
+### Overview
+
+All modal screens (Tutorial, Schedule, Leaderboard, Game Over) share a unified 3-tier overlay shell. This ensures consistent card framing, mobile safe-area handling, and pinned action buttons across the entire app.
+
+### CSS Design Tokens (`:root`)
+
+| Token | Value | Usage |
+|---|---|---|
+| `--border-sketch` | `2.5px solid var(--color-ink)` | Standard ink border |
+| `--border-sketch-heavy` | `3px solid var(--color-ink)` | Card/button outer border |
+| `--shadow-sketch` | `3px 3px 0px var(--color-ink)` | Standard sketch shadow |
+| `--shadow-sketch-sm` | `2.5px 2.5px 0px var(--color-ink)` | Small sketch shadow |
+| `--radius-card` | `20px 14px 22px 16px` | Outer modal card radius |
+| `--radius-inner` | `12px` | Inner element radius |
+| `--radius-btn` | `14px 10px 16px 12px` | Button radius |
+
+### 3-Tier Overlay Shell
+
+```text
+.screen-overlay          ← position: absolute; inset: 0; height: 100%; safe-area padding; center alignment
+  └── .modal-shell       ← flex column; max-width: 418px; max-height: 768px; margin: 0 auto;
+                             (Exact same card geometry, borders, radius, bg, shadow as #main-menu)
+        ├── .modal-header  ← flex-shrink: 0; titles, tabs, subtitles
+        ├── .modal-body    ← flex: 1; min-height: 0; overflow-y: auto; scrollable content
+        └── .modal-footer  ← flex-shrink: 0; back/action buttons (always visible)
+```
+
+**Rules:**
+- All modal overlays (`#schedule-screen`, `#leaderboard-screen`, `#tutorial-screen`, `#game-over-screen`) must adhere to the **exact card geometry, width, and height constraints** established by the Home Screen (`#main-menu`).
+- Safe-area inset padding is applied **once** on `.screen-overlay` via `env(safe-area-inset-*)` and `max(1rem, ...)`. Never set per-screen.
+- `.screen-overlay` is constrained to `height: 100%` so it perfectly maps the bounds of the `#game-container` on desktop (which defines the 100dvh limit on mobile).
+- Card styling (max dimensions, margin centering, border, border-radius, background, box-shadow) lives strictly in `.modal-shell`. Never duplicated per screen.
+- `.modal-body` manages scrolling (`overflow-y: auto`, `-webkit-overflow-scrolling: touch`). Child containers (`tutorial-container`, `schedule-container`) do **not** set `overflow` or `max-height`.
+- `.modal-footer` is always visible — never scrolls off on mobile.
+
+**Exception — `#main-menu`:** Uses `.screen-overlay` directly with `justify-content: center` (centered layout, not a 3-tier modal). No `.modal-shell` wrapper, but matches the bounding boxes precisely via margins and calc.
+
+### Button Token Hierarchy
+
+| Class | Role |
+|---|---|
+| `.neon-btn.cyan` | Primary CTA (start game, submit) |
+| `.neon-btn.magenta` | Secondary emphasis (leaderboard) |
+| `.neon-btn.outline` | Neutral/back actions |
+| `.neon-btn.yellow` | Highlighted variant |
+| `.btn-back` | Applied to RETOUR buttons — enforces `min-height: 48px`, `max-width: 320px`, centered in footer |
+
+### Mobile Safe Area
+
+- `<meta name="viewport" content="..., viewport-fit=cover">` — required for `env(safe-area-inset-*)`.
+- `height: 100vh; height: 100dvh;` — fallback + dynamic viewport height to prevent iOS Safari toolbar overlap.
+- All safe-area insets applied on `.screen-overlay`:
+  ```css
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  ```
+
+---
+
 ## UI & Screen Flow
 
 The game user interface is structured into notebook card modal overlays and an in-game HUD:

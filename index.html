@@ -85,477 +85,500 @@
 
       <!-- Tutorial / Rules Screen -->
       <div id="tutorial-screen" class="screen-overlay hidden">
-        <h2 class="screen-title">RÈGLES DU JEU</h2>
-        <div class="tutorial-container">
-          <!-- Récompenses Freddy Pizzeria Section -->
-          <div class="tutorial-card reward-card">
-            <h3 class="tutorial-card-title text-magenta">🍕 PRIX & RÉCOMPENSES</h3>
-            <div class="tutorial-row">
-              <div class="tutorial-icon-badge">🥇</div>
-              <div class="tutorial-text">
-                <strong>1er du classement individuel</strong>
-                <span
-                  >Reçoit un code promo de 15$ de rabais chez Freddy Pizzeria !</span
-                >
+        <div class="modal-shell">
+          <div class="modal-header">
+            <h2 class="screen-title">RÈGLES DU JEU</h2>
+          </div>
+          <div class="modal-body">
+            <div class="tutorial-container">
+              <!-- Récompenses Freddy Pizzeria Section -->
+              <div class="tutorial-card reward-card">
+                <h3 class="tutorial-card-title text-magenta">🍕 PRIX & RÉCOMPENSES</h3>
+                <div class="tutorial-row">
+                  <div class="tutorial-icon-badge">🥇</div>
+                  <div class="tutorial-text">
+                    <strong>1er du classement individuel</strong>
+                    <span
+                      >Reçoit un code promo de 15$ de rabais chez Freddy Pizzeria !</span
+                    >
+                  </div>
+                </div>
+                <div class="tutorial-row">
+                  <div class="tutorial-icon-badge">🏆</div>
+                  <div class="tutorial-text">
+                    <strong>Équipe gagnante</strong>
+                    <span
+                      >Reçoit aussi un code promo de 15$ de rabais à faire tirer parmi les membres de son équipe !</span
+                    >
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="tutorial-row">
-              <div class="tutorial-icon-badge">🏆</div>
-              <div class="tutorial-text">
-                <strong>Équipe gagnante</strong>
-                <span
-                  >Reçoit aussi un code promo de 15$ de rabais à faire tirer parmi les membres de son équipe !</span
-                >
+
+              <!-- Commandes Section -->
+              <div class="tutorial-card">
+                <h3 class="tutorial-card-title">COMMANDES</h3>
+                <div class="tutorial-row">
+                  <div class="tutorial-icon-badge">↔️</div>
+                  <div class="tutorial-text">
+                    <strong>Changer de voie</strong>
+                    <span>Glisse Gauche / Droite</span>
+                  </div>
+                </div>
+                <div class="tutorial-row">
+                  <div class="tutorial-icon-badge">⬆️</div>
+                  <div class="tutorial-text">
+                    <strong>Sauter</strong>
+                    <span>Glisse Vers le Haut</span>
+                  </div>
+                </div>
+                <div class="tutorial-row">
+                  <div class="tutorial-icon-badge">⬇️</div>
+                  <div class="tutorial-text">
+                    <strong>Glisser</strong>
+                    <span>Glisse Vers le Bas</span>
+                  </div>
+                </div>
+                <div class="tutorial-row">
+                  <div class="tutorial-icon-badge">💧</div>
+                  <div class="tutorial-text">
+                    <strong>Lancer un Ballon d'eau</strong>
+                    <span>Tapote l'écran</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Obstacles & Hazards Section -->
+              <div class="tutorial-card">
+                <h3 class="tutorial-card-title">OBSTACLES & DANGERS</h3>
+                <div class="tutorial-row">
+                  <div class="tutorial-img-wrap">
+                    <img
+                      src="/assets/barrier.png"
+                      alt="Boîte en Carton"
+                      onerror="
+                        this.style.display = 'none';
+                        this.nextElementSibling.style.display = 'flex';
+                      "
+                    />
+                    <div class="tutorial-fallback-icon" style="display: none">
+                      📦
+                    </div>
+                  </div>
+                  <div class="tutorial-text">
+                    <strong>Boîte en Carton</strong>
+                    <span>Change de voie pour éviter</span>
+                  </div>
+                </div>
+                <div class="tutorial-row">
+                  <div class="tutorial-img-wrap">
+                    <img
+                      src="/assets/hurdle.png"
+                      alt="Haie de Crayon"
+                      onerror="
+                        this.style.display = 'none';
+                        this.nextElementSibling.style.display = 'flex';
+                      "
+                    />
+                    <div class="tutorial-fallback-icon" style="display: none">
+                      ✏️
+                    </div>
+                  </div>
+                  <div class="tutorial-text">
+                    <strong>Haie de Crayon</strong>
+                    <span>Saute par-dessus</span>
+                  </div>
+                </div>
+                <div class="tutorial-row">
+                  <div class="tutorial-img-wrap">
+                    <img
+                      src="/assets/beam.png"
+                      alt="Barre"
+                      onerror="
+                        this.style.display = 'none';
+                        this.nextElementSibling.style.display = 'flex';
+                      "
+                    />
+                    <div class="tutorial-fallback-icon" style="display: none">
+                      📏
+                    </div>
+                  </div>
+                  <div class="tutorial-text">
+                    <strong>Barre</strong>
+                    <span>Glisse en dessous</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cibles GOUV Section -->
+              <div class="tutorial-card highlight-card">
+                <h3 class="tutorial-card-title text-magenta">CIBLES GOUV</h3>
+                <div class="tutorial-row">
+                  <div class="tutorial-img-wrap">
+                    <img
+                      src="/assets/gouv.png"
+                      alt="GOUV"
+                      onerror="
+                        this.style.display = 'none';
+                        this.nextElementSibling.style.display = 'flex';
+                      "
+                    />
+                    <div class="tutorial-fallback-icon" style="display: none">
+                      👮
+                    </div>
+                  </div>
+                  <div class="tutorial-text">
+                    <strong>Attention aux GOUVs !</strong>
+                    <span
+                      >Ils s'approchent de toi ! Tapote pour leur lancer un ballon
+                      d'eau (+250 pts). Si tu les touches, tu perds une vie !</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pièces & Vies Section -->
+              <div class="tutorial-card">
+                <h3 class="tutorial-card-title text-cyan">COLLECTIBLES & VIES</h3>
+                <div class="tutorial-row">
+                  <div class="tutorial-img-wrap">
+                    <img
+                      src="/assets/coin.png"
+                      alt="Pièce"
+                      onerror="
+                        this.style.display = 'none';
+                        this.nextElementSibling.style.display = 'flex';
+                      "
+                    />
+                    <div class="tutorial-fallback-icon" style="display: none">
+                      🪙
+                    </div>
+                  </div>
+                  <div class="tutorial-text">
+                    <strong>Pièces d'Or</strong>
+                    <span>Ramasse les pièces pour gagner +100 pts !</span>
+                  </div>
+                </div>
+                <div class="tutorial-row">
+                  <div class="tutorial-icon-badge">❤️</div>
+                  <div class="tutorial-text">
+                    <strong>3 Vies (Cœurs)</strong>
+                    <span>Évite les dégâts pour survivre toute ta semaine !</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          <!-- Commandes Section -->
-          <div class="tutorial-card">
-            <h3 class="tutorial-card-title">COMMANDES</h3>
-            <div class="tutorial-row">
-              <div class="tutorial-icon-badge">↔️</div>
-              <div class="tutorial-text">
-                <strong>Changer de voie</strong>
-                <span>Glisse Gauche / Droite</span>
-              </div>
-            </div>
-            <div class="tutorial-row">
-              <div class="tutorial-icon-badge">⬆️</div>
-              <div class="tutorial-text">
-                <strong>Sauter</strong>
-                <span>Glisse Vers le Haut</span>
-              </div>
-            </div>
-            <div class="tutorial-row">
-              <div class="tutorial-icon-badge">⬇️</div>
-              <div class="tutorial-text">
-                <strong>Glisser</strong>
-                <span>Glisse Vers le Bas</span>
-              </div>
-            </div>
-            <div class="tutorial-row">
-              <div class="tutorial-icon-badge">💧</div>
-              <div class="tutorial-text">
-                <strong>Lancer un Ballon d'eau</strong>
-                <span>Tapote l'écran</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Obstacles & Hazards Section -->
-          <div class="tutorial-card">
-            <h3 class="tutorial-card-title">OBSTACLES & DANGERS</h3>
-            <div class="tutorial-row">
-              <div class="tutorial-img-wrap">
-                <img
-                  src="/assets/barrier.png"
-                  alt="Boîte en Carton"
-                  onerror="
-                    this.style.display = 'none';
-                    this.nextElementSibling.style.display = 'flex';
-                  "
-                />
-                <div class="tutorial-fallback-icon" style="display: none">
-                  📦
-                </div>
-              </div>
-              <div class="tutorial-text">
-                <strong>Boîte en Carton</strong>
-                <span>Change de voie pour éviter</span>
-              </div>
-            </div>
-            <div class="tutorial-row">
-              <div class="tutorial-img-wrap">
-                <img
-                  src="/assets/hurdle.png"
-                  alt="Haie de Crayon"
-                  onerror="
-                    this.style.display = 'none';
-                    this.nextElementSibling.style.display = 'flex';
-                  "
-                />
-                <div class="tutorial-fallback-icon" style="display: none">
-                  ✏️
-                </div>
-              </div>
-              <div class="tutorial-text">
-                <strong>Haie de Crayon</strong>
-                <span>Saute par-dessus</span>
-              </div>
-            </div>
-            <div class="tutorial-row">
-              <div class="tutorial-img-wrap">
-                <img
-                  src="/assets/beam.png"
-                  alt="Barre"
-                  onerror="
-                    this.style.display = 'none';
-                    this.nextElementSibling.style.display = 'flex';
-                  "
-                />
-                <div class="tutorial-fallback-icon" style="display: none">
-                  📏
-                </div>
-              </div>
-              <div class="tutorial-text">
-                <strong>Barre</strong>
-                <span>Glisse en dessous</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Cibles GOUV Section -->
-          <div class="tutorial-card highlight-card">
-            <h3 class="tutorial-card-title text-magenta">CIBLES GOUV</h3>
-            <div class="tutorial-row">
-              <div class="tutorial-img-wrap">
-                <img
-                  src="/assets/gouv.png"
-                  alt="GOUV"
-                  onerror="
-                    this.style.display = 'none';
-                    this.nextElementSibling.style.display = 'flex';
-                  "
-                />
-                <div class="tutorial-fallback-icon" style="display: none">
-                  👮
-                </div>
-              </div>
-              <div class="tutorial-text">
-                <strong>Attention aux GOUVs !</strong>
-                <span
-                  >Ils s'approchent de toi ! Tapote pour leur lancer un ballon
-                  d'eau (+250 pts). Si tu les touches, tu perds une vie !</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <!-- Pièces & Vies Section -->
-          <div class="tutorial-card">
-            <h3 class="tutorial-card-title text-cyan">COLLECTIBLES & VIES</h3>
-            <div class="tutorial-row">
-              <div class="tutorial-img-wrap">
-                <img
-                  src="/assets/coin.png"
-                  alt="Pièce"
-                  onerror="
-                    this.style.display = 'none';
-                    this.nextElementSibling.style.display = 'flex';
-                  "
-                />
-                <div class="tutorial-fallback-icon" style="display: none">
-                  🪙
-                </div>
-              </div>
-              <div class="tutorial-text">
-                <strong>Pièces d'Or</strong>
-                <span>Ramasse les pièces pour gagner +100 pts !</span>
-              </div>
-            </div>
-            <div class="tutorial-row">
-              <div class="tutorial-icon-badge">❤️</div>
-              <div class="tutorial-text">
-                <strong>3 Vies (Cœurs)</strong>
-                <span>Évite les dégâts pour survivre toute ta semaine !</span>
-              </div>
-            </div>
+          <div class="modal-footer">
+            <button id="tutorial-back-btn" class="neon-btn outline btn-back">RETOUR</button>
           </div>
         </div>
-
-        <button id="tutorial-back-btn" class="neon-btn outline">RETOUR</button>
       </div>
 
       <!-- Schedule / Horaire Screen -->
       <div id="schedule-screen" class="screen-overlay hidden">
-        <div class="schedule-container">
-          <div class="hero">
-            <h2>Ta p'tite semaine <span>d'intégration</span></h2>
-            <p class="sub">Faculté de génie · Université de Sherbrooke</p>
+        <div class="modal-shell">
+          <div class="modal-header">
+            <div class="hero">
+              <h2>Ta p'tite semaine <span>d'intégration</span></h2>
+              <p class="sub">Faculté de génie · Université de Sherbrooke</p>
 
-            <div class="legend">
-              <span><i class="dot feuille"></i> Accueil officiel</span>
-              <span><i class="dot soleil"></i> Activités</span>
-              <span><i class="dot fraise"></i> Soirées</span>
-            </div>
-          </div>
-
-          <div class="board">
-            <div class="schedule-tabs" id="schedule-tabs">
-              <div class="schedule-tab active" data-day="lundi">
-                <span class="emoji">🐸</span>
-                <span class="date">11 août</span>
-                <span class="name">LUN</span>
-              </div>
-              <div class="schedule-tab" data-day="mardi">
-                <span class="emoji">🧀</span>
-                <span class="date">1 sept.</span>
-                <span class="name">MAR</span>
-              </div>
-              <div class="schedule-tab" data-day="mercredi">
-                <span class="emoji">🎭</span>
-                <span class="date">2 sept.</span>
-                <span class="name">MER</span>
-              </div>
-              <div class="schedule-tab" data-day="jeudi">
-                <span class="emoji">🎈</span>
-                <span class="date">3 sept.</span>
-                <span class="name">JEU</span>
-              </div>
-            </div>
-
-            <div class="schedule-panel active" id="panel-lundi">
-              <p class="daytitle">🐸 Lundi 11 août</p>
-              <div class="timeline">
-                <div class="timeline-item feuille">
-                  <span class="stripe"></span>
-                  <span class="t">7:00 – 8:30</span>
-                  <span class="title">Accueil festif</span>
-                  <span class="loc">Faculté de génie</span>
-                </div>
-                <div class="timeline-item feuille">
-                  <span class="stripe"></span>
-                  <span class="t">8:30 – 10:00</span>
-                  <span class="title">Accueil facultaire</span>
-                  <span class="loc">Salle Maurice-O'Bready</span>
-                </div>
-                <div class="timeline-item feuille">
-                  <span class="stripe"></span>
-                  <span class="t">10:00 – 13:30</span>
-                  <span class="title">Kiosques des groupes & distribution des sacs</span>
-                  <span class="loc">Studio de création</span>
-                </div>
-                <div class="timeline-item soleil">
-                  <span class="stripe"></span>
-                  <span class="t">16:30 – 18:00</span>
-                  <span class="title">Rallye</span>
-                  <span class="loc">Campus principal</span>
-                </div>
-                <div class="timeline-item soleil">
-                  <span class="stripe"></span>
-                  <span class="t">18:00 – 20:00</span>
-                  <span class="title">Souper spaghetti du Café Chaos</span>
-                  <span class="loc">Faculté de génie</span>
-                </div>
-                <div class="timeline-item soleil">
-                  <span class="stripe"></span>
-                  <span class="t">20:00 – minuit</span>
-                  <span class="title">Marathon Monday</span>
-                  <span class="loc">P'tite Grenouille</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="schedule-panel" id="panel-mardi">
-              <p class="daytitle">🧀 Mardi 1 septembre</p>
-              <div class="timeline">
-                <div class="timeline-item soleil">
-                  <span class="stripe"></span>
-                  <span class="t">19:00 – 3:00</span>
-                  <span class="title">Mardi détente</span>
-                  <span class="loc">Départ des autobus devant la Faculté de génie</span>
-                </div>
-              </div>
-              <p class="freeday">Journée libre le reste du temps — check ton horaire sur Horarius</p>
-            </div>
-
-            <div class="schedule-panel" id="panel-mercredi">
-              <p class="daytitle">🎭 Mercredi 2 septembre</p>
-              <div class="timeline">
-                <div class="timeline-item feuille">
-                  <span class="stripe"></span>
-                  <span class="t">16:30 – 18:30</span>
-                  <span class="title">Souper de la doyenne</span>
-                  <span class="loc">Faculté de génie</span>
-                </div>
-                <div class="timeline-item fraise">
-                  <span class="stripe"></span>
-                  <span class="t">19:00 – 23:00</span>
-                  <span class="title">Spectacle de la rentrée de la FEUS</span>
-                  <span class="loc">Campus principal</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="schedule-panel" id="panel-jeudi">
-              <p class="daytitle">🎈 Jeudi 3 septembre</p>
-              <div class="timeline">
-                <div class="timeline-item soleil">
-                  <span class="stripe"></span>
-                  <span class="t">9:30 – 11:00</span>
-                  <span class="title">Activités propres</span>
-                  <span class="loc">Départ devant la Faculté de génie</span>
-                </div>
-                <div class="timeline-item soleil">
-                  <span class="stripe"></span>
-                  <span class="t">11:00 – 12:00</span>
-                  <span class="title">Dîner</span>
-                </div>
-                <div class="timeline-item soleil">
-                  <span class="stripe"></span>
-                  <span class="t">12:00 – 14:00</span>
-                  <span class="title">Activités sales</span>
-                  <span class="loc">Campus principal</span>
-                </div>
-                <div class="timeline-item fraise">
-                  <span class="stripe"></span>
-                  <span class="t">17:00 – 20:00</span>
-                  <span class="title">5 à 8</span>
-                  <span class="loc">Faculté de génie</span>
-                </div>
+              <div class="legend">
+                <span><i class="dot feuille"></i> Accueil officiel</span>
+                <span><i class="dot soleil"></i> Activités</span>
+                <span><i class="dot fraise"></i> Soirées</span>
               </div>
             </div>
           </div>
 
-          <div class="dresswrap">
-            <div class="dresstitle">👕 Code vestimentaire</div>
-            <div class="dresscard">
-              <b>Lundi</b>Apporte tes objets à l'accueil festif. Pour la soirée, prévois des vêtements à salir.
+          <div class="modal-body">
+            <div class="schedule-container">
+              <div class="board">
+                <div class="schedule-tabs" id="schedule-tabs">
+                  <div class="schedule-tab active" data-day="lundi">
+                    <span class="emoji">🐸</span>
+                    <span class="date">11 août</span>
+                    <span class="name">LUN</span>
+                  </div>
+                  <div class="schedule-tab" data-day="mardi">
+                    <span class="emoji">🧀</span>
+                    <span class="date">1 sept.</span>
+                    <span class="name">MAR</span>
+                  </div>
+                  <div class="schedule-tab" data-day="mercredi">
+                    <span class="emoji">🎭</span>
+                    <span class="date">2 sept.</span>
+                    <span class="name">MER</span>
+                  </div>
+                  <div class="schedule-tab" data-day="jeudi">
+                    <span class="emoji">🎈</span>
+                    <span class="date">3 sept.</span>
+                    <span class="name">JEU</span>
+                  </div>
+                </div>
+
+                <div class="schedule-panel active" id="panel-lundi">
+                  <p class="daytitle">🐸 Lundi 11 août</p>
+                  <div class="timeline">
+                    <div class="timeline-item feuille">
+                      <span class="stripe"></span>
+                      <span class="t">7:00 – 8:30</span>
+                      <span class="title">Accueil festif</span>
+                      <span class="loc">Faculté de génie</span>
+                    </div>
+                    <div class="timeline-item feuille">
+                      <span class="stripe"></span>
+                      <span class="t">8:30 – 10:00</span>
+                      <span class="title">Accueil facultaire</span>
+                      <span class="loc">Salle Maurice-O'Bready</span>
+                    </div>
+                    <div class="timeline-item feuille">
+                      <span class="stripe"></span>
+                      <span class="t">10:00 – 13:30</span>
+                      <span class="title">Kiosques des groupes &amp; distribution des sacs</span>
+                      <span class="loc">Studio de création</span>
+                    </div>
+                    <div class="timeline-item soleil">
+                      <span class="stripe"></span>
+                      <span class="t">16:30 – 18:00</span>
+                      <span class="title">Rallye</span>
+                      <span class="loc">Campus principal</span>
+                    </div>
+                    <div class="timeline-item soleil">
+                      <span class="stripe"></span>
+                      <span class="t">18:00 – 20:00</span>
+                      <span class="title">Souper spaghetti du Café Chaos</span>
+                      <span class="loc">Faculté de génie</span>
+                    </div>
+                    <div class="timeline-item soleil">
+                      <span class="stripe"></span>
+                      <span class="t">20:00 – minuit</span>
+                      <span class="title">Marathon Monday</span>
+                      <span class="loc">P'tite Grenouille</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="schedule-panel" id="panel-mardi">
+                  <p class="daytitle">🧀 Mardi 1 septembre</p>
+                  <div class="timeline">
+                    <div class="timeline-item soleil">
+                      <span class="stripe"></span>
+                      <span class="t">19:00 – 3:00</span>
+                      <span class="title">Mardi détente</span>
+                      <span class="loc">Départ des autobus devant la Faculté de génie</span>
+                    </div>
+                  </div>
+                  <p class="freeday">Journée libre le reste du temps — check ton horaire sur Horarius</p>
+                </div>
+
+                <div class="schedule-panel" id="panel-mercredi">
+                  <p class="daytitle">🎭 Mercredi 2 septembre</p>
+                  <div class="timeline">
+                    <div class="timeline-item feuille">
+                      <span class="stripe"></span>
+                      <span class="t">16:30 – 18:30</span>
+                      <span class="title">Souper de la doyenne</span>
+                      <span class="loc">Faculté de génie</span>
+                    </div>
+                    <div class="timeline-item fraise">
+                      <span class="stripe"></span>
+                      <span class="t">19:00 – 23:00</span>
+                      <span class="title">Spectacle de la rentrée de la FEUS</span>
+                      <span class="loc">Campus principal</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="schedule-panel" id="panel-jeudi">
+                  <p class="daytitle">🎈 Jeudi 3 septembre</p>
+                  <div class="timeline">
+                    <div class="timeline-item soleil">
+                      <span class="stripe"></span>
+                      <span class="t">9:30 – 11:00</span>
+                      <span class="title">Activités propres</span>
+                      <span class="loc">Départ devant la Faculté de génie</span>
+                    </div>
+                    <div class="timeline-item soleil">
+                      <span class="stripe"></span>
+                      <span class="t">11:00 – 12:00</span>
+                      <span class="title">Dîner</span>
+                    </div>
+                    <div class="timeline-item soleil">
+                      <span class="stripe"></span>
+                      <span class="t">12:00 – 14:00</span>
+                      <span class="title">Activités sales</span>
+                      <span class="loc">Campus principal</span>
+                    </div>
+                    <div class="timeline-item fraise">
+                      <span class="stripe"></span>
+                      <span class="t">17:00 – 20:00</span>
+                      <span class="title">5 à 8</span>
+                      <span class="loc">Faculté de génie</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dresswrap">
+                <div class="dresstitle">👕 Code vestimentaire</div>
+                <div class="dresscard">
+                  <b>Lundi</b>Apporte tes objets à l'accueil festif. Pour la soirée, prévois des vêtements à salir.
+                </div>
+                <div class="dresscard">
+                  <b>Mardi</b>Pour la soirée, prévois des vêtements de yoga adaptés à la météo.
+                </div>
+                <div class="dresscard">
+                  <b>Mercredi</b>Pour le spectacle de la rentrée, prévois des vêtements propres.
+                </div>
+                <div class="dresscard">
+                  <b>Jeudi</b>Maillot de bain sous ton costume pour une belle journée d'activités. Le soir, sors tes plus beaux habits (photo scolaire) !
+                </div>
+                <p class="note">☀️ Heure variable selon ton horaire de cours (disponible sur Horarius)</p>
+              </div>
+
+              <div class="schedule-footer">bonne semaine d'intégration 🎒</div>
             </div>
-            <div class="dresscard">
-              <b>Mardi</b>Pour la soirée, prévois des vêtements de yoga adaptés à la météo.
-            </div>
-            <div class="dresscard">
-              <b>Mercredi</b>Pour le spectacle de la rentrée, prévois des vêtements propres.
-            </div>
-            <div class="dresscard">
-              <b>Jeudi</b>Maillot de bain sous ton costume pour une belle journée d'activités. Le soir, sors tes plus beaux habits (photo scolaire) !
-            </div>
-            <p class="note">☀️ Heure variable selon ton horaire de cours (disponible sur Horarius)</p>
           </div>
 
-          <div class="schedule-footer">bonne semaine d'intégration 🎒</div>
+          <div class="modal-footer">
+            <button id="schedule-back-btn" class="neon-btn outline btn-back">RETOUR</button>
+          </div>
         </div>
-
-        <button id="schedule-back-btn" class="neon-btn outline">RETOUR</button>
       </div>
 
       <!-- Leaderboard Screen -->
       <div id="leaderboard-screen" class="screen-overlay hidden">
-        <h2 class="screen-title">LES TRYHARDs</h2>
-        <div class="leaderboard-tabs">
-          <button id="tab-individual" class="tab-btn active">INDIVIDUEL</button>
-          <button id="tab-teams" class="tab-btn">ÉQUIPES</button>
+        <div class="modal-shell">
+          <div class="modal-header">
+            <h2 class="screen-title">LES TRYHARDs</h2>
+            <div class="leaderboard-tabs">
+              <button id="tab-individual" class="tab-btn active">INDIVIDUEL</button>
+              <button id="tab-teams" class="tab-btn">ÉQUIPES</button>
+            </div>
+          </div>
+          <div class="modal-body">
+            <div class="leaderboard-table-container">
+              <table class="leaderboard-table">
+                <thead id="leaderboard-thead">
+                  <tr>
+                    <th style="width: 12%">#</th>
+                    <th style="text-align: left">NEUVE</th>
+                    <th style="text-align: left">ÉQUIPE</th>
+                    <th style="text-align: right">SCORE</th>
+                  </tr>
+                </thead>
+                <tbody id="leaderboard-entries">
+                  <!-- Dynamically loaded entries -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="leaderboard-back-btn" class="neon-btn outline btn-back">RETOUR</button>
+          </div>
         </div>
-        <div class="leaderboard-table-container">
-          <table class="leaderboard-table">
-            <thead id="leaderboard-thead">
-              <tr>
-                <th style="width: 12%">#</th>
-                <th style="text-align: left">NEUVE</th>
-                <th style="text-align: left">ÉQUIPE</th>
-                <th style="text-align: right">SCORE</th>
-              </tr>
-            </thead>
-            <tbody id="leaderboard-entries">
-              <!-- Dynamically loaded entries -->
-            </tbody>
-          </table>
-        </div>
-        <button id="leaderboard-back-btn" class="neon-btn outline">
-          RETOUR
-        </button>
       </div>
 
       <!-- Game Over Screen (Dual-State Arcade Flow) -->
       <div id="game-over-screen" class="screen-overlay hidden">
-        <!-- State 1: Regular Game Over (Not Qualified) -->
-        <div id="game-over-regular" class="game-over-substate hidden">
-          <h2 class="screen-title text-magenta">GAME OVER</h2>
-          <div class="final-score-container">
-            <span class="score-label">SCORE FINAL</span>
-            <span id="final-score-val-regular" class="score-value">0</span>
+        <div class="modal-shell">
+          <!-- State 1: Regular Game Over (Not Qualified) -->
+          <div id="game-over-regular" class="game-over-substate hidden">
+            <h2 class="screen-title text-magenta">GAME OVER</h2>
+            <div class="final-score-container">
+              <span class="score-label">SCORE FINAL</span>
+              <span id="final-score-val-regular" class="score-value">0</span>
+            </div>
+            <div class="menu-actions">
+              <button id="retry-btn-regular" class="neon-btn cyan">
+                RÉESSAYER
+              </button>
+              <button id="main-menu-btn-regular" class="neon-btn outline">
+                MENU PRINCIPAL
+              </button>
+              <button id="leaderboard-btn-regular" class="neon-btn magenta">
+                LEADERBOARD
+              </button>
+            </div>
           </div>
-          <div class="menu-actions">
-            <button id="retry-btn-regular" class="neon-btn cyan">
-              RÉESSAYER
-            </button>
-            <button id="main-menu-btn-regular" class="neon-btn outline">
-              MENU PRINCIPAL
-            </button>
-            <button id="leaderboard-btn-regular" class="neon-btn magenta">
-              LEADERBOARD
-            </button>
-          </div>
-        </div>
 
-        <!-- State 2: New High Score Qualified -->
-        <div id="game-over-highscore" class="game-over-substate hidden">
-          <h2 class="screen-title text-cyan">GOD DAMM!</h2>
-          <p class="game-subtitle" style="margin-bottom: 0.5rem">
-            Ahh ouais pas mal le score
-          </p>
-          <div class="rank-badge-container header-badge">
-            <span id="predicted-rank-val" class="rank-badge-val">RANG #1</span>
-            <span class="badge-bullet">•</span>
-            <span class="badge-score-text"
-              >SCORE:
-              <span id="final-score-val-highscore" class="score-value-inline"
-                >0</span
-              ></span
-            >
-          </div>
-          <form id="score-submit-form" class="score-form">
-            <label for="username" class="form-label">ENTRE TON NOM</label>
-            <input
-              type="text"
-              id="username"
-              class="form-input"
-              minlength="2"
-              maxlength="12"
-              required
-              placeholder="JOUEUR 1"
-              autocomplete="off"
-            />
-            <label for="team-select" class="form-label"
-              >SÉLECTIONNE TON ÉQUIPE</label
-            >
-            <select id="team-select" class="form-select" required>
-              <option value="" disabled selected>CHOISIS UNE ÉQUIPE...</option>
-              <option value="Schtroumpfettes Pompettes">
-                Schtroumpfettes Pompettes
-              </option>
-              <option value="Passe-MontAngine de Poitrine">
-                Passe-MontAngine de Poitrine
-              </option>
-              <option value="Johnny Alcoo-Test">Johnny Alcoo-Test</option>
-              <option value="Les Mélodibroues">Les Mélodibroues</option>
-              <option value="Garfeeling">Garfeeling</option>
-              <option value="Loups-Guru">Loups-Guru</option>
-              <option value="Bubly Ponge">Bubly Ponge</option>
-              <option value="Justin Bieberon">Justin Bieberon</option>
-              <option value="Kabusch et les Krashpoils">
-                Kabusch et les Krashpoils
-              </option>
-              <option value="Arc'teryx et Obétwist">
-                Arc'teryx et Obétwist
-              </option>
-              <option value="Tequila Spies">Tequila Spies</option>
-              <option value="Buzzball chasseur">Buzzball chasseur</option>
-              <option value="Pabst Patrouille">Pabst Patrouille</option>
-              <option value="Homme sur Bière">Homme sur Bière</option>
-              <option value="Clope penguin">Clope penguin</option>
-              <option value="Pokérhum">Pokérhum</option>
-              <option value="Pabst-Partout">Pabst-Partout</option>
-              <option value="Teletobeerz">Teletobeerz</option>
-              <option value="Busch Lightyear">Busch Lightyear</option>
-              <option value="Babush Ice">Babush Ice</option>
-              <option value="GOUV">GOUV</option>
-              <option value="CO">CO</option>
-            </select>
-            <button type="submit" id="submit-score-btn" class="neon-btn cyan">
-              TU FLEX TU BOIS
-            </button>
-          </form>
-          <div id="submit-status-msg" class="submit-status hidden"></div>
-          <div class="menu-actions vertical secondary-actions">
-            <button id="skip-submit-retry-btn" class="neon-btn outline small">
-              RÉESSAYER
-            </button>
-            <button id="skip-submit-menu-btn" class="neon-btn outline small">
-              MENU PRINCIPAL
-            </button>
+          <!-- State 2: New High Score Qualified -->
+          <div id="game-over-highscore" class="game-over-substate hidden">
+            <h2 class="screen-title text-cyan">GOD DAMM!</h2>
+            <p class="game-subtitle" style="margin-bottom: 0.5rem">
+              Ahh ouais pas mal le score
+            </p>
+            <div class="rank-badge-container header-badge">
+              <span id="predicted-rank-val" class="rank-badge-val">RANG #1</span>
+              <span class="badge-bullet">•</span>
+              <span class="badge-score-text"
+                >SCORE:
+                <span id="final-score-val-highscore" class="score-value-inline"
+                  >0</span
+                ></span
+              >
+            </div>
+            <form id="score-submit-form" class="score-form">
+              <label for="username" class="form-label">ENTRE TON NOM</label>
+              <input
+                type="text"
+                id="username"
+                class="form-input"
+                minlength="2"
+                maxlength="12"
+                required
+                placeholder="JOUEUR 1"
+                autocomplete="off"
+              />
+              <label for="team-select" class="form-label"
+                >SÉLECTIONNE TON ÉQUIPE</label
+              >
+              <select id="team-select" class="form-select" required>
+                <option value="" disabled selected>CHOISIS UNE ÉQUIPE...</option>
+                <option value="Schtroumpfettes Pompettes">
+                  Schtroumpfettes Pompettes
+                </option>
+                <option value="Passe-MontAngine de Poitrine">
+                  Passe-MontAngine de Poitrine
+                </option>
+                <option value="Johnny Alcoo-Test">Johnny Alcoo-Test</option>
+                <option value="Les Mélodibroues">Les Mélodibroues</option>
+                <option value="Garfeeling">Garfeeling</option>
+                <option value="Loups-Guru">Loups-Guru</option>
+                <option value="Bubly Ponge">Bubly Ponge</option>
+                <option value="Justin Bieberon">Justin Bieberon</option>
+                <option value="Kabusch et les Krashpoils">
+                  Kabusch et les Krashpoils
+                </option>
+                <option value="Arc'teryx et Obétwist">
+                  Arc'teryx et Obétwist
+                </option>
+                <option value="Tequila Spies">Tequila Spies</option>
+                <option value="Buzzball chasseur">Buzzball chasseur</option>
+                <option value="Pabst Patrouille">Pabst Patrouille</option>
+                <option value="Homme sur Bière">Homme sur Bière</option>
+                <option value="Clope penguin">Clope penguin</option>
+                <option value="Pokérhum">Pokérhum</option>
+                <option value="Pabst-Partout">Pabst-Partout</option>
+                <option value="Teletobeerz">Teletobeerz</option>
+                <option value="Busch Lightyear">Busch Lightyear</option>
+                <option value="Babush Ice">Babush Ice</option>
+                <option value="GOUV">GOUV</option>
+                <option value="CO">CO</option>
+              </select>
+              <button type="submit" id="submit-score-btn" class="neon-btn cyan">
+                TU FLEX TU BOIS
+              </button>
+            </form>
+            <div id="submit-status-msg" class="submit-status hidden"></div>
+            <div class="menu-actions vertical secondary-actions">
+              <button id="skip-submit-retry-btn" class="neon-btn outline small">
+                RÉESSAYER
+              </button>
+              <button id="skip-submit-menu-btn" class="neon-btn outline small">
+                MENU PRINCIPAL
+              </button>
+            </div>
           </div>
         </div>
       </div>
