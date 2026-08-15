@@ -108,7 +108,7 @@ create policy "Allow public insert access" on public.high_scores
 ### Scoreboard & High Scores (Arcade Leaderboard System)
 
 - Score automatically increases continuously over time as the player survives (accumulating at a rate of +10 points per second elapsed) plus +100 points for collected coins.
-- **Centralized Limit Configuration (`MAX_LEADERBOARD_ENTRIES`)**: The maximum number of entries displayed and stored on the global leaderboard is governed globally by the exported constant `MAX_LEADERBOARD_ENTRIES` (default `20` in `src/supabase.js`). Changing this single value scales the leaderboard limit across database queries, local storage fallbacks, qualification logic, and UI rendering.
+- **Centralized Limit Configuration (`MAX_LEADERBOARD_ENTRIES`)**: The maximum number of entries displayed and stored on the global leaderboard is governed globally by the exported constant `MAX_LEADERBOARD_ENTRIES` (default `100` in `src/supabase.js`). Changing this single value scales the leaderboard limit across database queries, local storage fallbacks, qualification logic, and UI rendering.
 - **Database Schema & SQL Setup**:
   ```sql
   CREATE TABLE high_scores (
@@ -119,11 +119,11 @@ create policy "Allow public insert access" on public.high_scores
     created_at TIMESTAMPTZ DEFAULT NOW()
   );
   ```
-- **20 Integration Teams**:
-  Players select their orientation team from a custom list of 20 orientation teams (`INTEGRATION_TEAMS` exported from `src/supabase.js`):
+- **22 Integration Teams**:
+  Players select their orientation team from a custom list of 22 orientation teams (`INTEGRATION_TEAMS` exported from `src/supabase.js`):
   1. `Schtroumpfettes Pompettes`
   2. `Passe-MontAngine de Poitrine`
-  3. `Johnny Alcooo-Test`
+  3. `Johnny Alcoo-Test`
   4. `Les Mélodibroues`
   5. `Garfeeling`
   6. `Loups-Guru`
@@ -141,9 +141,11 @@ create policy "Allow public insert access" on public.high_scores
   18. `Teletobeerz`
   19. `Busch Lightyear`
   20. `Babush Ice`
+  21. `GOUV`
+  22. `CO`
 - **Dual-Tab Leaderboard System**:
   - **`[INDIVIDUAL]` Tab**: Displays individual player ranks (1st, 2nd, 3rd with gold, silver, bronze marker accents), runner names, team badges/names, and personal scores (Top `MAX_LEADERBOARD_ENTRIES`).
-  - **`[TOP TEAMS]` Tab**: Displays overall team standings (Rank, Team Name, Total Combined Score of all team players in the Top 20, and Player Count).
+  - **`[TOP TEAMS]` Tab**: Displays overall team standings (Rank, Team Name, Total Combined Score of all team players in the Top 100, and Player Count).
 - **Arcade Qualification Check**: On Game Over, `qualifiesForLeaderboard(score)` evaluates if the player's score qualifies using ALL stored entries:
   - If the board is **completely empty** (0 entries): any score qualifies at rank 1.
   - If the board has existing entries: qualifies **only if** `score > lowestExistingScore` (the score of the last entry currently on the board). Open cap slots do NOT automatically qualify a score.
@@ -159,17 +161,19 @@ create policy "Allow public insert access" on public.high_scores
 The game user interface is structured into notebook card modal overlays and an in-game HUD:
 
 ### Main Menu Screen (`#main-menu`)
-- **Title Banner**: `C YINK UNE SEMAINE` logo with sketchy marker fonts and bright primary accent fills.
-- **Subtitle**: `"Survie a ta semaine d'intégration!"`
+- **Logo Mascot & Presenter Header**: `public/assets/title-mascot.png` mascot graphic banner (`.title-mascot`) positioned inside `.title-mascot-container` above the `"Freddy pizzeria présente..."` sub-header text and `C YINK UNE SEMAINE` title logo with sketchy marker fonts and bright primary accent fills.
+- **Subtitle**: `"Survis à ta semaine d'intégration!"`
 - **Controls & Instructions**: Visual summary of mobile swipe gestures ("Glisse vers le haut pour Sauter", "Glisse vers le bas pour Glisser") and action keys ("Appuie sur Espace pour lancer des ballons d'eau").
 - **Action Buttons**:
   - **`JOUER`**: Initializes the game loop and transitions to the HUD overlay.
   - **`LEADERBOARD`**: Opens the global high scores leaderboard overlay.
+  - **`HORAIRE`**: Opens the integration schedule screen / timetable modal overlay (`#schedule-screen`).
   - **`RÈGLES`**: Opens the tutorial screen / rules modal overlay (`#tutorial-screen`).
 
 ### Tutorial Screen / Modal (`#tutorial-screen`)
-- **Accessibility & Navigation**: Accessible via the `RÈGLES` button on the Main Menu located directly under the Leaderboard button. Includes a prominent `RETOUR` button at the bottom returning smoothly to the Main Menu.
-- **Notebook Modal Card Layout**: Designed as a concise, scrollable notebook modal card (`max-height: 80vh; overflow-y: auto;`) highlighting core gameplay mechanics using hand-drawn graphics and short descriptions in French:
+- **Accessibility & Navigation**: Accessible via the `RÈGLES` button on the Main Menu located directly under the Horaire button. Includes a prominent `RETOUR` button at the bottom returning smoothly to the Main Menu.
+- **Notebook Modal Card Layout**: Designed as a concise, scrollable notebook modal card (`max-height: 80vh; overflow-y: auto;`) highlighting core gameplay mechanics and rewards using hand-drawn graphics and short descriptions in French:
+  - **Prix & Récompenses (Freddy Pizzeria)**: Highlights prizes for 1st place individual runner (15$ promo code at Freddy Pizzeria) and winning team (15$ promo code draw).
   - **Commandes (Controls)**: Visual swipe & action icons:
     - Glisse Gauche/Droite pour changer de voie.
     - Glisse Haut pour Sauter.
@@ -181,6 +185,19 @@ The game user interface is structured into notebook card modal overlays and an i
     - **Barre d'Encre (Ink Beam)**: Glisser en dessous.
     - **Cibles GOUV**: Les GOUVs s'approchent comme des obstacles ! Tapoter pour leur lancer un ballon d'eau (+250 pts). Si touché, vous perdez une vie.
   - **Pièces D'or (Coins) & Vies**: Ramasser les pièces (+100 pts). Vous avez 3 cœurs de vie.
+
+### Schedule / Horaire Screen (`#schedule-screen`)
+- **Accessibility & Navigation**: Accessible via the `HORAIRE` button on the Main Menu. Includes a prominent `RETOUR` button (`#schedule-back-btn`) at the bottom returning smoothly to the Main Menu.
+- **Schedule Container & Hero Header**: Displays header `"Ta p'tite semaine d'intégration"`, subtitle `"Faculté de génie · Université de Sherbrooke"`, and category color legend:
+  - **Accueil officiel** (Green leaf indicator `.dot.feuille`)
+  - **Activités** (Yellow sun indicator `.dot.soleil`)
+  - **Soirées** (Red strawberry indicator `.dot.fraise`)
+- **Interactive Daily Schedule Tabs**:
+  - **`LUN` (11 août - 🐸)**: Timeline featuring Accueil festif (7:00 – 8:30, Faculté de génie), Accueil facultaire (8:30 – 10:00, Salle Maurice-O'Bready), Kiosques des groupes & distribution des sacs (10:00 – 13:30, Studio de création), Rallye (16:30 – 18:00, Campus principal), Souper spaghetti du Café Chaos (18:00 – 20:00, Faculté de génie), and Marathon Monday (20:00 – minuit, P'tite Grenouille).
+  - **`MAR` (1 sept. - 🧀)**: Timeline featuring Mardi détente (19:00 – 3:00, Bus departure from Faculté de génie) and free day notice for remaining hours.
+  - **`MER` (2 sept. - 🎭)**: Timeline featuring Souper de la doyenne (16:30 – 18:30, Faculté de génie) and Spectacle de la rentrée de la FEUS (19:00 – 23:00, Campus principal).
+  - **`JEU` (3 sept. - 🎈)**: Timeline featuring Activités propres (9:30 – 11:00, Departure Faculté de génie), Dîner (11:00 – 12:00), Activités sales (12:00 – 14:00, Campus principal), and 5 à 8 (17:00 – 20:00, Faculté de génie).
+- **Dress Code Section (`Code vestimentaire`)**: Daily clothing guidelines for Lundi (clothes to get dirty), Mardi (yoga clothes), Mercredi (clean clothes), and Jeudi (swimsuit under costume, evening attire for school photo).
 
 ### In-Game HUD (`#hud-overlay`)
 - **Score Display**: `SCORE` 6-digit zero-padded score counter (e.g. `001250`) rendered on a lined paper badge.
@@ -202,7 +219,7 @@ The game user interface is structured into notebook card modal overlays and an i
 - **State 2 – New High Score Prompt (Qualified)**:
   - Displayed when `scores.length < MAX_LEADERBOARD_ENTRIES` OR when the final score beats the current lowest leaderboard entry (`score > lowestScore`).
   - Hides `#game-over-regular` completely and displays header "GOD DAMM!", subtitle "Ahh ouais pas mal le score", a compact combined header badge (`RANG #X • SCORE: 001250`), and score submission form (`#score-submit-form`).
-  - **Form Requirements**: Requires both **Runner Name** (input field `#username` with label "ENTRE TON NOM" and placeholder "JOUEUR 1", 2–12 characters, uppercase/trimmed) and **Team Selection** (styled `<select id="team-select" required>` dropdown with label "SÉLECTIONNE TON ÉQUIPE" populated with the orientation teams).
+  - **Form Requirements**: Requires both **Runner Name** (input field `#username` with label "ENTRE TON NOM" and placeholder "JOUEUR 1", 2–12 characters, uppercase/trimmed) and **Team Selection** (styled `<select id="team-select" required>` dropdown with label "SÉLECTIONNE TON ÉQUIPE" populated with the 22 orientation teams including `GOUV` and `CO`).
   - **Primary Action Button**: `[TU FLEX, TU BOIS]` (Submits score and transitions to Leaderboard).
   - **Secondary Actions (below form)**:
     - `[RÉESSAYER SANS ENREGISTRER]` (`#skip-submit-retry-btn`): Retries run immediately without submitting score.
@@ -212,7 +229,7 @@ The game user interface is structured into notebook card modal overlays and an i
 ### Leaderboard Screen (`#leaderboard-screen`)
 - **Vertical Spacing & Layout**: `#leaderboard-screen` is configured as a flex container (`flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box; padding: 1.5rem 1rem;`). The `.screen-title` ("LES TRYHARDs") stays firmly at the top, tab toggles (`#tab-individual` and `#tab-teams`) sit directly below, `#leaderboard-back-btn` is pinned cleanly at the bottom, and `.leaderboard-table-container` fills the spacious center (`flex: 1; min-height: 50vh; width: 100%; overflow-y: auto; margin: 0.75rem 0;`).
 - **Dual-Tab System**:
-  - `[INDIVIDUEL]` Tab: Displays top 20 runner scores (`#`, `NEUVE`, `ÉQUIPE`, `SCORE`).
+  - `[INDIVIDUEL]` Tab: Displays top runner scores (`#`, `NEUVE`, `ÉQUIPE`, `SCORE`, up to `MAX_LEADERBOARD_ENTRIES`).
   - `[ÉQUIPES]` Tab: Displays team rankings (`#`, `ÉQUIPE`, `MEMBRES`, `POINTS TOTAL`), computing total points and runner count per team from the leaderboard dataset.
 - **Rankings Table & Styling**: Formatted with rank numbers (1st, 2nd, 3rd highlighted with gold, silver, bronze marker accents). Styled with a subtle paper card background, notebook border line, custom sketch scrollbar, and notebook button tab toggles. Newly submitted scores are highlighted with a gold marker stroke background.
 - **Navigation**: `RETOUR` button returning smoothly to the Main Menu.
@@ -288,16 +305,16 @@ All sound channels route through a central `MasterGain` node:
 The application follows a modular architecture using ES modules for clean separation of concerns:
 
 - **`src/perspective.js`**: Central 3D perspective projection module exporting `projectPosition` and `projectLane` mapping 3D world coordinates `(posX/lane, worldY, z)` to 2D canvas screen coordinates.
-- **`src/assets.js`**: Image asset preloader module loading static images from `public/assets/` (`player.png`, `barrier.png`, `hurdle.png`, `beam.png`, `obstacle.png`, `coin.png`, `background.png`) with graceful error handling that falls back to procedural doodle rendering if images are missing.
+- **`src/assets.js`**: Image asset preloader module loading static images from `public/assets/` (`player.png`, `barrier.png`, `hurdle.png`, `beam.png`, `obstacle.png`, `coin.png`, `background.png`, `gouv.png`) with graceful error handling that falls back to procedural doodle rendering if images are missing.
 - **`src/player.js`**: `Player` class managing player lane state, smooth horizontal interpolation, jump/slide physics, and hand-drawn paper airplane / doodle chevron canvas rendering.
-- **`src/obstacles.js`**: `ObstacleManager` class managing procedural hazard spawning (Cardboard Box, Pencil Hurdle, Ink Beam), 3D perspective scaling math, and hand-drawn sketch canvas rendering.
+- **`src/obstacles.js`**: `ObstacleManager` class managing procedural hazard spawning (Cardboard Box, Pencil Hurdle, Ink Beam, GOUV target), 3D perspective scaling math, and hand-drawn sketch canvas rendering.
 - **`src/collectibles.js`**: `CoinManager` class managing coin/star pattern generation, spinning star animations, pickup collection checks, Web Audio sound synthesis, crayon particle explosions, and custom image rendering.
-- **`src/ui.js`**: UI helper module managing HUD score displays, hand-drawn crayon heart indicators, screen shake transforms, damage screen flashes, notebook screen overlay transitions, and leaderboard DOM updates.
-- **`src/game.js`**: Main `Game` orchestrator managing asset preloading, the `requestAnimationFrame` loop, delta time calculations, notebook background/doodle sun/pencil grid rendering, module coordination, and collision checks.
-- **`src/input.js`**: `InputHandler` managing keyboard and mobile touch swipe input events.
+- **`src/ui.js`**: UI helper module managing HUD score displays, hand-drawn crayon heart indicators, screen shake transforms, damage screen flashes, notebook screen overlay transitions (Main Menu, HUD, Leaderboard, Tutorial, Schedule, Game Over), and leaderboard DOM updates.
+- **`src/game.js`**: Main `Game` orchestrator managing asset preloading, the `requestAnimationFrame` loop, delta time calculations, notebook background/doodle sun/pencil grid rendering, module coordination, water balloon projectiles, and collision checks.
+- **`src/input.js`**: `InputHandler` managing keyboard and mobile touch swipe / stationary tap input events.
 - **`src/audio.js`**: `AudioManager` class and singleton instance managing Web Audio synthesis, single `AudioContext` lifecycle, master mixer gain nodes, sound cooldowns, and mobile gesture unlocking.
-- **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations. Defines and exports `MAX_LEADERBOARD_ENTRIES` constant governing global leaderboard entry limits across database queries, qualification checks, local storage slicing, and UI rendering.
-- **`src/main.js`**: Application entrypoint initializing DOM events, game instance, responsive canvas scaling, and screen management.
+- **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations. Defines and exports `MAX_LEADERBOARD_ENTRIES` constant (default `100`) governing global leaderboard entry limits across database queries, qualification checks, local storage slicing, and UI rendering. Also exports `INTEGRATION_TEAMS` (22 teams including `GOUV` and `CO`).
+- **`src/main.js`**: Application entrypoint initializing DOM events, game instance, responsive canvas scaling, tab toggles, schedule day switching, and screen management.
 
 ---
 
