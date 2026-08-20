@@ -45,6 +45,40 @@ if (supabaseUrl && supabaseKey) {
   );
 }
 
+/**
+ * Holds the signed session token issued by the Edge Function at game start.
+ * Cleared on each new game start so a single token cannot be reused across runs.
+ */
+let _currentSessionToken = null;
+
+/**
+ * Requests a signed session token from the Edge Function.
+ * Must be called each time the player starts a new run.
+ * Falls back gracefully (returns null) when Supabase is unavailable.
+ *
+ * @returns {Promise<string|null>} The opaque session token, or null in fallback mode.
+ */
+export async function startRunSession() {
+  _currentSessionToken = null; // invalidate any previous token
+
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase.functions.invoke("game-score", {
+      body: { action: "start" },
+    });
+    if (!error && data?.sessionToken) {
+      _currentSessionToken = data.sessionToken;
+      console.log("[Session] Run session started.");
+      return _currentSessionToken;
+    }
+    console.warn("[Session] Edge Function returned no token:", error);
+  } catch (e) {
+    console.warn("[Session] Could not start server session:", e);
+  }
+  return null;
+}
+
 const DEFAULT_LEADERBOARD = [
   {
     username: "Bïzoùnę SåùTę",
@@ -304,14 +338,25 @@ export async function submitHighScore(username, team, score, runDurationSec = 0)
 
   if (supabase) {
     try {
-      const { error } = await supabase.from("high_scores").insert([newEntry]);
+      // Submit through the secure Edge Function.
+      // The Edge Function uses the service_role key to insert — bypassing RLS —
+      // after validating the signed session token and all anti-cheat rules.
+      const { data, error } = await supabase.functions.invoke("game-score", {
+        body: {
+          action: "submit",
+          sessionToken: _currentSessionToken,
+          username: cleanUsername,
+          team: cleanTeam,
+          score: safeScore,
+        },
+      });
 
-      if (!error) {
-        console.log("Score submitted successfully to Supabase.", {
+      if (!error && data?.success) {
+        console.log("Score submitted successfully via Edge Function.", {
           rank: qualification.rank,
-          is_top_score: isTopScore,
           run_duration_sec: safeDuration,
         });
+        _currentSessionToken = null; // consume token — one run, one submission
         await deleteLowestScore();
         return {
           success: true,
@@ -320,9 +365,9 @@ export async function submitHighScore(username, team, score, runDurationSec = 0)
           team: cleanTeam,
         };
       }
-      console.error("Supabase score submission failed:", error);
+      console.error("Edge Function score submission failed:", error ?? data);
     } catch (e) {
-      console.error("Exception during Supabase score submission:", e);
+      console.error("Exception during Edge Function score submission:", e);
     }
   }
 

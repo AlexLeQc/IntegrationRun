@@ -1,6 +1,6 @@
 import './style.css';
 import { Game } from './game.js';
-import { getTopScores, qualifiesForLeaderboard, submitHighScore } from './supabase.js';
+import { getTopScores, qualifiesForLeaderboard, submitHighScore, startRunSession } from './supabase.js';
 import { showScreen, updateHUD, renderLeaderboard, showGameOverState } from './ui.js';
 import { audioManager } from './audio.js';
 
@@ -102,6 +102,7 @@ if (tabTeams) {
 startBtn.addEventListener('click', () => {
   audioManager.play('click');
   showScreen(hudOverlay);
+  startRunSession(); // request signed server token before the run starts
   game.start();
 });
 
@@ -193,6 +194,7 @@ if (retryBtnRegular) {
   retryBtnRegular.addEventListener('click', () => {
     audioManager.play('click');
     showScreen(hudOverlay);
+    startRunSession(); // request signed server token before the run starts
     game.start();
   });
 }
@@ -219,6 +221,7 @@ if (skipSubmitRetryBtn) {
   skipSubmitRetryBtn.addEventListener('click', () => {
     audioManager.play('click');
     showScreen(hudOverlay);
+    startRunSession(); // request signed server token before the run starts
     game.start();
   });
 }
