@@ -294,18 +294,20 @@ function resizeCanvas() {
   canvas.width = Math.round(cssWidth * dpr);
   canvas.height = Math.round(cssHeight * dpr);
 
-  // Scale the context so all Game draw calls use CSS-pixel coordinates.
+  // Use setTransform (not scale) to atomically reset + apply DPR scale.
+  // ctx.scale() accumulates on repeated calls which compounds the transform.
   const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   // Keep game's internal logical dimensions in sync with the CSS container.
   if (game) {
     game.width = cssWidth;
     game.height = cssHeight;
     game.horizonY = cssHeight * (1 / 6);
-    // Re-sync sub-module references to updated logical size.
-    game.player.screenWidth = cssWidth;
-    game.player.screenHeight = cssHeight;
+    // Sync player's own width/height fields (used in getLaneX & draw calls).
+    game.player.width = cssWidth;
+    game.player.height = cssHeight;
+    game.player.horizonY = game.horizonY;
     game.obstacleManager.width = cssWidth;
     game.obstacleManager.height = cssHeight;
     game.obstacleManager.horizonY = game.horizonY;
