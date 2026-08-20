@@ -244,17 +244,32 @@ body {
   max-width: 360px;
 }
 
+.sponsor-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 48%;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .sponsor-logo {
   /* Scale fluidly with generous size for high visibility */
   height: clamp(85px, 12vh, 120px);
-  max-width: 48%;
+  width: auto;
+  max-width: 100%;
   object-fit: contain;
   filter: drop-shadow(0 4px 8px rgba(44, 44, 46, 0.15));
-  transition: transform 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.sponsor-logo:hover {
-  transform: scale(1.05) rotate(2deg);
+.sponsor-link:hover .sponsor-logo {
+  transform: scale(1.08) rotate(2deg);
+}
+
+.sponsor-link:active .sponsor-logo {
+  transform: scale(0.96);
 }
 
 .game-presenter {
