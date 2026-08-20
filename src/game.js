@@ -49,6 +49,14 @@ export class Game {
     this.lastTime = 0;
     this.isRunning = false;
 
+    // Reset lastTime on tab resume to avoid massive dt spikes
+    this._onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        this.lastTime = 0; // will be re-seeded on next rAF tick
+      }
+    };
+    document.addEventListener('visibilitychange', this._onVisibilityChange);
+
     // Preload image assets asynchronously
     this.initAssets();
 
@@ -103,6 +111,7 @@ export class Game {
     this.isRunning = false;
     audioManager.stopBGM();
     audioManager.stopGouvSound();
+    document.removeEventListener('visibilitychange', this._onVisibilityChange);
   }
 
   takeDamage() {
@@ -446,7 +455,19 @@ export class Game {
   loop(time) {
     if (!this.isRunning) return;
 
-    const deltaTime = (time - this.lastTime) / 1000;
+    // Seed lastTime on the very first tick (or after tab resume reset)
+    if (this.lastTime === 0) {
+      this.lastTime = time;
+      requestAnimationFrame((t) => this.loop(t));
+      return;
+    }
+
+    const rawDt = (time - this.lastTime) / 1000;
+
+    // Guard against massive time spikes (tab suspension, debugger pauses, etc.).
+    // Clamp dt to 100ms so the spawn timer and physics never jump ahead wildly.
+    const deltaTime = Math.min(rawDt, 0.1);
+
     this.lastTime = time;
 
     this.update(deltaTime);

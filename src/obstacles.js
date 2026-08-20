@@ -26,6 +26,7 @@ export class ObstacleManager {
     this.obstacles = [];
     this.spawnTimer = 0;
     this.spawnInterval = 1.5;
+    this._emptyTrackTimer = 0; // health-check timer
     audioManager.stopGouvSound();
   }
 
@@ -75,15 +76,20 @@ export class ObstacleManager {
   }
 
   update(deltaTime, score, speedMultiplier, onSpawnCoin) {
-    // Spawning Hazards
+    // --- Hardened Spawn Interval -----------------------------------------------
+    // Original difficulty curve preserved exactly. Wrapped in Math.max as a
+    // safety net so NaN or a corrupted score value cannot produce a negative
+    // or zero interval and cause an infinite spawn loop.
+    const currentInterval = Math.max(0.7, this.spawnInterval - (score / 18000));
+
     this.spawnTimer += deltaTime;
-    const dynamicInterval = Math.max(0.7, this.spawnInterval - (score / 18000));
-    if (this.spawnTimer >= dynamicInterval) {
+    if (this.spawnTimer >= currentInterval) {
       this.spawnTimer = 0;
       this.spawnObstacle(score, onSpawnCoin);
     }
 
-    // Update obstacles movement along z-axis
+    // --- Update obstacles movement along z-axis ---------------------------------
+    // Iterate in reverse so splice(i,1) during cleanup doesn't skip elements.
     for (let i = this.obstacles.length - 1; i >= 0; i--) {
       const obs = this.obstacles[i];
       obs.z += obs.speed * speedMultiplier * deltaTime;
@@ -97,6 +103,21 @@ export class ObstacleManager {
           }
         }
       }
+    }
+
+    // --- Debug Health-Check: force spawn if track has been empty too long --------
+    // Fires only when no obstacles are visible and we've waited > 2 × maxInterval.
+    const maxInterval = this.spawnInterval; // 1.5 s (upper bound)
+    if (this.obstacles.length === 0) {
+      this._emptyTrackTimer = (this._emptyTrackTimer || 0) + deltaTime;
+      if (this._emptyTrackTimer > 2 * maxInterval) {
+        this._emptyTrackTimer = 0;
+        this.spawnTimer = 0;
+        this.spawnObstacle(score, onSpawnCoin);
+        console.warn('[ObstacleManager] Force-spawned obstacle — track was empty for > 2× maxInterval');
+      }
+    } else {
+      this._emptyTrackTimer = 0;
     }
   }
 
@@ -150,13 +171,15 @@ export class ObstacleManager {
     ctx.shadowBlur = 0;
 
     const imageAsset = this.assets && (this.assets[obs.type] || this.assets.obstacle);
+    // Validate that the asset is fully loaded before using it; fall back to procedural canvas otherwise.
+    const assetReady = imageAsset && imageAsset.complete && imageAsset.naturalWidth > 0;
 
     if (obs.type === 'barrier') {
       const w = (this.width / 3) * zScale;
-      const aspect = (imageAsset && imageAsset.height > 0) ? (imageAsset.height / imageAsset.width) : (48 / 42);
+      const aspect = assetReady ? (imageAsset.height / imageAsset.width) : (48 / 42);
       const h = w * aspect;
 
-      if (imageAsset) {
+      if (assetReady) {
         ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
       } else {
         // Hand-Drawn Cardboard Box Barrier
@@ -208,10 +231,10 @@ export class ObstacleManager {
       }
     } else if (obs.type === 'hurdle') {
       const w = (this.width / 3) * zScale;
-      const aspect = (imageAsset && imageAsset.height > 0) ? (imageAsset.height / imageAsset.width) : (20 / 46);
+      const aspect = assetReady ? (imageAsset.height / imageAsset.width) : (20 / 46);
       const h = w * aspect;
 
-      if (imageAsset) {
+      if (assetReady) {
         ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
       } else {
         // Hand-Drawn Pencil Fence / Hurdle
@@ -256,11 +279,11 @@ export class ObstacleManager {
       }
     } else if (obs.type === 'beam') {
       const w = (this.width / 3) * zScale;
-      const aspect = (imageAsset && imageAsset.height > 0) ? (imageAsset.height / imageAsset.width) : 1.0;
+      const aspect = assetReady ? (imageAsset.height / imageAsset.width) : 1.0;
       const h = w * aspect;
       const beamH = 14 * zScale;
 
-      if (imageAsset) {
+      if (assetReady) {
         ctx.drawImage(imageAsset, x - w / 2, y - h, w, h);
       } else {
         // Hand-Drawn Ink Splatter Laser Arch
@@ -306,10 +329,11 @@ export class ObstacleManager {
     } else if (obs.type === 'gouv') {
       const w = (this.width / 3) * zScale;
       const gouvAsset = this.assets && this.assets.gouv;
-      const aspect = (gouvAsset && gouvAsset.height > 0) ? (gouvAsset.height / gouvAsset.width) : 1.2;
+      const gouvAssetReady = gouvAsset && gouvAsset.complete && gouvAsset.naturalWidth > 0;
+      const aspect = gouvAssetReady ? (gouvAsset.height / gouvAsset.width) : 1.2;
       const h = w * aspect;
 
-      if (gouvAsset) {
+      if (gouvAssetReady) {
         ctx.drawImage(gouvAsset, x - w / 2, y - h, w, h);
       } else {
         // Hot-pink / magenta procedural fallback box

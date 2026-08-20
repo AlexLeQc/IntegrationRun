@@ -99,6 +99,28 @@ create policy "Allow public insert access" on public.high_scores
 - Colliding with an obstacle (non-GOUV) decreases the player's life count and the obstacle collides normally.
 - The spawn rate and speed gradually increase as the player's score increases.
 
+### Spawn Interval Hardening
+
+The obstacle spawn interval uses the original difficulty curve, wrapped in a `Math.max` guard to prevent NaN or a corrupted score from producing a zero/negative interval:
+
+```javascript
+const currentInterval = Math.max(0.7, this.spawnInterval - (score / 18000));
+```
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `spawnInterval` | `1.5 s` | Base seconds between spawns |
+| Difficulty reduction | `score / 18000` | Linear ramp — unchanged from original |
+| Hard floor | `0.7 s` | Minimum enforced interval (original value preserved) |
+
+**Debug Health-Check (Force-Spawn):** If the active obstacle array is empty and more than `2 × spawnInterval` (3 s) has elapsed without a new spawn, the manager immediately force-triggers a spawn and resets both timers. A `console.warn` is emitted to aid debugging.
+
+**Asset Validation Guard:** Before calling `ctx.drawImage()` for any obstacle type (barrier, hurdle, beam, gouv), the renderer validates that the asset is fully decoded:
+```javascript
+const assetReady = imageAsset && imageAsset.complete && imageAsset.naturalWidth > 0;
+```
+If the asset is not ready, the procedural canvas fallback executes without throwing a runtime exception.
+
 ### Lanes & Perspective
 
 - The perspective vanishing point/horizon is pushed high up the screen to **Y = 17%** (1/6th) of the total height.
@@ -385,6 +407,35 @@ The application follows a modular architecture using ES modules for clean separa
 - **`src/collectibles.js`**: `CoinManager` class managing coin/star pattern generation, spinning star animations, pickup collection checks, Web Audio sound synthesis, crayon particle explosions, and custom image rendering.
 - **`src/ui.js`**: UI helper module managing HUD score displays, hand-drawn crayon heart indicators, screen shake transforms, damage screen flashes, notebook screen overlay transitions (Main Menu, HUD, Leaderboard, Tutorial, Schedule, Game Over), and leaderboard DOM updates.
 - **`src/game.js`**: Main `Game` orchestrator managing asset preloading, the `requestAnimationFrame` loop, delta time calculations, notebook background/doodle sun/pencil grid rendering, module coordination, water balloon projectiles, and collision checks.
+
+### Game Loop Architecture (`src/game.js`)
+
+#### Delta-Time Clamping
+
+The `loop(time)` method guards against massive time spikes caused by tab suspension, browser throttling, or debugger pauses:
+
+```javascript
+// Clamp dt to 100 ms — prevents spawn-timer skip and instant despawns after resume
+const deltaTime = Math.min((time - this.lastTime) / 1000, 0.1);
+```
+
+| Guard | Value | Effect |
+|-------|-------|--------|
+| `Math.min(rawDt, 0.1)` | 100 ms cap | Physics, spawn timers, and score accumulation never advance more than one tenth of a second per frame |
+
+#### Tab-Resume Reset (`visibilitychange`)
+
+A `visibilitychange` listener is registered in the `Game` constructor and cleaned up in `stop()`:
+
+```javascript
+this._onVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    this.lastTime = 0; // re-seeded to `time` on the next rAF tick
+  }
+};
+```
+
+When the browser returns from a backgrounded/suspended state, `lastTime` is reset to `0`. The `loop()` method detects this sentinel value, seeds `lastTime` from the fresh `time` argument without calling `update()`, and only begins normal simulation on the subsequent frame. This prevents a single enormous `dt` from advancing the spawn timer and despawning large numbers of obstacles at once.
 - **`src/input.js`**: `InputHandler` managing keyboard and mobile touch swipe / stationary tap input events.
 - **`src/audio.js`**: `AudioManager` class and singleton instance managing Web Audio synthesis, single `AudioContext` lifecycle, master mixer gain nodes, sound cooldowns, and mobile gesture unlocking.
 - **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations. Defines and exports `MAX_LEADERBOARD_ENTRIES` constant (default `100`) governing global leaderboard entry limits across database queries, qualification checks, local storage slicing, and UI rendering. Also exports `INTEGRATION_TEAMS` (22 teams including `GOUV` and `CO`).
