@@ -280,7 +280,7 @@ The game user interface is structured into notebook card modal overlays and an i
 
 ### Main Menu Screen (`#main-menu`)
 
-- **Presenter Header**: The dual sponsor logos (Freddy Pizzeria and Crème Glacée en Folie) side-by-side, followed by the `"présentent..."` sub-header text and `C YINK UNE SEMAINE` title logo with sketchy marker fonts and bright primary accent fills.
+- **Presenter & Partner Showcase Header**: The partner logos (Freddy Pizzeria and Crème Glacée en Folie) are rendered side-by-side using ad-blocker-safe neutral class names (`.prize-showcase`, `.prize-showcase-link`, `.prize-badge`) to prevent third-party ad blockers (uBlock Origin, AdBlock, Brave Shields) from cosmetic filtering/hiding the logos. Followed by the `"présentent..."` sub-header text and `C YINK UNE SEMAINE` title logo with sketchy marker fonts and bright primary accent fills.
 - **Subtitle**: `"Survis à ta semaine d'intégration!"`
 - **Controls & Instructions**: Visual summary of mobile swipe gestures ("Glisse vers le haut pour Sauter", "Glisse vers le bas pour Glisser") and action keys ("Appuie sur Espace pour lancer des ballons d'eau").
 - **Action Buttons**:
@@ -532,7 +532,7 @@ All major text elements scale fluidly between a min and max size using CSS `clam
 | `.game-title .highlight` | `clamp(2.1rem, 8.5vw, 3.4rem)` |
 | `.game-subtitle` | `clamp(0.9rem, 3.5vw, 1.15rem)` |
 | `.screen-title` | `clamp(1.5rem, 5vw, 2.1rem)` |
-| `.sponsor-logo` height | `clamp(85px, 12vh, 120px)` |
+| `.prize-badge` height | `clamp(85px, 12vh, 120px)` |
 
 This ensures text never breaks out of modal boundaries on narrow screens while remaining large and readable on modern devices.
 
@@ -540,8 +540,8 @@ This ensures text never breaks out of modal boundaries on narrow screens while r
 
 | Breakpoint | Target Devices | Key Adjustments |
 |------------|----------------|-----------------|
-| `max-height: 700px` | Landscape phones, iPhone SE, short Android viewports | Reduced sponsor logo heights, tighter button gaps, compressed modal padding, smaller title sizes |
-| `max-width: 380px` | iPhone SE (1st/2nd gen, 320–375px), narrow Androids | Tighter sponsor logos, narrower `menu-actions` max-width, smaller button text, tighter modal max-height |
+| `max-height: 700px` | Landscape phones, iPhone SE, short Android viewports | Reduced prize badge heights, tighter button gaps, compressed modal padding, smaller title sizes |
+| `max-width: 380px` | iPhone SE (1st/2nd gen, 320–375px), narrow Androids | Tighter prize badges, narrower `menu-actions` max-width, smaller button text, tighter modal max-height |
 | `max-height: 600px` | Very short landscape views | Most aggressive compression — nearly all spacings and font sizes further reduced |
 
 ### Touch Behavior Guardrails & Adaptive Tables

@@ -234,7 +234,7 @@ body {
   justify-content: center;
 }
 
-.sponsors-container {
+.prize-showcase {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -244,7 +244,7 @@ body {
   max-width: 360px;
 }
 
-.sponsor-link {
+.prize-showcase-link {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -254,7 +254,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-.sponsor-logo {
+.prize-badge {
   /* Scale fluidly with generous size for high visibility */
   height: clamp(85px, 12vh, 120px);
   width: auto;
@@ -264,11 +264,11 @@ body {
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.sponsor-link:hover .sponsor-logo {
+.prize-showcase-link:hover .prize-badge {
   transform: scale(1.08) rotate(2deg);
 }
 
-.sponsor-link:active .sponsor-logo {
+.prize-showcase-link:active .prize-badge {
   transform: scale(0.96);
 }
 
@@ -906,10 +906,10 @@ body {
 
 /* Adjustments for compact/short viewports (e.g. landscape phones, iPhone SE) */
 @media (max-height: 700px) {
-  .sponsor-logo {
+  .prize-badge {
     height: clamp(65px, 9.5vh, 85px);
   }
-  .sponsors-container {
+  .prize-showcase {
     gap: 12px;
     margin-bottom: 2px;
   }
@@ -958,10 +958,10 @@ body {
 
 /* Extra-compact viewports (e.g. original iPhone SE 320px, narrow Android) */
 @media (max-width: 380px) {
-  .sponsor-logo {
+  .prize-badge {
     height: clamp(60px, 14vw, 80px);
   }
-  .sponsors-container {
+  .prize-showcase {
     gap: 10px;
   }
   .game-title {
@@ -1002,7 +1002,7 @@ body {
 
 /* Legacy query kept for max-height: 600px (very short landscape) */
 @media (max-height: 600px) {
-  .sponsor-logo {
+  .prize-badge {
     height: clamp(50px, 8.5vh, 68px);
   }
   .title-mascot {
