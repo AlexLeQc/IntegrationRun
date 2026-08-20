@@ -103,6 +103,13 @@ serve(async (req) => {
 
     const { action } = body;
 
+    // Extract requester metadata for security auditing
+    const clientIp =
+      req.headers.get("cf-connecting-ip") ||
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "unknown";
+    const userAgent = req.headers.get("user-agent") || "unknown";
+
     // -------------------------------------------------------------------------
     // ACTION: start
     // Called when the player clicks JOUER (game starts).
@@ -115,6 +122,8 @@ serve(async (req) => {
       const signature = await signPayload(payloadStr, signingSecret);
       // Token format:  base64(payload) . base64(signature)
       const sessionToken = `${btoa(payloadStr)}.${signature}`;
+
+      console.log(`[RUN_START] New session ${runId.slice(0, 8)} | IP: ${clientIp}`);
 
       return new Response(JSON.stringify({ success: true, sessionToken }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -137,6 +146,7 @@ serve(async (req) => {
 
       // --- 1. Validate session token presence and format ---
       if (!sessionToken || typeof sessionToken !== "string") {
+        console.warn(`[CHEAT_DETECTED] [MISSING_TOKEN] IP: ${clientIp} | Name: ${username}`);
         return new Response(
           JSON.stringify({ error: "Missing or invalid session token" }),
           {
@@ -148,6 +158,7 @@ serve(async (req) => {
 
       const dotIdx = sessionToken.indexOf(".");
       if (dotIdx === -1) {
+        console.warn(`[CHEAT_DETECTED] [MALFORMED_TOKEN] IP: ${clientIp} | Name: ${username}`);
         return new Response(
           JSON.stringify({ error: "Malformed session token" }),
           {
@@ -165,6 +176,7 @@ serve(async (req) => {
       try {
         payloadStr = atob(payloadB64);
       } catch {
+        console.warn(`[CHEAT_DETECTED] [BAD_BASE64_TOKEN] IP: ${clientIp}`);
         return new Response(
           JSON.stringify({ error: "Malformed session token (bad base64)" }),
           {
@@ -180,9 +192,7 @@ serve(async (req) => {
         signingSecret,
       );
       if (!valid) {
-        console.warn(
-          "[AntiCheat] Token signature mismatch — possible forgery attempt.",
-        );
+        console.warn(`[CHEAT_DETECTED] [FORGED_SIGNATURE] IP: ${clientIp} | Name: ${username}`);
         return new Response(
           JSON.stringify({ error: "Invalid session token signature" }),
           {
@@ -194,12 +204,16 @@ serve(async (req) => {
 
       // --- 3. Extract and validate timing from token ---
       let startTime: number;
+      let runId = "unknown";
       try {
-        ({ startTime } = JSON.parse(payloadStr) as {
+        const parsed = JSON.parse(payloadStr) as {
           runId: string;
           startTime: number;
-        });
+        };
+        startTime = parsed.startTime;
+        runId = parsed.runId;
       } catch {
+        console.warn(`[CHEAT_DETECTED] [BAD_PAYLOAD_JSON] IP: ${clientIp}`);
         return new Response(
           JSON.stringify({ error: "Malformed session token payload" }),
           {
@@ -217,7 +231,7 @@ serve(async (req) => {
 
       if (durationSec < MIN_RUN_DURATION_SEC) {
         console.warn(
-          `[AntiCheat] Run too short: ${durationSec}s (min ${MIN_RUN_DURATION_SEC}s).`,
+          `[CHEAT_DETECTED] [RUN_TOO_SHORT] ${durationSec}s (< ${MIN_RUN_DURATION_SEC}s) | IP: ${clientIp} | Name: ${username} | Score: ${score}`,
         );
         return new Response(
           JSON.stringify({
@@ -237,6 +251,7 @@ serve(async (req) => {
         .trim()
         .slice(0, 12);
       if (!cleanUsername || cleanUsername.length < 2) {
+        console.warn(`[REJECTED] [INVALID_USERNAME] "${username}" | IP: ${clientIp}`);
         return new Response(
           JSON.stringify({
             error: "Invalid username (must be 2–12 characters)",
@@ -250,6 +265,7 @@ serve(async (req) => {
 
       // --- 5. Validate team ---
       if (!team || !VALID_TEAMS.includes(team)) {
+        console.warn(`[REJECTED] [INVALID_TEAM] "${team}" | IP: ${clientIp}`);
         return new Response(
           JSON.stringify({ error: "Invalid or unrecognized team" }),
           {
@@ -262,18 +278,23 @@ serve(async (req) => {
       // --- 6. Validate score ---
       const safeScore = Math.floor(Number(score));
       if (!Number.isFinite(safeScore) || safeScore <= 0) {
+        console.warn(`[REJECTED] [INVALID_SCORE] "${score}" | IP: ${clientIp}`);
         return new Response(JSON.stringify({ error: "Invalid score value" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
+      // Calculate efficiency: points per second
+      const ptsPerSec = (safeScore / Math.max(1, durationSec)).toFixed(1);
+      const isSuspiciousRate = Number(ptsPerSec) > 300;
+
       // --- 7. Anti-cheat: physical plausibility ceiling ---
       // Score must be achievable within the server-measured real elapsed time.
       const maxTheoretical = durationSec * MAX_POINTS_PER_SECOND + 500;
       if (safeScore > maxTheoretical) {
         console.warn(
-          `[AntiCheat] Score ${safeScore} exceeds theoretical max ${maxTheoretical} for ${durationSec}s run. Rejected.`,
+          `[CHEAT_DETECTED] [IMPLAUSIBLE_SCORE] ${safeScore} pts in ${durationSec}s (${ptsPerSec} pts/s, max allowed ${maxTheoretical}) | IP: ${clientIp} | Name: ${cleanUsername}`,
         );
         return new Response(
           JSON.stringify({
@@ -312,8 +333,11 @@ serve(async (req) => {
         });
       }
 
+      // Diagnostic audit log for accepted score
       console.log(
-        `[game-score] Score accepted: ${cleanUsername} / ${team} / ${safeScore} (${durationSec}s)`,
+        `[SCORE_SUBMIT] ${isSuspiciousRate ? "[SUSPECT_HIGH_RATE]" : "[ACCEPTED]"} | ` +
+          `Player: ${cleanUsername} | Team: ${team} | Score: ${safeScore} | ` +
+          `Time: ${durationSec}s (${ptsPerSec} pts/s) | IP: ${clientIp} | Run: ${runId.slice(0, 8)}`,
       );
 
       return new Response(
