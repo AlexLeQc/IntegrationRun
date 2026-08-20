@@ -281,12 +281,44 @@ scoreSubmitForm.addEventListener('submit', async (e) => {
   }
 });
 
-// Setup responsive canvas scaling
+// Setup responsive canvas scaling with DPR-aware high-DPI backing buffer.
+// DPR is capped at 2.0 to avoid performance drops on extreme 3x/4x mobile screens.
 function resizeCanvas() {
-  canvas.width = 360;
-  canvas.height = 640;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  // The CSS dimensions of the canvas element are controlled by the layout
+  // (100% of #game-container); we read them here to set the backing buffer.
+  const cssWidth = canvas.clientWidth || 360;
+  const cssHeight = canvas.clientHeight || 640;
+
+  canvas.width = Math.round(cssWidth * dpr);
+  canvas.height = Math.round(cssHeight * dpr);
+
+  // Scale the context so all Game draw calls use CSS-pixel coordinates.
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Keep game's internal logical dimensions in sync with the CSS container.
+  if (game) {
+    game.width = cssWidth;
+    game.height = cssHeight;
+    game.horizonY = cssHeight * (1 / 6);
+    // Re-sync sub-module references to updated logical size.
+    game.player.screenWidth = cssWidth;
+    game.player.screenHeight = cssHeight;
+    game.obstacleManager.width = cssWidth;
+    game.obstacleManager.height = cssHeight;
+    game.obstacleManager.horizonY = game.horizonY;
+    game.coinManager.width = cssWidth;
+    game.coinManager.height = cssHeight;
+    game.coinManager.horizonY = game.horizonY;
+  }
 }
 
 window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => {
+  // Small delay lets the browser finish rotating before we measure new dimensions.
+  setTimeout(resizeCanvas, 150);
+});
 resizeCanvas();
 

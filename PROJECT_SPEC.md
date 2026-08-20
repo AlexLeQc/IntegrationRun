@@ -75,7 +75,7 @@ create policy "Allow public insert access" on public.high_scores
   - **Hand-Drawn Cardboard Box**: 3D cardboard box with marker outlines, tape strips, and warm brown fill requiring a lane change.
   - **Pencil Fence / Hurdle**: Low-profile wooden pencil hurdle requiring a **Jump** (collision is bypassed if player is currently jumping).
   - **Ink-Splatter Beam Arch**: Overhead laser arch styled as dark ink pillars and a vibrant splattered ink bar requiring a **Slide** (collision is bypassed if player is currently sliding).
-  - **GOUV Target** *(special shootable hazard)*: A hot-pink/magenta target that can be **destroyed by a laser shot** for bonus points, or avoided. If not destroyed before reaching the player, it triggers a normal collision (−1 life, screen flash/shake, hit sound).
+  - **GOUV Target** _(special shootable hazard)_: A hot-pink/magenta target that can be **destroyed by a laser shot** for bonus points, or avoided. If not destroyed before reaching the player, it triggers a normal collision (−1 life, screen flash/shake, hit sound).
 
 ### GOUV Targets & Tap-Shooting Mechanic (Water Balloons)
 
@@ -150,7 +150,7 @@ create policy "Allow public insert access" on public.high_scores
   - If the board is **completely empty** (0 entries): any score qualifies at rank 1.
   - If the board has existing entries: qualifies **only if** `score > lowestExistingScore` (the score of the last entry currently on the board). Open cap slots do NOT automatically qualify a score.
   - If the board is full (`entries >= MAX_LEADERBOARD_ENTRIES`): additionally validates that `score > allScores[MAX_LEADERBOARD_ENTRIES - 1].score`.
-- **Tie-Breaking Rule**: Higher score ranks better. If two entries have identical scores, the older entry is kept first, and the new score inserts *after* existing identical scores.
+- **Tie-Breaking Rule**: Higher score ranks better. If two entries have identical scores, the older entry is kept first, and the new score inserts _after_ existing identical scores.
 - **Automatic Database Trimming**: Calling `submitHighScore(username, team, score)` inserts the entry with the selected team, calculates rank, and executes `deleteLowestScore()` to purge any entries exceeding `MAX_LEADERBOARD_ENTRIES`.
 - Parity between online (Supabase) and offline (`localStorage` fallback) modes.
 
@@ -164,15 +164,15 @@ All modal screens (Tutorial, Schedule, Leaderboard, Game Over) share a unified 3
 
 ### CSS Design Tokens (`:root`)
 
-| Token | Value | Usage |
-|---|---|---|
-| `--border-sketch` | `2.5px solid var(--color-ink)` | Standard ink border |
-| `--border-sketch-heavy` | `3px solid var(--color-ink)` | Card/button outer border |
-| `--shadow-sketch` | `3px 3px 0px var(--color-ink)` | Standard sketch shadow |
-| `--shadow-sketch-sm` | `2.5px 2.5px 0px var(--color-ink)` | Small sketch shadow |
-| `--radius-card` | `20px 14px 22px 16px` | Outer modal card radius |
-| `--radius-inner` | `12px` | Inner element radius |
-| `--radius-btn` | `14px 10px 16px 12px` | Button radius |
+| Token                   | Value                              | Usage                    |
+| ----------------------- | ---------------------------------- | ------------------------ |
+| `--border-sketch`       | `2.5px solid var(--color-ink)`     | Standard ink border      |
+| `--border-sketch-heavy` | `3px solid var(--color-ink)`       | Card/button outer border |
+| `--shadow-sketch`       | `3px 3px 0px var(--color-ink)`     | Standard sketch shadow   |
+| `--shadow-sketch-sm`    | `2.5px 2.5px 0px var(--color-ink)` | Small sketch shadow      |
+| `--radius-card`         | `20px 14px 22px 16px`              | Outer modal card radius  |
+| `--radius-inner`        | `12px`                             | Inner element radius     |
+| `--radius-btn`          | `14px 10px 16px 12px`              | Button radius            |
 
 ### 3-Tier Overlay Shell
 
@@ -186,6 +186,7 @@ All modal screens (Tutorial, Schedule, Leaderboard, Game Over) share a unified 3
 ```
 
 **Rules:**
+
 - All modal overlays (`#schedule-screen`, `#leaderboard-screen`, `#tutorial-screen`, `#game-over-screen`) must adhere to the **exact card geometry, width, and height constraints** established by the Home Screen (`#main-menu`).
 - Safe-area inset padding is applied **once** on `.screen-overlay` via `env(safe-area-inset-*)` and `max(1rem, ...)`. Never set per-screen.
 - `.screen-overlay` is constrained to `height: 100%` so it perfectly maps the bounds of the `#game-container` on desktop (which defines the 100dvh limit on mobile).
@@ -197,13 +198,13 @@ All modal screens (Tutorial, Schedule, Leaderboard, Game Over) share a unified 3
 
 ### Button Token Hierarchy
 
-| Class | Role |
-|---|---|
-| `.neon-btn.cyan` | Primary CTA (start game, submit) |
-| `.neon-btn.magenta` | Secondary emphasis (leaderboard) |
-| `.neon-btn.outline` | Neutral/back actions |
-| `.neon-btn.yellow` | Highlighted variant |
-| `.btn-back` | Applied to RETOUR buttons — enforces `min-height: 48px`, `max-width: 320px`, centered in footer |
+| Class               | Role                                                                                            |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| `.neon-btn.cyan`    | Primary CTA (start game, submit)                                                                |
+| `.neon-btn.magenta` | Secondary emphasis (leaderboard)                                                                |
+| `.neon-btn.outline` | Neutral/back actions                                                                            |
+| `.neon-btn.yellow`  | Highlighted variant                                                                             |
+| `.btn-back`         | Applied to RETOUR buttons — enforces `min-height: 48px`, `max-width: 320px`, centered in footer |
 
 ### Mobile Safe Area
 
@@ -224,7 +225,8 @@ All modal screens (Tutorial, Schedule, Leaderboard, Game Over) share a unified 3
 The game user interface is structured into notebook card modal overlays and an in-game HUD:
 
 ### Main Menu Screen (`#main-menu`)
-- **Logo Mascot & Presenter Header**: `public/assets/title-mascot.png` mascot graphic banner (`.title-mascot`) positioned inside `.title-mascot-container` above the `"Freddy pizzeria présente..."` sub-header text and `C YINK UNE SEMAINE` title logo with sketchy marker fonts and bright primary accent fills.
+
+- **Presenter Header**: The dual sponsor logos (Freddy Pizzeria and Crème Glacée en Folie) side-by-side, followed by the `"présentent..."` sub-header text and `C YINK UNE SEMAINE` title logo with sketchy marker fonts and bright primary accent fills.
 - **Subtitle**: `"Survis à ta semaine d'intégration!"`
 - **Controls & Instructions**: Visual summary of mobile swipe gestures ("Glisse vers le haut pour Sauter", "Glisse vers le bas pour Glisser") and action keys ("Appuie sur Espace pour lancer des ballons d'eau").
 - **Action Buttons**:
@@ -234,6 +236,7 @@ The game user interface is structured into notebook card modal overlays and an i
   - **`RÈGLES`**: Opens the tutorial screen / rules modal overlay (`#tutorial-screen`).
 
 ### Tutorial Screen / Modal (`#tutorial-screen`)
+
 - **Accessibility & Navigation**: Accessible via the `RÈGLES` button on the Main Menu located directly under the Horaire button. Includes a prominent `RETOUR` button at the bottom returning smoothly to the Main Menu.
 - **Notebook Modal Card Layout**: Designed as a concise, scrollable notebook modal card (`max-height: 80vh; overflow-y: auto;`) highlighting core gameplay mechanics and rewards using hand-drawn graphics and short descriptions in French:
   - **Prix & Récompenses (Freddy Pizzeria)**: Highlights prizes for 1st place individual runner (15$ promo code at Freddy Pizzeria) and winning team (15$ promo code draw).
@@ -250,6 +253,7 @@ The game user interface is structured into notebook card modal overlays and an i
   - **Pièces D'or (Coins) & Vies**: Ramasser les pièces (+100 pts). Vous avez 3 cœurs de vie.
 
 ### Schedule / Horaire Screen (`#schedule-screen`)
+
 - **Accessibility & Navigation**: Accessible via the `HORAIRE` button on the Main Menu. Includes a prominent `RETOUR` button (`#schedule-back-btn`) at the bottom returning smoothly to the Main Menu.
 - **Top-Level View Switcher**: A dual-tab switcher (`.schedule-main-tabs`) located directly beneath the hero header:
   - **`[HORAIRE]` (`#tab-schedule-view`)**: Default view showing the schedule category color legend, sticky weekday tabs, and interactive daily timelines.
@@ -267,6 +271,7 @@ The game user interface is structured into notebook card modal overlays and an i
 - **Isolated Dress Code View (`#view-dresscode`)**: Daily clothing cards for Lundi (clothes to get dirty), Mardi (yoga clothes), Mercredi (clean clothes), and Jeudi (swimsuit under costume, evening attire for school photo). Hidden by default when viewing the main schedule.
 
 ### In-Game HUD (`#hud-overlay`)
+
 - **Score Display**: `SCORE` 6-digit zero-padded score counter (e.g. `001250`) rendered on a lined paper badge.
 - **Health Indicator**: `VIES` header with 3 hand-drawn crayon heart elements transitioning from bright red fill to empty sketch outline on damage.
 - **Damage Flash**: `#damage-flash` overlay element that flashes red on obstacle collision alongside canvas screen shake.
@@ -294,6 +299,7 @@ The game user interface is structured into notebook card modal overlays and an i
   - Upon submission, displays `✔ SCORE SOUMIS !` and automatically transitions to the Leaderboard Screen with the player's new entry highlighted.
 
 ### Leaderboard Screen (`#leaderboard-screen`)
+
 - **Vertical Spacing & Layout**: `#leaderboard-screen` is configured as a flex container (`flex-direction: column; justify-content: space-between; height: 100%; box-sizing: border-box; padding: 1.5rem 1rem;`). The `.screen-title` ("LES TRYHARDs") stays firmly at the top, tab toggles (`#tab-individual` and `#tab-teams`) sit directly below, `#leaderboard-back-btn` is pinned cleanly at the bottom, and `.leaderboard-table-container` fills the spacious center (`flex: 1; min-height: 50vh; width: 100%; overflow-y: auto; margin: 0.75rem 0;`).
 - **Dual-Tab System**:
   - `[INDIVIDUEL]` Tab: Displays top runner scores (`#`, `NEUVE`, `ÉQUIPE`, `SCORE`, up to `MAX_LEADERBOARD_ENTRIES`).
@@ -336,6 +342,7 @@ Doodle Runner features a deterministic, production-ready Web Audio pipeline mana
 ### Master Mixer & Volumes
 
 All sound channels route through a central `MasterGain` node:
+
 - **Master Gain**: Default `0.5` (supports global mute toggle).
 - **Sub-Mix Gain Nodes**: `bgmGain` (volume `0.3`) and `targetGain` (fixed GOUV alarm volume `0.4`).
 - **Sound-Specific Mix Volumes**:
@@ -381,7 +388,85 @@ The application follows a modular architecture using ES modules for clean separa
 - **`src/input.js`**: `InputHandler` managing keyboard and mobile touch swipe / stationary tap input events.
 - **`src/audio.js`**: `AudioManager` class and singleton instance managing Web Audio synthesis, single `AudioContext` lifecycle, master mixer gain nodes, sound cooldowns, and mobile gesture unlocking.
 - **`src/supabase.js`**: Supabase API client with local storage fallback for leaderboard operations. Defines and exports `MAX_LEADERBOARD_ENTRIES` constant (default `100`) governing global leaderboard entry limits across database queries, qualification checks, local storage slicing, and UI rendering. Also exports `INTEGRATION_TEAMS` (22 teams including `GOUV` and `CO`).
-- **`src/main.js`**: Application entrypoint initializing DOM events, game instance, responsive canvas scaling, tab toggles, schedule day switching, and screen management.
+- **`src/main.js`**: Application entrypoint initializing DOM events, game instance, DPR-aware responsive canvas scaling (with `resize` and `orientationchange` listeners), tab toggles, schedule day switching, and screen management.
+
+---
+
+## Responsive Design & Device Compatibility
+
+The game is designed as **mobile-first** and must run cleanly on all viewport sizes from 320px-wide phones (iPhone SE original) to modern large-screen devices.
+
+### Dynamic Viewport Sizing (`100dvh`)
+
+- All full-screen containers (`body`, `#game-container`, `.screen-overlay`) use `height: 100dvh` with a `100vh` fallback to correctly fill the visual viewport on iOS/Android where the browser chrome (address bar, bottom nav) shrinks the effective height at runtime.
+- Modal shells use `max-height: min(768px, calc(100dvh - 2rem))` to ensure they never overflow the visible viewport on short screens.
+- On very narrow screens (`max-width: 380px`), modals tighten further to `max-height: calc(100dvh - 1rem)`.
+
+### High-DPI Canvas Scaling (DPR Capping)
+
+Implemented in `src/main.js` — `resizeCanvas()`:
+
+```javascript
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+canvas.width  = Math.round(cssWidth  * dpr);
+canvas.height = Math.round(cssHeight * dpr);
+ctx.scale(dpr, dpr);
+```
+
+- **DPR cap at 2.0**: Prevents the backing buffer from ballooning on 3× / 4× screens (some high-end Android devices), which would cause significant GPU memory and fill-rate overhead with no perceptible visual benefit.
+- The context is re-scaled each resize so all Game draw calls continue to use CSS-pixel coordinates without modification.
+- Game sub-module logical sizes (`width`, `height`, `horizonY`) are updated in-place after each resize so perspective calculations stay correct.
+
+### Orientation & Resize Listener
+
+```javascript
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => {
+  setTimeout(resizeCanvas, 150); // 150ms delay lets browser finish rotating
+});
+```
+
+Both `resize` and `orientationchange` events trigger canvas recalibration so the game adjusts to landscape/portrait switches and split-screen resizing without requiring a page reload.
+
+### Safe-Area Insets
+
+`.screen-overlay` padding uses `env(safe-area-inset-*)` with a `1rem` floor value to avoid UI content sitting under notches, Dynamic Island cutouts, or home-indicator bars:
+
+```css
+padding-top:    max(1rem, env(safe-area-inset-top));
+padding-bottom: max(1rem, env(safe-area-inset-bottom));
+padding-left:   max(1rem, env(safe-area-inset-left));
+padding-right:  max(1rem, env(safe-area-inset-right));
+```
+
+### Fluid Typography (`clamp()`)
+
+All major text elements scale fluidly between a min and max size using CSS `clamp()`:
+
+| Element | Rule |
+|---------|------|
+| `.game-title` | `clamp(2rem, 8vw, 3.2rem)` |
+| `.game-title .highlight` | `clamp(2.1rem, 8.5vw, 3.4rem)` |
+| `.game-subtitle` | `clamp(0.9rem, 3.5vw, 1.15rem)` |
+| `.screen-title` | `clamp(1.5rem, 5vw, 2.1rem)` |
+| `.sponsor-logo` height | `clamp(85px, 12vh, 120px)` |
+
+This ensures text never breaks out of modal boundaries on narrow screens while remaining large and readable on modern devices.
+
+### Screen Breakpoint Strategy
+
+| Breakpoint | Target Devices | Key Adjustments |
+|------------|----------------|-----------------|
+| `max-height: 700px` | Landscape phones, iPhone SE, short Android viewports | Reduced sponsor logo heights, tighter button gaps, compressed modal padding, smaller title sizes |
+| `max-width: 380px` | iPhone SE (1st/2nd gen, 320–375px), narrow Androids | Tighter sponsor logos, narrower `menu-actions` max-width, smaller button text, tighter modal max-height |
+| `max-height: 600px` | Very short landscape views | Most aggressive compression — nearly all spacings and font sizes further reduced |
+
+### Touch Behavior Guardrails & Adaptive Tables
+
+- **Leaderboard Table (`.leaderboard-table`)**: Strict `table-layout: fixed; width: 100%` with exact column percentage allocations (`col-rank`, `col-name`, `col-team`, `col-members`, `col-score`) and text ellipsis truncation. Combined with `overflow-x: hidden` on `.leaderboard-table-container`, horizontal scrollbars are eliminated entirely while maintaining smooth vertical scrolling.
+- **Canvas** (`#game-canvas`): `touch-action: none` — prevents iOS elastic bounce, overscroll, and accidental pinch-zoom on the active gameplay surface.
+- **Modal bodies** (`.modal-body`): `touch-action: pan-y` + `-webkit-overflow-scrolling: touch` — allows native momentum scrolling for rules, schedule, and leaderboard content while blocking horizontal drift that could interfere with swipe-based game input.
+- **Schedule day tabs**: `-webkit-tap-highlight-color: transparent` for clean, no-flash tap feedback.
 
 ---
 

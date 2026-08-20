@@ -109,7 +109,10 @@ export class AudioManager {
     try {
       const loaded = await loadAudioAssets(this.ctx, paths);
       Object.assign(this.buffers, loaded);
-      this.log("Custom audio buffers preloaded:", Object.keys(this.buffers).filter(k => this.buffers[k]));
+      this.log(
+        "Custom audio buffers preloaded:",
+        Object.keys(this.buffers).filter((k) => this.buffers[k]),
+      );
 
       // If playBGM() was called while buffers were still loading, start it now
       if (this._pendingBGM && this.buffers.bgm) {
@@ -436,7 +439,7 @@ export class AudioManager {
         } catch (e) {}
       };
     } catch (e) {
-      console.warn('[AudioManager] createCoinSound failed:', e);
+      console.warn("[AudioManager] createCoinSound failed:", e);
     }
   }
 
@@ -467,7 +470,7 @@ export class AudioManager {
         } catch (e) {}
       };
     } catch (e) {
-      console.warn('[AudioManager] createJumpSound failed:', e);
+      console.warn("[AudioManager] createJumpSound failed:", e);
     }
   }
 
@@ -505,7 +508,7 @@ export class AudioManager {
         } catch (e) {}
       };
     } catch (e) {
-      console.warn('[AudioManager] createSlideSound failed:', e);
+      console.warn("[AudioManager] createSlideSound failed:", e);
     }
   }
 
@@ -536,7 +539,7 @@ export class AudioManager {
         } catch (e) {}
       };
     } catch (e) {
-      console.warn('[AudioManager] createHitSound failed:', e);
+      console.warn("[AudioManager] createHitSound failed:", e);
     }
   }
 
@@ -576,7 +579,7 @@ export class AudioManager {
         } catch (e) {}
       };
     } catch (e) {
-      console.warn('[AudioManager] createShootSound failed:', e);
+      console.warn("[AudioManager] createShootSound failed:", e);
     }
   }
 
@@ -615,7 +618,7 @@ export class AudioManager {
         } catch (e) {}
       };
     } catch (e) {
-      console.warn('[AudioManager] createDestroySound failed:', e);
+      console.warn("[AudioManager] createDestroySound failed:", e);
     }
   }
 
@@ -648,7 +651,7 @@ export class AudioManager {
         } catch (e) {}
       };
     } catch (e) {
-      console.warn('[AudioManager] createGameOverSound failed:', e);
+      console.warn("[AudioManager] createGameOverSound failed:", e);
     }
   }
 
@@ -679,7 +682,7 @@ export class AudioManager {
         } catch (e) {}
       };
     } catch (e) {
-      console.warn('[AudioManager] createClickSound failed:', e);
+      console.warn("[AudioManager] createClickSound failed:", e);
     }
   }
 }

@@ -147,6 +147,10 @@ export async function renderLeaderboard(
 
   const colCount = activeTab === "teams" ? 4 : 4;
   entriesContainer.innerHTML = `<tr><td colspan="${colCount}" style="text-align: center; color: rgba(44, 44, 46, 0.5);">CONNEXION AU RÉSEAU...</td></tr>`;
+  const leaderboardTable = document.querySelector("#leaderboard-screen .leaderboard-table");
+  if (leaderboardTable) {
+    leaderboardTable.classList.toggle("teams-view", activeTab === "teams");
+  }
 
   try {
     const scores = await fetchLeaderboardFn(MAX_LEADERBOARD_ENTRIES);
@@ -155,10 +159,10 @@ export async function renderLeaderboard(
       if (theadContainer) {
         theadContainer.innerHTML = `
           <tr>
-            <th style="width: 12%">#</th>
-            <th style="text-align: left">ÉQUIPE</th>
-            <th style="text-align: center">MEMBRES</th>
-            <th style="text-align: right">POINTS TOTAL</th>
+            <th class="col-rank">#</th>
+            <th class="col-team">ÉQUIPE</th>
+            <th class="col-members">MEMBRES</th>
+            <th class="col-score">TOTAL</th>
           </tr>
         `;
       }
@@ -189,20 +193,23 @@ export async function renderLeaderboard(
         }
 
         const tdRank = document.createElement("td");
-        if (rankClass) tdRank.className = rankClass;
-        tdRank.style.cssText = "font-weight: bold; text-align: center;";
+        tdRank.className = `col-rank ${rankClass}`.trim();
         tdRank.textContent = rank;
 
         const tdTeam = document.createElement("td");
-        tdTeam.style.cssText = "text-align: left; font-weight: 600;";
-        tdTeam.textContent = entry.team;
+        tdTeam.className = "col-team";
+        const teamSpan = document.createElement("span");
+        teamSpan.className = "team-badge-text";
+        teamSpan.title = entry.team;
+        teamSpan.textContent = entry.team;
+        tdTeam.appendChild(teamSpan);
 
         const tdMembers = document.createElement("td");
-        tdMembers.style.cssText = "text-align: center; font-weight: 600;";
+        tdMembers.className = "col-members";
         tdMembers.textContent = entry.playerCount;
 
         const tdScore = document.createElement("td");
-        tdScore.style.cssText = "text-align: right; font-family: var(--font-display); color: var(--color-cyan);";
+        tdScore.className = "col-score";
         tdScore.textContent = entry.totalScore.toLocaleString();
 
         row.append(tdRank, tdTeam, tdMembers, tdScore);
@@ -213,10 +220,10 @@ export async function renderLeaderboard(
       if (theadContainer) {
         theadContainer.innerHTML = `
           <tr>
-            <th style="width: 10%">#</th>
-            <th style="text-align: left">NEUVE</th>
-            <th style="text-align: left">ÉQUIPE</th>
-            <th style="text-align: right">SCORE</th>
+            <th class="col-rank">#</th>
+            <th class="col-name">NEUVE</th>
+            <th class="col-team">ÉQUIPE</th>
+            <th class="col-score">SCORE</th>
           </tr>
         `;
       }
@@ -248,16 +255,19 @@ export async function renderLeaderboard(
         const teamName = entry.team || "Indépendant";
 
         const tdRank = document.createElement("td");
-        if (rankClass) tdRank.className = rankClass;
-        tdRank.style.cssText = "font-weight: bold; text-align: center;";
+        tdRank.className = `col-rank ${rankClass}`.trim();
         tdRank.textContent = rank;
 
         const tdName = document.createElement("td");
-        tdName.style.cssText = "font-weight: 600; text-align: left;";
-        tdName.textContent = entry.username;
+        tdName.className = "col-name";
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "player-badge-text";
+        nameSpan.title = entry.username;
+        nameSpan.textContent = entry.username;
+        tdName.appendChild(nameSpan);
 
         const tdTeam = document.createElement("td");
-        tdTeam.style.cssText = "text-align: left;";
+        tdTeam.className = "col-team";
         const teamSpan = document.createElement("span");
         teamSpan.className = "team-badge-text";
         teamSpan.title = teamName;
@@ -265,7 +275,7 @@ export async function renderLeaderboard(
         tdTeam.appendChild(teamSpan);
 
         const tdScore = document.createElement("td");
-        tdScore.style.cssText = "text-align: right; font-family: var(--font-display); color: var(--color-cyan);";
+        tdScore.className = "col-score";
         tdScore.textContent = entry.score.toLocaleString();
 
         row.append(tdRank, tdName, tdTeam, tdScore);
