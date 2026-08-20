@@ -233,15 +233,20 @@ export async function deleteLowestScore() {
 /**
  * Submits a new high score, enforces name validation, saves team selection,
  * trims excess entries > MAX_LEADERBOARD_ENTRIES, and returns success status with confirmed rank.
+ *
+ * @param {string} username
+ * @param {string} team
+ * @param {number} score
+ * @param {number} [runDurationSec=0] - Total wall-clock seconds of the run (for anti-cheat metadata)
  */
-export async function submitHighScore(username, team, score) {
+export async function submitHighScore(username, team, score, runDurationSec = 0) {
   // Support both (username, team, score) and legacy (username, score)
   if (typeof team === "number" && score === undefined) {
     score = team;
     team = INTEGRATION_TEAMS[0];
   }
 
-  // Finding 3 — Score integrity check: must be a finite positive integer within bounds
+  // Score integrity check: must be a finite positive integer within bounds
   const safeScore = Math.floor(Number(score));
   if (!Number.isFinite(safeScore) || safeScore <= 0 || safeScore > 10_000_000) {
     return { success: false, rank: null };
@@ -252,22 +257,49 @@ export async function submitHighScore(username, team, score) {
     return { success: false, rank: null };
   }
 
-  // Finding 2 — Team allowlist check: must be a recognized integration team
+  // Team allowlist check: must be a recognized integration team
   const trimmedTeam = (team || "").trim() || INTEGRATION_TEAMS[0];
   const cleanTeam = INTEGRATION_TEAMS.includes(trimmedTeam)
     ? trimmedTeam
     : INTEGRATION_TEAMS[0];
+
+  // --- Physical Plausibility Guard -------------------------------------------
+  // Maximum theoretically earnable score:
+  //   Survival points: 10 pts/sec × runDurationSec
+  //   Coin pickups:    100 pts each — conservatively allow 1 coin/sec
+  //   GOUV kills:      250 pts each — conservatively allow 1 GOUV/3sec
+  // If the reported score is higher than this ceiling, reject as implausible.
+  const safeDuration = Math.max(0, Math.floor(Number(runDurationSec) || 0));
+  if (safeDuration > 0) {
+    const maxSurvival  = safeDuration * 10;
+    const maxCoins     = safeDuration * 100;          // 1 coin/sec ceiling
+    const maxGouvKills = Math.floor(safeDuration / 3) * 250; // 1 GOUV every 3 sec ceiling
+    const maxTheoretical = maxSurvival + maxCoins + maxGouvKills;
+    if (safeScore > maxTheoretical) {
+      console.warn(
+        `[AntiCheat] Score ${safeScore} exceeds theoretical max ${maxTheoretical} for ${safeDuration}s run. Submission rejected.`
+      );
+      return { success: false, rank: null };
+    }
+  }
+  // ---------------------------------------------------------------------------
 
   const qualification = await qualifiesForLeaderboard(safeScore);
   if (!qualification.qualifies) {
     return { success: false, rank: null };
   }
 
+  // Determine is_top_score: true when this entry would sit at rank 1
+  const isTopScore = qualification.rank === 1;
+
   const newEntry = {
     username: cleanUsername,
     team: cleanTeam,
     score: safeScore,
     created_at: new Date().toISOString(),
+    // Lightweight verification metadata (no extra row, no extra DB query)
+    is_top_score: isTopScore,
+    run_duration_sec: safeDuration,
   };
 
   if (supabase) {
@@ -275,7 +307,11 @@ export async function submitHighScore(username, team, score) {
       const { error } = await supabase.from("high_scores").insert([newEntry]);
 
       if (!error) {
-        console.log("Score submitted successfully to Supabase.");
+        console.log("Score submitted successfully to Supabase.", {
+          rank: qualification.rank,
+          is_top_score: isTopScore,
+          run_duration_sec: safeDuration,
+        });
         await deleteLowestScore();
         return {
           success: true,
@@ -290,7 +326,7 @@ export async function submitHighScore(username, team, score) {
     }
   }
 
-  // Local Storage Fallback
+  // Local Storage Fallback (metadata stored locally too for consistency)
   const stored = localStorage.getItem("neon_runner_leaderboard");
   let leaderboard = stored ? JSON.parse(stored) : [...DEFAULT_LEADERBOARD];
   leaderboard.push(newEntry);
@@ -313,8 +349,8 @@ export async function submitHighScore(username, team, score) {
 /**
  * Backward compatibility alias for submitScore
  */
-export async function submitScore(username, team, score) {
-  return submitHighScore(username, team, score);
+export async function submitScore(username, team, score, runDurationSec = 0) {
+  return submitHighScore(username, team, score, runDurationSec);
 }
 
 /**

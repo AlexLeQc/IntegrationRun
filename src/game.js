@@ -90,12 +90,15 @@ export class Game {
     this.projectiles = [];
     this._lastShot = 0;
 
+    // Stamp wall-clock session start for run-duration metadata
+    this._sessionStartTime = Date.now();
+
     this.player.reset();
     this.obstacleManager.reset();
     this.coinManager.reset();
     this.screenShake.reset();
 
-    this.lastTime = performance.now();
+    this.lastTime = 0;
 
     if (this.onUpdateHUD) {
       this.onUpdateHUD({ score: this.score, lives: this.lives });
@@ -107,8 +110,18 @@ export class Game {
     requestAnimationFrame((time) => this.loop(time));
   }
 
+  /** Total elapsed wall-clock seconds for the current (or last completed) run. */
+  get runDurationSec() {
+    if (!this._sessionStartTime) return 0;
+    return Math.round((Date.now() - this._sessionStartTime) / 1000);
+  }
+
   stop() {
     this.isRunning = false;
+    // Freeze the session timestamp so runDurationSec stays valid after game over
+    if (this._sessionStartTime) {
+      this._sessionStartTime = Date.now() - (this.runDurationSec * 1000);
+    }
     audioManager.stopBGM();
     audioManager.stopGouvSound();
     document.removeEventListener('visibilitychange', this._onVisibilityChange);

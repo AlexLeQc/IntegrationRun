@@ -252,7 +252,7 @@ scoreSubmitForm.addEventListener('submit', async (e) => {
   submitScoreBtn.textContent = 'ENREGISTREMENT...';
 
   try {
-    const res = await submitHighScore(name, team, game.score);
+    const res = await submitHighScore(name, team, game.score, game.runDurationSec);
 
     if (res && res.success) {
       if (submitStatusMsg) {

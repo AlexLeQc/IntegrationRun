@@ -173,8 +173,40 @@ If the asset is not ready, the procedural canvas fallback executes without throw
   - If the board has existing entries: qualifies **only if** `score > lowestExistingScore` (the score of the last entry currently on the board). Open cap slots do NOT automatically qualify a score.
   - If the board is full (`entries >= MAX_LEADERBOARD_ENTRIES`): additionally validates that `score > allScores[MAX_LEADERBOARD_ENTRIES - 1].score`.
 - **Tie-Breaking Rule**: Higher score ranks better. If two entries have identical scores, the older entry is kept first, and the new score inserts _after_ existing identical scores.
-- **Automatic Database Trimming**: Calling `submitHighScore(username, team, score)` inserts the entry with the selected team, calculates rank, and executes `deleteLowestScore()` to purge any entries exceeding `MAX_LEADERBOARD_ENTRIES`.
+- **Automatic Database Trimming**: Calling `submitHighScore(username, team, score, runDurationSec)` inserts the entry with the selected team, calculates rank, and executes `deleteLowestScore()` to purge any entries exceeding `MAX_LEADERBOARD_ENTRIES`.
 - Parity between online (Supabase) and offline (`localStorage` fallback) modes.
+
+### Score Verification Metadata & Anti-Cheat
+
+Two lightweight metadata fields are attached to every score submission with **zero additional database queries** (both are derived from data already fetched during qualification):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `is_top_score` | `boolean` | `true` when the submitted score ranks #1 on the board at submission time |
+| `run_duration_sec` | `integer` | Total wall-clock seconds from `game.start()` to `game.stop()`, measured via `Date.now()` in the `Game` class |
+
+**SQL columns to add to `high_scores`:**
+```sql
+alter table public.high_scores
+  add column if not exists is_top_score     boolean default false,
+  add column if not exists run_duration_sec integer default 0;
+```
+
+**Physical Plausibility Guard** (`submitHighScore` in `src/supabase.js`):
+
+Before inserting a score, a ceiling is computed from `run_duration_sec` using generous per-second allowances for each scoring source:
+
+```
+maxSurvival   = runDurationSec × 10          (survival rate)
+maxCoins      = runDurationSec × 100         (1 coin/sec ceiling)
+maxGouvKills  = floor(runDurationSec / 3) × 250  (1 GOUV kill every 3s ceiling)
+maxTheoretical = maxSurvival + maxCoins + maxGouvKills
+```
+
+If `score > maxTheoretical`, the submission is **rejected client-side** before any database write, and a `console.warn` is emitted with the values. This catches scores that are numerically impossible relative to run length (e.g., a 5-second run claiming 50,000 points).
+
+> [!NOTE]
+> The plausibility guard only fires when `runDurationSec > 0`. If timing data is unavailable, the check is skipped and existing server-side bounds (`score ≤ 10,000,000`) still apply.
 
 ---
 
